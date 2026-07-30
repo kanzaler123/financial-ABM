@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "decision": "PASS_STAGE1_MECHANISM_ACCEPTANCE",
+  "stage1_complete": true,
+  "may_enter_stage2": true,
+  "passed_checks": 16,
+  "total_checks": 16,
+  "formal_seeds": 32,
+  "scenarios_per_seed": 10,
+  "simulations": 320,
+  "core_parameters_changed_after_formal_run": false,
+  "supersedes_completion_rule": "reports/stage1_repaired_20260729/final_decision.json",
+  "supersession_note": "The old FAIL_SEALED_TEST remains valid for its historical 7/7 IQR rule but no longer defines mechanism-first project completion.",
+  "freeze_manifest": "configs/stage1_mechanism_freeze_v1.json",
+  "formal_report": "reports/stage1_mechanism_acceptance_v1/mechanism_report.json",
+  "official_run": "runs/stage1_mechanism_v2_20260730",
+  "official_run_fingerprint": "f43c04836b41a70d9957bcf5abf0b0fecd118e9472e0db9d5604154ea8c085b6"
+}

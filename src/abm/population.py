@@ -1,0 +1,118 @@
+"""Array-backed trader population for deterministic batch simulation."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+from numpy.typing import NDArray
+
+from .config import STRATEGY_NAMES, Stage1Config
+
+FloatArray = NDArray[np.float64]
+StrategyArray = NDArray[np.int8]
+
+VALUE_STRATEGY = 0
+TREND_STRATEGY = 1
+NOISE_STRATEGY = 2
+STRATEGY_CODES = np.array(
+    [VALUE_STRATEGY, TREND_STRATEGY, NOISE_STRATEGY], dtype=np.int8
+)
+
+
+def strategy_counts(strategy_shares: dict[str, float], population_size: int) -> NDArray[np.int64]:
+    """Convert proportions into exact integer counts using largest remainders."""
+    raw = np.array(
+        [strategy_shares[name] * population_size for name in STRATEGY_NAMES],
+        dtype=np.float64,
+    )
+    counts = np.floor(raw).astype(np.int64)
+    remainder = population_size - int(counts.sum())
+    if remainder:
+        order = np.argsort(-(raw - counts), kind="stable")
+        counts[order[:remainder]] += 1
+    return counts
+
+
+@dataclass(slots=True)
+class TraderPopulation:
+    cash: FloatArray
+    positions: FloatArray
+    strategies: StrategyArray
+    risk_aversion: FloatArray
+
+    @classmethod
+    def initialize(
+        cls,
+        config: Stage1Config,
+        rng: np.random.Generator,
+    ) -> "TraderPopulation":
+        counts = strategy_counts(config.strategy_shares, config.population_size)
+        strategies = np.repeat(STRATEGY_CODES, counts).astype(np.int8, copy=False)
+        rng.shuffle(strategies)
+        if config.initial_wealth_dispersion > 0:
+            wealth_multipliers = rng.lognormal(
+                mean=-0.5 * config.initial_wealth_dispersion**2,
+                sigma=config.initial_wealth_dispersion,
+                size=config.population_size,
+            )
+            # Preserve the configured aggregate endowment exactly while
+            # representing the concentrated size distribution of real markets.
+            wealth_multipliers /= float(wealth_multipliers.mean())
+        else:
+            wealth_multipliers = np.ones(
+                config.population_size,
+                dtype=np.float64,
+            )
+        return cls(
+            cash=(
+                config.initial_agent_cash * wealth_multipliers
+            ).astype(np.float64, copy=False),
+            positions=(
+                config.initial_agent_position * wealth_multipliers
+            ).astype(np.float64, copy=False),
+            strategies=strategies,
+            # Stable individual heterogeneity prevents an entire strategy
+            # cohort from behaving like one representative trader.
+            risk_aversion=rng.uniform(0.5, 1.5, size=config.population_size),
+        )
+
+    @property
+    def size(self) -> int:
+        return int(self.cash.size)
+
+    def wealth(self, price: float) -> FloatArray:
+        return self.cash + self.positions * price
+
+    def counts(self) -> NDArray[np.int64]:
+        return np.bincount(self.strategies, minlength=len(STRATEGY_NAMES)).astype(
+            np.int64,
+            copy=False,
+        )
+
+    def validate(
+        self,
+        *,
+        tolerance: float = 1e-9,
+        allow_short: bool = False,
+        price: float | None = None,
+    ) -> None:
+        if not (
+            self.cash.shape
+            == self.positions.shape
+            == self.strategies.shape
+            == self.risk_aversion.shape
+        ):
+            raise RuntimeError("population arrays must have identical shapes")
+        if not np.all(np.isfinite(self.cash)) or not np.all(
+            np.isfinite(self.positions)
+        ):
+            raise RuntimeError("population contains non-finite cash or positions")
+        if float(self.cash.min()) < -tolerance:
+            raise RuntimeError("population contains negative cash")
+        if not allow_short and float(self.positions.min()) < -tolerance:
+            raise RuntimeError("population contains illegal short positions")
+        if price is not None and float(self.wealth(price).min()) < -tolerance:
+            raise RuntimeError("population contains negative marked-to-market wealth")
+        if not np.all(np.isin(self.strategies, STRATEGY_CODES)):
+            raise RuntimeError("population contains an unknown strategy code")

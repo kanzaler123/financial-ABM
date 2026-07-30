@@ -1,0 +1,24 @@
+{
+  "decision": "FAIL_SEALED_TEST",
+  "stage1_complete": false,
+  "stage2_allowed": false,
+  "reason": "Four of seven temporal metrics were inside the sealed empirical IQR; mean return, return lag-1 autocorrelation, and absolute-return lag-1 autocorrelation were outside. Test cross-sectional volatility relative error was 20.7892%.",
+  "passed_test_metrics": [
+    "daily_volatility",
+    "excess_kurtosis",
+    "quantile_01",
+    "quantile_99"
+  ],
+  "failed_test_metrics": [
+    "mean_daily_return",
+    "return_autocorrelation_lag1",
+    "absolute_return_autocorrelation_lag1"
+  ],
+  "test_cross_sectional_relative_error": 0.20789205939048855,
+  "no_post_test_tuning": true,
+  "sha256": {
+    "configs/stage1_freeze_v1.json": "c42562f16f1fe99879586346c5b99f62f1ba3afb1515d159b00b9db5748337bc",
+    "reports/stage1_repaired_20260729/sealed_test_report.json": "9c1607ea3ff573e6a09a805d9dd7cff93c33479a6384ce516ffd5da29908503c",
+    "runs/stage1_repaired_20260729/summary.json": "63f48569e62a8e9f09fd166872087c6002f3eb7a865998e95952ae6bc1380d69"
+  }
+}

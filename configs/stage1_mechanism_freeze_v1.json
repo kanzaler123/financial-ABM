@@ -1,0 +1,35 @@
+{
+  "freeze_id": "stage1-mechanism-freeze-v1-20260730",
+  "frozen_at": "2026-07-30T13:13:01+08:00",
+  "decision": "Core configuration, mechanism implementation, formal seeds, and acceptance criteria frozen after development 16/16 PASS and before formal seed execution.",
+  "formal_run_status_at_freeze": {
+    "formal_metrics_read": false,
+    "formal_simulations_run": false
+  },
+  "development_evidence": {
+    "protocol": "stage1-mechanism-dev-v1",
+    "seeds": 32,
+    "scenarios": 10,
+    "passed_checks": 16,
+    "total_checks": 16,
+    "report": "reports/stage1_mechanism_dev_v2/mechanism_report.json"
+  },
+  "preflight": {
+    "pytest": "48 passed",
+    "compileall": "passed",
+    "pip_check": "No broken requirements found",
+    "git_diff_check": "passed; only CRLF warning on user-owned plan"
+  },
+  "sha256": {
+    "configs/stage1.json": "59c6d35224059de93fb713ab789be639ab19c6267958ce9aa6ee80125b367d59",
+    "configs/stage1_mechanism_acceptance_v1.json": "335eeb23d64a3908bfb299b52efe015fdb16ff83af523bedb3c7ba596f55187e",
+    "src/abm/config.py": "5471ecd2bbabc9b71994e7f968f64063794fc406b59d17ba3b7652779c7b2520",
+    "src/abm/population.py": "cced837dcfb43b0d8dfa7e274364c4dc10165f4860554b9bd57e982908434868",
+    "src/abm/policies.py": "22de344b0989e461641fa5548b858cc6b76b926cf1c769cdf90adb388290601b",
+    "src/abm/harness.py": "9dbb0517be77cd9a54c1ca87eccabb1f5c717329fe5d537ce43ac755cd7f0b48",
+    "src/abm/mechanism_validation.py": "a2f229034436f12718ea5f97c123a86a8cbcbc54202f79b72c999549e22d4af4",
+    "src/abm/learning.py": "dd07035311a1f8554bfddf7fe8e6f9e92a54a917f0547f9cdd5cf7d346dc9864",
+    "src/abm/settlement.py": "76e3dcdfe7b47861085221e73a68e0f7e91e97f0903ada7d891f77ea14ee24a9",
+    "pyproject.toml": "3d639bab6acacf2b277c3f9d3589c59d7f881609dfa2392b9e2acf0a906e75ff"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "freeze_id": "stage1-freeze-v1-20260729",
+  "frozen_at": "2026-07-29T16:53:00+08:00",
+  "decision": "Parameters and implementation frozen before the sealed test run.",
+  "test_status_at_freeze": {
+    "metrics_read": false,
+    "simulations_run": false
+  },
+  "acceptance_evidence": {
+    "training_temporal_metrics_inside_iqr": 5,
+    "training_temporal_metrics_total": 7,
+    "training_cross_sectional_relative_error": 0.004914853873359227,
+    "validation_temporal_metrics_inside_iqr": 7,
+    "validation_temporal_metrics_total": 7,
+    "validation_cross_sectional_relative_error": 0.1688431531314669
+  },
+  "sha256": {
+    "configs/stage1.json": "7b61658a819f609a1b841e28ebb96df820648082565b3046878efb8efed128de",
+    "configs/stage1_calibration_v1.json": "85df59006f315077c68603476a29b4c9ddf799b5999562dded1c18d27e4ab278",
+    "configs/french49_split_v1.json": "a8730b0fcc6597215852761a0ccedf46ae189c3081e7fff458ad5794bd7ced12",
+    "reports/stage1_repaired_20260729/calibration_report_v5_final.json": "b0d12ba2cfa84a93b1eb79a26770ac66f7c53fc76057850fa90f80e50e30ad6d",
+    "src/abm/config.py": "4515703259eaa0298d2706da693bc96caed3b7ba128f46d005c8364e09392b69",
+    "src/abm/population.py": "29b29bd8f843743820dd5210828a2eea814fc84b0aece7e5024deb34ad31745f",
+    "src/abm/policies.py": "3f2f39414aa7d0ec6191770bfbdac9974e66e0da3183f4d5f0a11836536dbf93",
+    "src/abm/learning.py": "dd07035311a1f8554bfddf7fe8e6f9e92a54a917f0547f9cdd5cf7d346dc9864",
+    "src/abm/settlement.py": "76e3dcdfe7b47861085221e73a68e0f7e91e97f0903ada7d891f77ea14ee24a9",
+    "src/abm/harness.py": "f6587074cdc1314f6ce6131c691f683155461a081ec5a614d5ee5154749a1ef9",
+    "src/abm/calibration.py": "46ee247526920669db31506688f7c069ac415ca6aca758d5293801ebf895b594"
+  }
+}

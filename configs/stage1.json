@@ -1,0 +1,66 @@
+{
+  "schema_version": "0.2.0",
+  "population_size": 1000,
+  "trading_days": 250,
+  "seed": 20260729,
+  "asset_id": "ACME",
+  "initial_price": 100.0,
+  "initial_fundamental": 100.0,
+  "fundamental_process": "gaussian",
+  "fundamental_drift": 0.00045,
+  "fundamental_volatility": 0.012,
+  "fundamental_shock_df": 0.0,
+  "fundamental_arch": 0.0,
+  "fundamental_garch": 0.0,
+  "fundamental_common_correlation": 0.0,
+  "public_news_price_pass_through": 0.0,
+  "initial_agent_cash": 10000.0,
+  "initial_agent_position": 10.0,
+  "initial_wealth_dispersion": 0.0,
+  "market_maker_cash": 100000000.0,
+  "market_maker_inventory": 100000.0,
+  "transaction_cost_rate": 0.001,
+  "price_impact": 1.0,
+  "liquidity_scale": 16000.0,
+  "max_log_return": 0.15,
+  "max_order_fraction": 0.04,
+  "max_short_leverage": 0.25,
+  "base_activity_rate": 0.3,
+  "activity_volatility_sensitivity": 1.0,
+  "liquidity_volatility_sensitivity": 0.0,
+  "liquidity_stress_threshold": 1.0,
+  "minimum_liquidity_fraction": 1.0,
+  "value_sensitivity": 10.0,
+  "trend_sensitivity": 2.0,
+  "trend_lookback": 20,
+  "noise_scale": 0.5,
+  "idiosyncratic_signal_scale": 0.05,
+  "common_signal_correlation": 0.3,
+  "learning_enabled": true,
+  "learning_interval": 60,
+  "learning_update_fraction": 0.15,
+  "learning_temperature": 0.002,
+  "risk_penalty": 1.0,
+  "strategy_shares": {
+    "value": 0.4,
+    "trend": 0.4,
+    "noise": 0.2
+  },
+  "announcements": [
+    {
+      "day": 60,
+      "fundamental_delta": 2.0,
+      "source": "company-acme"
+    },
+    {
+      "day": 120,
+      "fundamental_delta": -4.0,
+      "source": "company-acme"
+    },
+    {
+      "day": 180,
+      "fundamental_delta": 3.0,
+      "source": "company-acme"
+    }
+  ]
+}

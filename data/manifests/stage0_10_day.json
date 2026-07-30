@@ -1,0 +1,22 @@
+{
+  "schema_version": "0.1.0",
+  "artifacts": [
+    {
+      "logical_name": "stage0_synthetic_scenario",
+      "path": "data/synthetic/stage0_10_day.json",
+      "sha256": "347c1103a21cb66a37a9ce18757b66598062f69381f851e9ec382558751f50ae",
+      "rows": {
+        "market_states": 10,
+        "agent_states": 5,
+        "company_states": 2,
+        "messages": 3,
+        "edges": 4,
+        "orders": 10,
+        "factor_events": 2
+      },
+      "source": "hand-authored synthetic fixture",
+      "license": "project-internal",
+      "retrieved_at": null
+    }
+  ]
+}

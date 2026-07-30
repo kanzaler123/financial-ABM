@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1.0",
+  "scenario_id": "stage0-two-companies-five-traders-ten-days",
+  "start_date": "2026-01-05",
+  "end_date": "2026-01-16",
+  "market_states": [
+    {"date": "2026-01-05", "asset_id": "ACME", "price": 100.0, "fundamental_value": 101.0, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-06", "asset_id": "ACME", "price": 100.0, "fundamental_value": 101.0, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-07", "asset_id": "ACME", "price": 100.0, "fundamental_value": 101.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-08", "asset_id": "ACME", "price": 100.0, "fundamental_value": 101.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-09", "asset_id": "ACME", "price": 100.0, "fundamental_value": 101.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-12", "asset_id": "ACME", "price": 100.0, "fundamental_value": 99.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-13", "asset_id": "ACME", "price": 100.0, "fundamental_value": 99.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-14", "asset_id": "ACME", "price": 100.0, "fundamental_value": 99.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-15", "asset_id": "ACME", "price": 100.0, "fundamental_value": 100.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0},
+    {"date": "2026-01-16", "asset_id": "ACME", "price": 100.0, "fundamental_value": 100.5, "volume": 0.0, "market_maker_inventory": 10000.0, "market_maker_cash": 1000000.0}
+  ],
+  "agent_states": [
+    {"agent_id": "trader-001", "agent_type": "value", "cash": 10000.0, "positions": {"ACME": 10.0}, "beliefs": {"fair_value": 102.0}, "memory_refs": [], "active": true},
+    {"agent_id": "trader-002", "agent_type": "value", "cash": 12000.0, "positions": {"ACME": 8.0}, "beliefs": {"fair_value": 99.0}, "memory_refs": [], "active": true},
+    {"agent_id": "trader-003", "agent_type": "trend", "cash": 9000.0, "positions": {"ACME": 12.0}, "beliefs": {"lookback_days": 5}, "memory_refs": [], "active": true},
+    {"agent_id": "trader-004", "agent_type": "noise", "cash": 11000.0, "positions": {"ACME": 9.0}, "beliefs": {"noise_scale": 0.1}, "memory_refs": [], "active": true},
+    {"agent_id": "trader-005", "agent_type": "hold", "cash": 10000.0, "positions": {"ACME": 10.0}, "beliefs": {}, "memory_refs": [], "active": true}
+  ],
+  "company_states": [
+    {"company_id": "company-acme", "cik": "0000000001", "assets": 5000000.0, "cash_flow": 250000.0, "disclosure_state": "scheduled", "next_decision_date": "2026-01-07"},
+    {"company_id": "company-beta", "cik": "0000000002", "assets": 3000000.0, "cash_flow": 120000.0, "disclosure_state": "scheduled", "next_decision_date": "2026-01-12"}
+  ],
+  "messages": [
+    {"message_id": "msg-001", "source_id": "company-acme", "target_scope": ["public"], "event_time": "2026-01-07T08:00:00+00:00", "available_at": "2026-01-07T08:00:00+00:00", "content_type": "company_announcement", "payload": {"fundamental_delta": 0.5}, "credibility": 1.0, "parent_message_id": null},
+    {"message_id": "msg-002", "source_id": "company-beta", "target_scope": ["public"], "event_time": "2026-01-12T08:00:00+00:00", "available_at": "2026-01-12T08:00:00+00:00", "content_type": "company_announcement", "payload": {"fundamental_delta": -2.0}, "credibility": 1.0, "parent_message_id": null},
+    {"message_id": "msg-003", "source_id": "company-acme", "target_scope": ["trader-001", "trader-003"], "event_time": "2026-01-14T08:00:00+00:00", "available_at": "2026-01-15T08:00:00+00:00", "content_type": "delayed_test_message", "payload": {"fundamental_delta": 1.0}, "credibility": 0.8, "parent_message_id": null}
+  ],
+  "edges": [
+    {"source_id": "company-acme", "target_id": "trader-001", "edge_type": "follows", "weight": 0.9, "trust": 0.8, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "company-acme", "target_id": "trader-003", "edge_type": "follows", "weight": 0.7, "trust": 0.6, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-001", "target_id": "trader-002", "edge_type": "peer", "weight": 0.5, "trust": 0.5, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-003", "target_id": "trader-004", "edge_type": "peer", "weight": 0.4, "trust": 0.4, "delay_days": 2, "valid_from": "2026-01-05", "valid_to": null}
+  ],
+  "orders": [
+    {"agent_id": "trader-001", "asset_id": "ACME", "side": "hold", "quantity": 0.0, "submitted_at": "2026-01-05T09:30:00+00:00", "reason_code": "stage0_script"},
+    {"agent_id": "trader-002", "asset_id": "ACME", "side": "hold", "quantity": 0.0, "submitted_at": "2026-01-06T09:30:00+00:00", "reason_code": "stage0_script"},
+    {"agent_id": "trader-001", "asset_id": "ACME", "side": "buy", "quantity": 2.0, "submitted_at": "2026-01-07T09:30:00+00:00", "reason_code": "positive_announcement"},
+    {"agent_id": "trader-003", "asset_id": "ACME", "side": "buy", "quantity": 1.0, "submitted_at": "2026-01-08T09:30:00+00:00", "reason_code": "trend_signal"},
+    {"agent_id": "trader-004", "asset_id": "ACME", "side": "sell", "quantity": 1.0, "submitted_at": "2026-01-09T09:30:00+00:00", "reason_code": "noise_signal"},
+    {"agent_id": "trader-002", "asset_id": "ACME", "side": "sell", "quantity": 2.0, "submitted_at": "2026-01-12T09:30:00+00:00", "reason_code": "negative_announcement"},
+    {"agent_id": "trader-005", "asset_id": "ACME", "side": "hold", "quantity": 0.0, "submitted_at": "2026-01-13T09:30:00+00:00", "reason_code": "fixed_policy"},
+    {"agent_id": "trader-003", "asset_id": "ACME", "side": "hold", "quantity": 0.0, "submitted_at": "2026-01-14T09:30:00+00:00", "reason_code": "stage0_script"},
+    {"agent_id": "trader-001", "asset_id": "ACME", "side": "buy", "quantity": 1.0, "submitted_at": "2026-01-15T09:30:00+00:00", "reason_code": "delayed_message"},
+    {"agent_id": "trader-004", "asset_id": "ACME", "side": "hold", "quantity": 0.0, "submitted_at": "2026-01-16T09:30:00+00:00", "reason_code": "stage0_script"}
+  ],
+  "factor_events": [
+    {"factor_id": "factor-acme-positive", "event_time": "2026-01-07T08:00:00+00:00", "available_at": "2026-01-07T08:00:00+00:00", "source": "synthetic", "targets": ["company-acme", "ACME"], "channel": "fundamental", "true_value": 0.5, "observed_message": "ACME synthetic cash-flow improvement", "uncertainty": 0.0, "persistence": 5},
+    {"factor_id": "factor-beta-negative", "event_time": "2026-01-12T08:00:00+00:00", "available_at": "2026-01-12T08:00:00+00:00", "source": "synthetic", "targets": ["company-beta", "ACME"], "channel": "information", "true_value": -2.0, "observed_message": "BETA synthetic demand shock", "uncertainty": 0.1, "persistence": 3}
+  ]
+}
+

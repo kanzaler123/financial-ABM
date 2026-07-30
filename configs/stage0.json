@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1.0",
+  "clock": {
+    "frequency": "daily",
+    "timezone": "UTC",
+    "synchronous_barrier": true
+  },
+  "market": {
+    "asset_id": "ACME",
+    "price_impact": "disabled_stage0"
+  },
+  "random_seed": 20260729,
+  "plugins": [],
+  "learning": {
+    "enabled": false
+  }
+}
+
