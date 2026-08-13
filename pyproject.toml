@@ -12,22 +12,26 @@ license = { text = "Proprietary" }
 authors = [{ name = "ABM Research Project" }]
 dependencies = [
   "duckdb>=1.4,<2",
+  "fastapi>=0.116,<1",
   "matplotlib>=3.10,<4",
   "numpy>=2.0,<3",
   "pyqtgraph>=0.14,<1",
   "PySide6>=6.8,<7",
+  "uvicorn>=0.35,<1",
   "vispy>=0.15,<1",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3,<9"]
+dev = ["httpx>=0.28,<1", "pytest>=8.3,<9"]
 
 [project.scripts]
 abm-benchmark = "abm.french49:main"
 abm-calibrate = "abm.calibration:main"
 abm-desktop = "abm.desktop:main"
 abm-plot = "abm.visualization:main"
+abm-web = "abm.web:main"
 abm-run = "abm.runner:main"
+abm-freeze-stage1 = "abm.stage1_freeze:main"
 abm-validate-stage1 = "abm.mechanism_validation:main"
 
 [tool.setuptools.packages.find]

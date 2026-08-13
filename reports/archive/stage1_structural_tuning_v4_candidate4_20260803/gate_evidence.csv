@@ -1,0 +1,14 @@
+check,kind,comparison,observed,threshold,pass_rate,required_pass_rate,failed_seeds
+full_volatility_in_daily_range,scenario,full,0.011575069374885495,"{""maximum"": 0.03, ""minimum"": 0.005}",1.0,0.8,
+full_return_autocorrelation_near_zero_across_lags,scenario,full,0.07537606204712934,0.2,1.0,0.8,
+full_volatility_clustering_has_decay,scenario,full,0.02729953289843285,0.03,0.4,0.8,20260801;20260802;20260805
+full_heavier_than_gaussian,scenario,full,0.32240145878263604,0.1,0.8,0.8,20260802
+full_volume_volatility_relation_positive,scenario,full,0.14342424424053052,0.05,0.6,0.8,20260802;20260805
+full_price_discovery_bounded,scenario,full,0.08285833250881154,0.1,0.6,0.8,20260802;20260805
+endogenous_liquidity_feedback_increases_tail_weight,paired_difference,full - fixed_liquidity,0.1933109419311596,0.05,0.8,0.8,20260802
+public_news_marginal_response,paired_ratio,full -> no_direct_news,5.90077906007556,1.0,1.0,0.8,
+public_news_independent_response,paired_ratio,no_agent_information -> no_information_channels,5.46290853976271,1.0,1.0,0.8,
+agent_information_marginal_response,paired_ratio,full -> no_agent_information,1.0745246365724865,1.0,0.6,0.8,20260801;20260802
+agent_information_independent_response,paired_ratio,no_direct_news -> no_information_channels,0.9752072129530844,1.0,0.2,0.8,20260802;20260803;20260804;20260805
+empty_information_baseline_is_weakest_discovery,paired_ratio,full -> no_information_channels,5.8700298133172595,1.0,1.0,0.8,
+persistent_order_flow_is_observable,scenario,full,0.8688394023282853,0.05,1.0,0.8,

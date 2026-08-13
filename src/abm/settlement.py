@@ -42,10 +42,24 @@ class SettlementEngine:
             raise ValueError("submitted_orders shape must match the population")
         if execution_price <= 0 or not np.isfinite(execution_price):
             raise ValueError("execution_price must be finite and positive")
-        if market_maker_cash < 0 or market_maker_inventory < 0:
-            raise ValueError("market-maker cash and inventory must be nonnegative")
+        if market_maker_cash < 0:
+            raise ValueError("market-maker cash must be nonnegative")
+        if not np.isfinite(market_maker_inventory):
+            raise ValueError("market-maker inventory must be finite")
 
         executed = submitted_orders.astype(np.float64, copy=True)
+        if minimum_positions is None:
+            minimum_positions = np.zeros_like(population.positions)
+        if minimum_positions.shape != population.positions.shape:
+            raise ValueError("minimum_positions shape must match the population")
+
+        # Margin call: whatever the submitted direction, no position may end
+        # the day below the leverage floor. This also clips sales that would
+        # push a position through the floor.
+        executed = np.maximum(
+            executed,
+            minimum_positions - population.positions,
+        )
         buys = executed > 0
         sells = executed < 0
 
@@ -53,17 +67,20 @@ class SettlementEngine:
             execution_price * (1.0 + self.transaction_cost_rate)
         )
         executed[buys] = np.minimum(executed[buys], affordable[buys])
-        if minimum_positions is None:
-            minimum_positions = np.zeros_like(population.positions)
-        if minimum_positions.shape != population.positions.shape:
-            raise ValueError("minimum_positions shape must match the population")
         available_sales = population.positions - minimum_positions
         executed[sells] = np.maximum(executed[sells], -available_sales[sells])
+        if np.any(
+            population.positions + executed < minimum_positions - 1e-9
+        ):
+            raise RuntimeError(
+                "margin call exceeds available trader cash"
+            )
 
-        # If the counterparty is resource constrained, scale the whole batch
-        # pro rata. A single factor preserves the synchronous batch and avoids
-        # one-sided rescaling invalidating the other resource constraint.
-        net_quantity = float(executed.sum())
+        # If the counterparty runs out of cash for net purchases, scale the
+        # whole batch pro rata. A single factor preserves the synchronous
+        # batch and avoids one-sided rescaling invalidating the other
+        # resource constraint. Net sales are absorbed by the market maker
+        # short-selling, so inventory imposes no execution bound.
         market_maker_cash_delta = float(
             (
                 executed * execution_price
@@ -73,8 +90,6 @@ class SettlementEngine:
             ).sum()
         )
         scale = 1.0
-        if net_quantity > market_maker_inventory:
-            scale = min(scale, market_maker_inventory / net_quantity)
         if market_maker_cash_delta < -market_maker_cash:
             scale = min(scale, market_maker_cash / -market_maker_cash_delta)
         if scale < 1.0:

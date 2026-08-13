@@ -11,6 +11,7 @@ from typing import Any, Literal, Mapping, Protocol
 import duckdb
 
 TelemetryMode = Literal["batch", "live", "replay"]
+JsonScalar = str | int | float | bool | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,13 +36,18 @@ class TelemetryEvent:
     sim_time: int
     sequence_no: int
     event_type: str
-    payload: dict[str, float | int]
+    payload: dict[str, JsonScalar]
 
     def __post_init__(self) -> None:
         if not self.run_id.strip() or not self.event_type.strip():
             raise ValueError("run_id and event_type must not be empty")
         if self.sim_time < 0 or self.sequence_no < 0:
             raise ValueError("sim_time and sequence_no must be nonnegative")
+        if any(
+            not isinstance(value, (str, int, float, bool)) and value is not None
+            for value in self.payload.values()
+        ):
+            raise TypeError("telemetry payload values must be JSON scalars")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -174,11 +180,21 @@ def write_telemetry(
     return database_path, parquet_path
 
 
-def read_telemetry(run_dir: str | Path) -> tuple[TelemetryEvent, ...]:
-    """Read the persisted replay stream without rerunning the market."""
+def read_telemetry(
+    run_dir: str | Path,
+    *,
+    after_sequence: int = -1,
+    limit: int | None = None,
+) -> tuple[TelemetryEvent, ...]:
+    """Read a replay range without rerunning the market."""
+    if after_sequence < -1:
+        raise ValueError("after_sequence must be at least -1")
+    if limit is not None and limit < 1:
+        raise ValueError("limit must be positive")
     source = Path(run_dir)
     parquet_path = source / "telemetry.parquet"
     database_path = source / "telemetry.duckdb"
+    limit_clause = "" if limit is None else f" LIMIT {limit}"
     if parquet_path.is_file():
         connection = duckdb.connect()
         try:
@@ -187,8 +203,10 @@ def read_telemetry(run_dir: str | Path) -> tuple[TelemetryEvent, ...]:
                 f"""
                 SELECT run_id, sim_time, sequence_no, event_type, payload_json
                 FROM read_parquet('{escaped_parquet_path}')
-                ORDER BY sequence_no
-                """
+                WHERE sequence_no > ?
+                ORDER BY sequence_no{limit_clause}
+                """,
+                [after_sequence],
             ).fetchall()
         finally:
             connection.close()
@@ -196,10 +214,13 @@ def read_telemetry(run_dir: str | Path) -> tuple[TelemetryEvent, ...]:
         connection = duckdb.connect(str(database_path), read_only=True)
         try:
             rows = connection.execute(
-                """
+                f"""
                 SELECT run_id, sim_time, sequence_no, event_type, payload_json
-                FROM telemetry ORDER BY sequence_no
-                """
+                FROM telemetry
+                WHERE sequence_no > ?
+                ORDER BY sequence_no{limit_clause}
+                """,
+                [after_sequence],
             ).fetchall()
         finally:
             connection.close()

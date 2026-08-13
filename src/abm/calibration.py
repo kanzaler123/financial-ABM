@@ -43,6 +43,7 @@ class CalibrationProtocol:
     validation_seeds: tuple[int, ...]
     sealed_test_seeds: tuple[int, ...]
     common_seed: int
+    fundamental_common_correlation: float = 0.0
 
     def __post_init__(self) -> None:
         if self.trading_days < 250:
@@ -58,6 +59,10 @@ class CalibrationProtocol:
             raise ValueError("calibration seed groups must be disjoint")
         if self.common_seed in set(all_seeds):
             raise ValueError("common-factor seed must be reserved")
+        if not 0.0 <= self.fundamental_common_correlation <= 1.0:
+            raise ValueError(
+                "fundamental_common_correlation must be in [0, 1]"
+            )
 
     @classmethod
     def from_json(cls, path: str | Path) -> "CalibrationProtocol":
@@ -73,6 +78,9 @@ class CalibrationProtocol:
                 int(value) for value in payload["sealed_test_seeds"]
             ),
             common_seed=int(payload["common_seed"]),
+            fundamental_common_correlation=float(
+                payload.get("fundamental_common_correlation", 0.0)
+            ),
         )
 
 
@@ -170,6 +178,7 @@ def simulate_seed_group(
     seeds: Sequence[int],
     trading_days: int,
     common_seed: int,
+    fundamental_common_correlation: float = 0.0,
 ) -> dict[str, FloatArray]:
     paths: dict[str, FloatArray] = {}
     common_rng = np.random.default_rng(common_seed)
@@ -188,7 +197,11 @@ def simulate_seed_group(
     else:
         shared_scale = np.ones(trading_days, dtype=np.float64)
         variance_normalizer = 1.0
-    correlation = config.fundamental_common_correlation
+    if not 0.0 <= fundamental_common_correlation <= 1.0:
+        raise ValueError(
+            "fundamental_common_correlation must be in [0, 1]"
+        )
+    correlation = fundamental_common_correlation
     for seed in seeds:
         idiosyncratic_normal = np.random.default_rng(int(seed)).standard_normal(
             trading_days
@@ -222,6 +235,9 @@ def build_calibration_report(
             seeds=protocol.training_seeds,
             trading_days=protocol.trading_days,
             common_seed=protocol.common_seed,
+            fundamental_common_correlation=(
+                protocol.fundamental_common_correlation
+            ),
         )
     )
     validation_simulation = simulation_group(
@@ -230,6 +246,9 @@ def build_calibration_report(
             seeds=protocol.validation_seeds,
             trading_days=protocol.trading_days,
             common_seed=protocol.common_seed,
+            fundamental_common_correlation=(
+                protocol.fundamental_common_correlation
+            ),
         )
     )
     return {
@@ -275,6 +294,9 @@ def build_sealed_test_report(
             seeds=protocol.sealed_test_seeds,
             trading_days=protocol.trading_days,
             common_seed=protocol.common_seed,
+            fundamental_common_correlation=(
+                protocol.fundamental_common_correlation
+            ),
         )
     )
     return {

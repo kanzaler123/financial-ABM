@@ -2,7 +2,7 @@
 
 > 版本：2026-07-29
 > 核心决定：LLM 不进入主线；学习机制按“Logit 模仿 → Bandit/Q-learning → 有条件 PPO”逐步增加。
-> 可视化决定：使用 `PySide6 + pyqtgraph + VisPy` 开发本地原生动态监控与回放工具，不使用浏览器界面。
+> 可视化决定（2026-07-31 更新）：以绑定 `127.0.0.1` 的 FastAPI + React 本地 Web 实验室作为主要动态监控、回放和机制验收界面；保留 `PySide6 + pyqtgraph + VisPy` 原生桌面端作为离线/兼容选项，不建设生产级公网服务。
 
 ## 1. 总体架构与原则
 
@@ -23,10 +23,10 @@ Company Agent、Trader Agent 和后续主体只能通过 `Policy` 接口提交�
 
 ```text
 Harness 工作进程
-    → multiprocessing.Queue
-        → PySide6 主界面进程
-            ├─ pyqtgraph：市场、Agent 和企业时间序列
-            └─ VisPy：信息传播和关系网络动态图
+    → 非阻塞 multiprocessing.Queue / 无损持久化
+        ├─ FastAPI：REST 控制、SSE 遥测、历史回放
+        │   └─ React + ECharts：主要浏览器实验界面
+        └─ PySide6 + pyqtgraph/VisPy：离线兼容界面
 ```
 
 Harness 每个模拟日只产生只读的 `TelemetryEvent`。界面不能把状态写回 Harness；关闭界面后，相同配置和随机种子必须产生完全相同的结果。
@@ -195,6 +195,6 @@ VisualizerConfig = mode, max_fps, snapshot_interval
 
 - LLM 不进入前三阶段主线；
 - 不做每个 Agent 一个 LLM 或一个神经网络；
-- 不做实时交易、连续订单簿、强化学习以外的复杂训练框架或生产级网页前端；
-- 可视化只采用本地原生桌面工具，不使用浏览器作为运行界面；
+- 不做实时交易、连续订单簿、强化学习以外的复杂训练框架或生产级公网网页服务；
+- Web 可视化仅用于本机 loopback 研究操作，不承诺多用户、云部署或公网安全边界；
 - 不把 ESG、某个商业评分或某一种数据源写死进市场核心。

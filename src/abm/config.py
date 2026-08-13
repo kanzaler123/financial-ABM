@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import asdict, dataclass, fields
+from dataclasses import MISSING, asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Mapping
 
 STRATEGY_NAMES = ("value", "trend", "noise")
 FUNDAMENTAL_PROCESSES = ("gaussian", "student_t", "garch_t")
+PRICE_FORMATION_MODES = ("quasi_order_book",)
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,7 +43,6 @@ class Stage1Config:
     fundamental_shock_df: float
     fundamental_arch: float
     fundamental_garch: float
-    fundamental_common_correlation: float
     public_news_price_pass_through: float
     initial_agent_cash: float
     initial_agent_position: float
@@ -62,7 +62,6 @@ class Stage1Config:
     minimum_liquidity_fraction: float
     value_sensitivity: float
     trend_sensitivity: float
-    trend_lookback: int
     noise_scale: float
     idiosyncratic_signal_scale: float
     common_signal_correlation: float
@@ -73,6 +72,38 @@ class Stage1Config:
     risk_penalty: float
     strategy_shares: dict[str, float]
     announcements: tuple[Announcement, ...] = ()
+    price_formation: str = "quasi_order_book"
+    target_position_fraction: float = 0.25
+    value_target_adjustment: float = 0.05
+    trend_target_adjustment: float = 0.12
+    noise_target_adjustment: float = 0.20
+    value_no_trade_band: float = 0.005
+    initial_subjective_value_dispersion: float = 0.02
+    information_response_dispersion: float = 0.10
+    value_update_rate: float = 0.10
+    trend_short_lookback_min: int = 5
+    trend_short_lookback_max: int = 20
+    trend_long_lookback_min: int = 40
+    trend_long_lookback_max: int = 120
+    signal_volatility_floor: float = 0.0025
+    activity_signal_sensitivity: float = 1.5
+    activity_rate_dispersion: float = 0.25
+    activity_persistence: float = 0.95
+    activity_shock_scale: float = 0.08
+    common_signal_persistence: float = 0.80
+    liquidity_need_scale: float = 0.05
+    liquidity_need_persistence: float = 0.90
+    permanent_impact_fraction: float = 0.45
+    transient_impact_decay: float = 0.92
+    order_flow_memory: float = 0.30
+    base_spread_bps: float = 5.0
+    spread_volatility_sensitivity: float = 8.0
+    depth_resilience: float = 0.15
+    volatility_ewma_decay: float = 0.80
+    participation_pressure_exponent: float = 1.0
+    demand_volatility_exponent: float = 0.0
+    max_position_float_multiple: float = 5.0
+    burn_in_days: int = 0
 
     def __post_init__(self) -> None:
         if not self.schema_version.strip() or not self.asset_id.strip():
@@ -81,6 +112,11 @@ class Stage1Config:
             raise ValueError(
                 "fundamental_process must be one of "
                 f"{FUNDAMENTAL_PROCESSES}"
+            )
+        if self.price_formation not in PRICE_FORMATION_MODES:
+            raise ValueError(
+                "price_formation must be one of "
+                f"{PRICE_FORMATION_MODES}"
             )
         if self.population_size <= 0 or self.trading_days <= 0:
             raise ValueError("population_size and trading_days must be positive")
@@ -95,7 +131,9 @@ class Stage1Config:
             "liquidity_scale",
             "max_log_return",
             "learning_temperature",
-            "liquidity_stress_threshold",
+            "signal_volatility_floor",
+            "base_spread_bps",
+            "minimum_liquidity_fraction",
         )
         nonnegative_fields = (
             "initial_agent_position",
@@ -104,7 +142,6 @@ class Stage1Config:
             "fundamental_shock_df",
             "fundamental_arch",
             "fundamental_garch",
-            "fundamental_common_correlation",
             "public_news_price_pass_through",
             "transaction_cost_rate",
             "price_impact",
@@ -113,13 +150,37 @@ class Stage1Config:
             "base_activity_rate",
             "activity_volatility_sensitivity",
             "liquidity_volatility_sensitivity",
-            "minimum_liquidity_fraction",
+            "liquidity_stress_threshold",
             "value_sensitivity",
             "trend_sensitivity",
             "noise_scale",
             "idiosyncratic_signal_scale",
             "common_signal_correlation",
             "risk_penalty",
+            "target_position_fraction",
+            "value_target_adjustment",
+            "trend_target_adjustment",
+            "noise_target_adjustment",
+            "value_no_trade_band",
+            "initial_subjective_value_dispersion",
+            "information_response_dispersion",
+            "value_update_rate",
+            "activity_signal_sensitivity",
+            "activity_rate_dispersion",
+            "activity_persistence",
+            "activity_shock_scale",
+            "common_signal_persistence",
+            "liquidity_need_scale",
+            "liquidity_need_persistence",
+            "permanent_impact_fraction",
+            "transient_impact_decay",
+            "order_flow_memory",
+            "spread_volatility_sensitivity",
+            "depth_resilience",
+            "volatility_ewma_decay",
+            "participation_pressure_exponent",
+            "demand_volatility_exponent",
+            "max_position_float_multiple",
         )
         for name in positive_fields:
             value = getattr(self, name)
@@ -141,15 +202,42 @@ class Stage1Config:
             raise ValueError("minimum_liquidity_fraction must not exceed one")
         if self.common_signal_correlation > 1:
             raise ValueError("common_signal_correlation must not exceed one")
+        unit_interval_fields = (
+            "target_position_fraction",
+            "value_target_adjustment",
+            "trend_target_adjustment",
+            "noise_target_adjustment",
+            "value_update_rate",
+            "activity_persistence",
+            "common_signal_persistence",
+            "liquidity_need_persistence",
+            "permanent_impact_fraction",
+            "transient_impact_decay",
+            "order_flow_memory",
+            "depth_resilience",
+        )
+        for name in unit_interval_fields:
+            if getattr(self, name) > 1:
+                raise ValueError(f"{name} must not exceed one")
+        if not 0 < self.volatility_ewma_decay <= 1:
+            raise ValueError("volatility_ewma_decay must be in (0, 1]")
+        if self.participation_pressure_exponent > 3:
+            raise ValueError(
+                "participation_pressure_exponent must not exceed three"
+            )
+        if self.demand_volatility_exponent > 1.5:
+            raise ValueError(
+                "demand_volatility_exponent must not exceed 1.5"
+            )
+        if self.max_position_float_multiple > 100:
+            raise ValueError(
+                "max_position_float_multiple must not exceed one hundred"
+            )
         if not math.isfinite(self.fundamental_drift):
             raise ValueError("fundamental_drift must be finite")
         if self.public_news_price_pass_through > 1:
             raise ValueError(
                 "public_news_price_pass_through must not exceed one"
-            )
-        if self.fundamental_common_correlation > 1:
-            raise ValueError(
-                "fundamental_common_correlation must not exceed one"
             )
         if self.fundamental_process == "gaussian":
             if (
@@ -179,8 +267,21 @@ class Stage1Config:
             )
         if not 0 < self.learning_update_fraction <= 1:
             raise ValueError("learning_update_fraction must be in (0, 1]")
-        if self.trend_lookback < 1 or self.learning_interval < 1:
-            raise ValueError("trend_lookback and learning_interval must be positive")
+        if self.learning_interval < 1:
+            raise ValueError("learning_interval must be positive")
+        if not (
+            1
+            <= self.trend_short_lookback_min
+            <= self.trend_short_lookback_max
+            < self.trend_long_lookback_min
+            <= self.trend_long_lookback_max
+        ):
+            raise ValueError(
+                "trend lookbacks must satisfy "
+                "1 <= short_min <= short_max < long_min <= long_max"
+            )
+        if self.burn_in_days < 0 or self.burn_in_days >= self.trading_days:
+            raise ValueError("burn_in_days must be in [0, trading_days)")
         if set(self.strategy_shares) != set(STRATEGY_NAMES):
             raise ValueError(f"strategy_shares must define exactly {STRATEGY_NAMES}")
         shares = tuple(self.strategy_shares[name] for name in STRATEGY_NAMES)
@@ -194,10 +295,30 @@ class Stage1Config:
         if len(announcement_days) != len(set(announcement_days)):
             raise ValueError("only one external announcement is allowed per day")
 
+    @property
+    def position_cap(self) -> float:
+        """Supply-bounded per-trader position limit (shares).
+
+        Positions are additionally bounded by wealth leverage, but wealth
+        grows with trading profits, so a supply-based cap keeps aggregate
+        positions finite even when a strategy cohort chases a trend.
+        """
+        float_per_capita = (
+            self.initial_agent_position
+            + self.market_maker_inventory / self.population_size
+        )
+        return self.max_position_float_multiple * float_per_capita
+
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "Stage1Config":
-        expected = {field.name for field in fields(cls)}
-        missing = expected - set(payload)
+        config_fields = fields(cls)
+        expected = {field.name for field in config_fields}
+        required = {
+            field.name
+            for field in config_fields
+            if field.default is MISSING and field.default_factory is MISSING
+        }
+        missing = required - set(payload)
         unknown = set(payload) - expected
         if missing or unknown:
             raise ValueError(
@@ -205,7 +326,7 @@ class Stage1Config:
                 f"unknown={sorted(unknown)}"
             )
         values = dict(payload)
-        announcements = values["announcements"]
+        announcements = values.get("announcements", [])
         if not isinstance(announcements, list):
             raise TypeError("announcements must be a JSON array")
         values["announcements"] = tuple(

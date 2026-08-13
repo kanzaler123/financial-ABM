@@ -40,6 +40,16 @@ class TraderPopulation:
     positions: FloatArray
     strategies: StrategyArray
     risk_aversion: FloatArray
+    subjective_values: FloatArray | None = None
+    information_response_multipliers: FloatArray | None = None
+    pending_information: FloatArray | None = None
+    value_update_probabilities: FloatArray | None = None
+    trend_short_lookbacks: NDArray[np.int64] | None = None
+    trend_long_lookbacks: NDArray[np.int64] | None = None
+    base_activity_rates: FloatArray | None = None
+    liquidity_needs: FloatArray | None = None
+    reference_positions: FloatArray | None = None
+    desired_positions: FloatArray | None = None
 
     @classmethod
     def initialize(
@@ -64,17 +74,84 @@ class TraderPopulation:
                 config.population_size,
                 dtype=np.float64,
             )
+        initial_value_innovations = rng.standard_normal(config.population_size)
+        subjective_values = config.initial_fundamental * np.exp(
+            -0.5 * config.initial_subjective_value_dispersion**2
+            + config.initial_subjective_value_dispersion
+            * initial_value_innovations
+        )
+        response_innovations = rng.standard_normal(config.population_size)
+        information_response_multipliers = np.clip(
+            1.0
+            + config.information_response_dispersion
+            * response_innovations,
+            0.25,
+            1.75,
+        )
+        value_update_probabilities = np.clip(
+            config.value_update_rate
+            * rng.uniform(0.5, 1.5, size=config.population_size),
+            0.0,
+            1.0,
+        )
+        trend_short_lookbacks = rng.integers(
+            config.trend_short_lookback_min,
+            config.trend_short_lookback_max + 1,
+            size=config.population_size,
+            dtype=np.int64,
+        )
+        trend_long_lookbacks = rng.integers(
+            config.trend_long_lookback_min,
+            config.trend_long_lookback_max + 1,
+            size=config.population_size,
+            dtype=np.int64,
+        )
+        activity_multipliers = rng.lognormal(
+            mean=-0.5 * config.activity_rate_dispersion**2,
+            sigma=config.activity_rate_dispersion,
+            size=config.population_size,
+        )
+        base_activity_rates = np.clip(
+            config.base_activity_rate * activity_multipliers,
+            1e-6,
+            1.0 - 1e-6,
+        )
+        initial_positions = (
+            config.initial_agent_position * wealth_multipliers
+        ).astype(np.float64, copy=False)
         return cls(
             cash=(
                 config.initial_agent_cash * wealth_multipliers
             ).astype(np.float64, copy=False),
-            positions=(
-                config.initial_agent_position * wealth_multipliers
-            ).astype(np.float64, copy=False),
+            positions=initial_positions.copy(),
             strategies=strategies,
             # Stable individual heterogeneity prevents an entire strategy
             # cohort from behaving like one representative trader.
             risk_aversion=rng.uniform(0.5, 1.5, size=config.population_size),
+            subjective_values=subjective_values.astype(
+                np.float64, copy=False
+            ),
+            information_response_multipliers=(
+                information_response_multipliers.astype(
+                    np.float64, copy=False
+                )
+            ),
+            pending_information=np.zeros(
+                config.population_size, dtype=np.float64
+            ),
+            value_update_probabilities=value_update_probabilities.astype(
+                np.float64, copy=False
+            ),
+            trend_short_lookbacks=trend_short_lookbacks,
+            trend_long_lookbacks=trend_long_lookbacks,
+            base_activity_rates=base_activity_rates.astype(
+                np.float64, copy=False
+            ),
+            liquidity_needs=np.zeros(
+                config.population_size, dtype=np.float64
+            ),
+            reference_positions=initial_positions.copy(),
+            desired_positions=initial_positions.copy(),
         )
 
     @property
@@ -116,3 +193,20 @@ class TraderPopulation:
             raise RuntimeError("population contains negative marked-to-market wealth")
         if not np.all(np.isin(self.strategies, STRATEGY_CODES)):
             raise RuntimeError("population contains an unknown strategy code")
+        optional_arrays = (
+            self.subjective_values,
+            self.information_response_multipliers,
+            self.pending_information,
+            self.value_update_probabilities,
+            self.trend_short_lookbacks,
+            self.trend_long_lookbacks,
+            self.base_activity_rates,
+            self.liquidity_needs,
+            self.reference_positions,
+            self.desired_positions,
+        )
+        for array in optional_arrays:
+            if array is not None and array.shape != self.cash.shape:
+                raise RuntimeError(
+                    "optional population arrays must match the population"
+                )

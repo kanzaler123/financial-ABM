@@ -13,6 +13,7 @@ from numpy.typing import NDArray
 from .config import STRATEGY_NAMES, Stage1Config
 from .learning import LearningAudit, LogitImitator, PerformanceWindow
 from .manifest import build_run_manifest, canonical_json_bytes
+from .microstructure import QuasiOrderBook
 from .policies import MarketObservation, RuleBasedPolicy
 from .population import TraderPopulation
 from .settlement import SettlementEngine
@@ -27,11 +28,24 @@ class DailyAudit:
     day: int
     settlement_id: str
     price_before: float
+    mid_price_after: float
     execution_price: float
+    bid_price: float
+    ask_price: float
+    spread: float
+    depth: float
+    order_flow_imbalance: float
+    order_flow_surprise: float
     fundamental_value: float
     public_news_return: float
-    direct_news_return: float
+    public_news_impact: float
+    value_information_updates: int
+    mean_subjective_value: float
+    mean_absolute_pending_information: float
     demand_log_return: float
+    permanent_impact: float
+    transient_impact: float
+    transient_impact_change: float
     price_cap_hit: bool
     effective_liquidity: float
     submitted_order_count: int
@@ -54,11 +68,26 @@ class DailyAudit:
             "day": self.day,
             "settlement_id": self.settlement_id,
             "price_before": self.price_before,
+            "mid_price_after": self.mid_price_after,
             "execution_price": self.execution_price,
+            "bid_price": self.bid_price,
+            "ask_price": self.ask_price,
+            "spread": self.spread,
+            "depth": self.depth,
+            "order_flow_imbalance": self.order_flow_imbalance,
+            "order_flow_surprise": self.order_flow_surprise,
             "fundamental_value": self.fundamental_value,
             "public_news_return": self.public_news_return,
-            "direct_news_return": self.direct_news_return,
+            "public_news_impact": self.public_news_impact,
+            "value_information_updates": self.value_information_updates,
+            "mean_subjective_value": self.mean_subjective_value,
+            "mean_absolute_pending_information": (
+                self.mean_absolute_pending_information
+            ),
             "demand_log_return": self.demand_log_return,
+            "permanent_impact": self.permanent_impact,
+            "transient_impact": self.transient_impact,
+            "transient_impact_change": self.transient_impact_change,
             "price_cap_hit": self.price_cap_hit,
             "effective_liquidity": self.effective_liquidity,
             "submitted_order_count": self.submitted_order_count,
@@ -82,7 +111,17 @@ class DailyAudit:
 
 @dataclass(frozen=True, slots=True)
 class SimulationResult:
+    burn_in_days: int
+    price_formation: str
     prices: FloatArray
+    execution_prices: FloatArray
+    spreads: FloatArray
+    depths: FloatArray
+    order_flow_imbalance: FloatArray
+    order_flow_surprise: FloatArray
+    public_news_impacts: FloatArray
+    permanent_impacts: FloatArray
+    transient_impacts: FloatArray
     fundamentals: FloatArray
     volumes: FloatArray
     submitted_net_demand: FloatArray
@@ -101,8 +140,19 @@ class SimulationResult:
 
     def fingerprint(self) -> str:
         digest = hashlib.sha256()
+        digest.update(
+            f"{self.burn_in_days}:{self.price_formation}".encode("utf-8")
+        )
         for array in (
             self.prices,
+            self.execution_prices,
+            self.spreads,
+            self.depths,
+            self.order_flow_imbalance,
+            self.order_flow_surprise,
+            self.public_news_impacts,
+            self.permanent_impacts,
+            self.transient_impacts,
             self.fundamentals,
             self.volumes,
             self.submitted_net_demand,
@@ -142,6 +192,11 @@ class SimulationResult:
         )
         return {
             "trading_days": len(self.daily_audits),
+            "burn_in_days": self.burn_in_days,
+            "evaluation_days": (
+                len(self.daily_audits) - self.burn_in_days
+            ),
+            "price_formation": self.price_formation,
             "population_size": int(self.final_agent_cash.size),
             "initial_price": float(self.prices[0]),
             "final_price": float(self.prices[-1]),
@@ -185,6 +240,14 @@ class SimulationResult:
         np.savez_compressed(
             destination / "state_arrays.npz",
             prices=self.prices,
+            execution_prices=self.execution_prices,
+            spreads=self.spreads,
+            depths=self.depths,
+            order_flow_imbalance=self.order_flow_imbalance,
+            order_flow_surprise=self.order_flow_surprise,
+            public_news_impacts=self.public_news_impacts,
+            permanent_impacts=self.permanent_impacts,
+            transient_impacts=self.transient_impacts,
             fundamentals=self.fundamentals,
             volumes=self.volumes,
             submitted_net_demand=self.submitted_net_demand,
@@ -355,6 +418,7 @@ class MarketHarness:
         self.noise_rng = np.random.default_rng(noise_seed)
         self.learning_rng = np.random.default_rng(learning_seed)
         self.policy = RuleBasedPolicy(config)
+        self.order_book = QuasiOrderBook.initialize(config)
         self.settlement = SettlementEngine(config.transaction_cost_rate)
         self.performance = PerformanceWindow.create(config.population_size)
         self.imitator = LogitImitator(
@@ -377,6 +441,27 @@ class MarketHarness:
         )
         self.prices = np.empty(config.trading_days + 1, dtype=np.float64)
         self.prices[0] = config.initial_price
+        self.volatility_ewma = config.fundamental_volatility**2
+        self.execution_prices = np.empty(
+            config.trading_days, dtype=np.float64
+        )
+        self.spreads = np.empty(config.trading_days, dtype=np.float64)
+        self.depths = np.empty(config.trading_days, dtype=np.float64)
+        self.order_flow_imbalance = np.empty(
+            config.trading_days, dtype=np.float64
+        )
+        self.order_flow_surprise = np.empty(
+            config.trading_days, dtype=np.float64
+        )
+        self.public_news_impacts = np.empty(
+            config.trading_days, dtype=np.float64
+        )
+        self.permanent_impacts = np.empty(
+            config.trading_days, dtype=np.float64
+        )
+        self.transient_impacts = np.empty(
+            config.trading_days, dtype=np.float64
+        )
         self.volumes = np.empty(config.trading_days, dtype=np.float64)
         self.submitted_net_demand = np.empty(config.trading_days, dtype=np.float64)
         self.executed_net_demand = np.empty(config.trading_days, dtype=np.float64)
@@ -410,69 +495,46 @@ class MarketHarness:
         public_news_return = float(
             np.log(fundamental_value / fundamental_before)
         )
-        direct_news_return = (
+        public_news_impact = (
             self.config.public_news_price_pass_through * public_news_return
         )
-        reference_price = price_before * float(np.exp(direct_news_return))
         performance_wealth_before = self.population.wealth(price_before)
-        trade_wealth_before = self.population.wealth(reference_price)
-        price_history = self.prices[: day_index + 1].copy()
-        price_history[-1] = reference_price
-        observation = MarketObservation(
-            price=reference_price,
-            fundamental_value=fundamental_value,
-            price_history=price_history,
-        )
-        submitted = self.policy.act(observation, self.population, self.noise_rng)
-        submitted_net = float(submitted.sum())
+        trade_wealth_before = performance_wealth_before
         if day_index > 0:
-            return_start = max(1, day_index - 19)
-            prior_returns = (
-                self.prices[return_start : day_index + 1]
-                / self.prices[return_start - 1 : day_index]
-                - 1.0
+            previous_log_return = float(
+                np.log(
+                    self.prices[day_index] / self.prices[day_index - 1]
+                )
             )
-            realized_volatility = float(np.std(prior_returns, ddof=0))
-        else:
-            realized_volatility = 0.0
-        volatility_reference = max(
-            self.config.fundamental_volatility,
-            1e-6,
-        )
-        volatility_stress = max(
-            realized_volatility / volatility_reference
-            - self.config.liquidity_stress_threshold,
-            0.0,
-        )
-        liquidity_fraction = max(
-            self.config.minimum_liquidity_fraction,
-            1.0
-            / (
-                1.0
-                + self.config.liquidity_volatility_sensitivity
-                * volatility_stress
+            self.volatility_ewma = (
+                self.config.volatility_ewma_decay * self.volatility_ewma
+                + (1.0 - self.config.volatility_ewma_decay)
+                * previous_log_return**2
+            )
+        realized_volatility = float(np.sqrt(self.volatility_ewma))
+        observation = MarketObservation(
+            price=price_before,
+            fundamental_value=fundamental_value,
+            price_history=self.prices[: day_index + 1].copy(),
+            public_news_return=public_news_return,
+            realized_volatility=realized_volatility,
+            spread=(
+                float(self.spreads[day_index - 1])
+                if day_index > 0
+                else 0.0
             ),
+            depth=self.order_book.depth,
         )
-        effective_liquidity = (
-            self.config.liquidity_scale * liquidity_fraction
+        submitted = self.policy.act(
+            observation, self.population, self.noise_rng
         )
-        unconstrained_demand_return = (
-            self.config.price_impact
-            * submitted_net
-            / effective_liquidity
+        submitted_net = float(submitted.sum())
+        quote = self.order_book.quote(
+            submitted_orders=submitted,
+            public_news_impact=public_news_impact,
+            realized_volatility=realized_volatility,
         )
-        log_return = float(np.clip(
-            unconstrained_demand_return,
-            -self.config.max_log_return,
-            self.config.max_log_return,
-        ))
-        price_cap_hit = not np.isclose(
-            log_return,
-            unconstrained_demand_return,
-            rtol=0.0,
-            atol=1e-15,
-        )
-        execution_price = reference_price * float(np.exp(log_return))
+        execution_price = quote.execution_price
 
         settlement = self.settlement.settle(
             population=self.population,
@@ -480,22 +542,35 @@ class MarketHarness:
             execution_price=execution_price,
             market_maker_cash=self.market_maker_cash,
             market_maker_inventory=self.market_maker_inventory,
-            minimum_positions=(
+            minimum_positions=np.maximum(
                 -self.config.max_short_leverage
                 * trade_wealth_before
-                / execution_price
+                / (price_before * float(np.exp(self.config.max_log_return))),
+                -self.config.position_cap,
             ),
         )
         self.market_maker_cash = settlement.market_maker_cash
         self.market_maker_inventory = settlement.market_maker_inventory
-        wealth_after = self.population.wealth(execution_price)
+        wealth_after = self.population.wealth(quote.mid_price_after)
         self.performance.record(
             wealth_before=performance_wealth_before,
             wealth_after=wealth_after,
             transaction_costs=settlement.transaction_costs,
         )
 
-        self.prices[day] = execution_price
+        self.prices[day] = quote.mid_price_after
+        self.execution_prices[day_index] = execution_price
+        self.spreads[day_index] = quote.spread
+        self.depths[day_index] = quote.depth
+        self.order_flow_imbalance[day_index] = (
+            quote.order_flow_imbalance
+        )
+        self.order_flow_surprise[day_index] = quote.order_flow_surprise
+        self.public_news_impacts[day_index] = (
+            quote.public_news_impact
+        )
+        self.permanent_impacts[day_index] = quote.permanent_impact
+        self.transient_impacts[day_index] = quote.transient_impact
         self.volumes[day_index] = float(np.abs(settlement.executed_orders).sum())
         self.submitted_net_demand[day_index] = submitted_net
         self.executed_net_demand[day_index] = float(
@@ -510,10 +585,10 @@ class MarketHarness:
 
         self.population.validate(
             allow_short=self.config.max_short_leverage > 0,
-            price=execution_price,
+            price=quote.mid_price_after,
         )
-        if self.market_maker_cash < -1e-7 or self.market_maker_inventory < -1e-7:
-            raise RuntimeError("market maker has negative cash or inventory")
+        if self.market_maker_cash < -1e-7:
+            raise RuntimeError("market maker has negative cash")
         cash_error = total_cash - self.initial_total_cash
         share_error = total_shares - self.initial_total_shares
         cash_tolerance = max(1e-6, abs(self.initial_total_cash) * 1e-12)
@@ -536,13 +611,32 @@ class MarketHarness:
             day=day,
             settlement_id=settlement_id,
             price_before=price_before,
+            mid_price_after=quote.mid_price_after,
             execution_price=execution_price,
+            bid_price=quote.bid_price,
+            ask_price=quote.ask_price,
+            spread=quote.spread,
+            depth=quote.depth,
+            order_flow_imbalance=quote.order_flow_imbalance,
+            order_flow_surprise=quote.order_flow_surprise,
             fundamental_value=fundamental_value,
             public_news_return=public_news_return,
-            direct_news_return=direct_news_return,
-            demand_log_return=log_return,
-            price_cap_hit=price_cap_hit,
-            effective_liquidity=effective_liquidity,
+            public_news_impact=quote.public_news_impact,
+            value_information_updates=(
+                self.policy.diagnostics.value_information_updates
+            ),
+            mean_subjective_value=(
+                self.policy.diagnostics.mean_subjective_value
+            ),
+            mean_absolute_pending_information=(
+                self.policy.diagnostics.mean_absolute_pending_information
+            ),
+            demand_log_return=quote.demand_log_return,
+            permanent_impact=quote.permanent_impact,
+            transient_impact=quote.transient_impact,
+            transient_impact_change=quote.transient_impact_change,
+            price_cap_hit=quote.price_cap_hit,
+            effective_liquidity=quote.depth,
             submitted_order_count=int(np.count_nonzero(submitted)),
             submitted_net_demand=submitted_net,
             executed_net_demand=float(settlement.executed_orders.sum()),
@@ -573,7 +667,7 @@ class MarketHarness:
             self.performance.reset()
 
         self.strategy_count_history[day] = self.population.counts()
-        daily_return = execution_price / price_before - 1.0
+        daily_return = quote.mid_price_after / price_before - 1.0
         return_start = max(1, day - 19)
         recent_returns = (
             self.prices[return_start : day + 1]
@@ -588,14 +682,34 @@ class MarketHarness:
             event_type="daily_market",
             payload={
                 "price": execution_price,
+                "mid_price": quote.mid_price_after,
+                "execution_price": execution_price,
+                "bid_price": quote.bid_price,
+                "ask_price": quote.ask_price,
+                "spread": quote.spread,
+                "depth": quote.depth,
+                "order_flow_imbalance": quote.order_flow_imbalance,
+                "order_flow_surprise": quote.order_flow_surprise,
                 "return": daily_return,
                 "volatility_20d": float(np.std(recent_returns, ddof=0)),
                 "fundamental_value": fundamental_value,
                 "public_news_return": public_news_return,
-                "direct_news_return": direct_news_return,
-                "demand_log_return": log_return,
-                "price_cap_hit": price_cap_hit,
-                "effective_liquidity": effective_liquidity,
+                "public_news_impact": public_news_impact,
+                "value_information_updates": (
+                    self.policy.diagnostics.value_information_updates
+                ),
+                "mean_subjective_value": (
+                    self.policy.diagnostics.mean_subjective_value
+                ),
+                "mean_absolute_pending_information": (
+                    self.policy.diagnostics.mean_absolute_pending_information
+                ),
+                "demand_log_return": quote.demand_log_return,
+                "permanent_impact": quote.permanent_impact,
+                "transient_impact": quote.transient_impact,
+                "transient_impact_change": quote.transient_impact_change,
+                "price_cap_hit": quote.price_cap_hit,
+                "effective_liquidity": quote.depth,
                 "submitted_order_count": int(np.count_nonzero(submitted)),
                 "volume": audit.volume,
                 "value_share": float(
@@ -627,7 +741,19 @@ class MarketHarness:
         while self.next_day_index < self.config.trading_days:
             self.step(self.next_day_index)
         return SimulationResult(
+            burn_in_days=self.config.burn_in_days,
+            price_formation=self.config.price_formation,
             prices=self.prices.copy(),
+            execution_prices=self.execution_prices.copy(),
+            spreads=self.spreads.copy(),
+            depths=self.depths.copy(),
+            order_flow_imbalance=self.order_flow_imbalance.copy(),
+            order_flow_surprise=self.order_flow_surprise.copy(),
+            public_news_impacts=(
+                self.public_news_impacts.copy()
+            ),
+            permanent_impacts=self.permanent_impacts.copy(),
+            transient_impacts=self.transient_impacts.copy(),
             fundamentals=self.fundamentals.copy(),
             volumes=self.volumes.copy(),
             submitted_net_demand=self.submitted_net_demand.copy(),

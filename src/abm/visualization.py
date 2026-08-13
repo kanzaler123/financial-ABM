@@ -198,7 +198,14 @@ def plot_stage1_overview(run_dir: str | Path) -> tuple[Path, Path]:
         strategy_axis.axvline(
             int(audit["day"]), color=INK, linestyle=":", linewidth=0.8, alpha=0.7
         )
-    strategy_axis.set_title("Strategy composition after Logit updates")
+    strategy_axis.set_title(
+        "Strategy composition"
+        + (
+            " after Logit updates"
+            if bool(config.get("learning_enabled", False))
+            else " (fixed population)"
+        )
+    )
     strategy_axis.set_xlabel("Trading day")
     strategy_axis.set_ylabel("Share of traders")
     strategy_axis.set_ylim(0, 1)
@@ -328,13 +335,136 @@ def plot_learning_diagnostics(run_dir: str | Path) -> tuple[Path, Path]:
     return _save_figure(figure, run_path / "stage1_learning")
 
 
+def plot_microstructure_diagnostics(
+    run_dir: str | Path,
+) -> tuple[Path, Path]:
+    """Plot persisted quote, depth, order-flow, and impact diagnostics."""
+    run_path = Path(run_dir)
+    with np.load(run_path / "state_arrays.npz") as arrays:
+        prices = arrays["prices"]
+        execution_prices = arrays["execution_prices"]
+        spreads = arrays["spreads"]
+        depths = arrays["depths"]
+        order_flow = arrays["order_flow_imbalance"]
+        order_flow_surprise = arrays["order_flow_surprise"]
+        permanent_impacts = arrays["permanent_impacts"]
+        transient_impacts = arrays["transient_impacts"]
+
+    days = np.arange(1, prices.size)
+    spread_bps = spreads / prices[1:] * 1e4
+    _apply_style()
+    figure, axes = plt.subplots(2, 2, figsize=(14, 9))
+    figure.suptitle(
+        "Stage 1 Quasi-Order-Book — Microstructure Diagnostics",
+        x=0.025,
+        y=0.98,
+        ha="left",
+        fontsize=18,
+        fontweight="bold",
+        color=INK,
+    )
+
+    quote_axis = axes[0, 0]
+    quote_axis.plot(days, prices[1:], color=BLUE, linewidth=1.8, label="Mid")
+    quote_axis.plot(
+        days,
+        execution_prices,
+        color=ORANGE,
+        linewidth=0.8,
+        alpha=0.8,
+        label="Execution",
+    )
+    quote_axis.set_title("Mid and execution price")
+    quote_axis.set_xlabel("Trading day")
+    quote_axis.set_ylabel("Price")
+    quote_axis.legend(loc="upper left")
+    _finish_axis(quote_axis)
+
+    liquidity_axis = axes[0, 1]
+    liquidity_axis.plot(days, spread_bps, color=PINK, linewidth=1.2)
+    liquidity_axis.set_title("Bid-ask spread")
+    liquidity_axis.set_xlabel("Trading day")
+    liquidity_axis.set_ylabel("Basis points")
+    depth_axis = liquidity_axis.twinx()
+    depth_axis.plot(days, depths, color=OLIVE, linewidth=1.0, alpha=0.7)
+    depth_axis.set_ylabel("Quoted depth", color=OLIVE)
+    _finish_axis(liquidity_axis)
+
+    flow_axis = axes[1, 0]
+    flow_axis.plot(
+        days,
+        order_flow,
+        color=BLUE,
+        linewidth=1.0,
+        label="OFI",
+    )
+    flow_axis.plot(
+        days,
+        order_flow_surprise,
+        color=GOLD,
+        linewidth=0.9,
+        alpha=0.8,
+        label="Unexpected OFI",
+    )
+    flow_axis.axhline(0.0, color=MUTED, linewidth=0.8)
+    flow_axis.set_title("Order-flow imbalance")
+    flow_axis.set_xlabel("Trading day")
+    flow_axis.set_ylabel("Normalized imbalance")
+    flow_axis.legend(loc="upper left")
+    _finish_axis(flow_axis)
+
+    impact_axis = axes[1, 1]
+    impact_axis.plot(
+        days,
+        permanent_impacts,
+        color=BLUE,
+        linewidth=1.0,
+        label="Permanent impact",
+    )
+    impact_axis.plot(
+        days,
+        transient_impacts,
+        color=ORANGE,
+        linewidth=1.0,
+        label="Transient state",
+    )
+    impact_axis.axhline(0.0, color=MUTED, linewidth=0.8)
+    impact_axis.set_title("Price-impact decomposition")
+    impact_axis.set_xlabel("Trading day")
+    impact_axis.set_ylabel("Log-price impact")
+    impact_axis.legend(loc="upper left")
+    _finish_axis(impact_axis)
+
+    figure.tight_layout(rect=(0, 0, 1, 0.95))
+    return _save_figure(figure, run_path / "stage1_microstructure")
+
+
 def create_stage1_visualizations(run_dir: str | Path) -> tuple[Path, ...]:
-    overview = plot_stage1_overview(run_dir)
-    audits = _load_json(Path(run_dir) / "learning_audit.json")
+    run_path = Path(run_dir)
+    overview = plot_stage1_overview(run_path)
+    required_microstructure_arrays = {
+        "execution_prices",
+        "spreads",
+        "depths",
+        "order_flow_imbalance",
+        "order_flow_surprise",
+        "permanent_impacts",
+        "transient_impacts",
+    }
+    with np.load(run_path / "state_arrays.npz") as arrays:
+        has_microstructure = required_microstructure_arrays.issubset(
+            arrays.files
+        )
+    microstructure = (
+        plot_microstructure_diagnostics(run_path)
+        if has_microstructure
+        else ()
+    )
+    audits = _load_json(run_path / "learning_audit.json")
     if isinstance(audits, list) and audits:
-        learning = plot_learning_diagnostics(run_dir)
-        return (*overview, *learning)
-    return overview
+        learning = plot_learning_diagnostics(run_path)
+        return (*overview, *microstructure, *learning)
+    return (*overview, *microstructure)
 
 
 def build_parser() -> argparse.ArgumentParser:

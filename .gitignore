@@ -6,6 +6,12 @@ __pycache__/
 .venv/
 build/
 dist/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
 runs/*
 !runs/.gitkeep
 
+
+node_modules/

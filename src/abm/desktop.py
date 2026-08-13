@@ -7,7 +7,6 @@ import json
 import multiprocessing
 import queue
 import sys
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Sequence
@@ -18,9 +17,10 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from vispy import scene
 
 from .config import Stage1Config, load_stage1_config
-from .harness import MarketHarness, run_stage1
+from .harness import run_stage1
+from .run_service import controlled_run_worker
+from .runner import resolve_code_revision
 from .telemetry import (
-    NonBlockingQueueSink,
     TelemetryEvent,
     VisualizerConfig,
     read_telemetry,
@@ -53,9 +53,20 @@ class TelemetryModel:
         for event in events:
             self.append(event)
 
-    def values(self, field_name: str) -> np.ndarray:
+    def values(
+        self,
+        field_name: str,
+        default: float | None = None,
+    ) -> np.ndarray:
         return np.array(
-            [float(event.payload[field_name]) for event in self.events],
+            [
+                float(
+                    event.payload[field_name]
+                    if field_name in event.payload
+                    else default
+                )
+                for event in self.events
+            ],
             dtype=np.float64,
         )
 
@@ -224,6 +235,10 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
             "Accounting conservation error", "Relative error"
         )
         self.conservation_plot.setLogMode(y=True)
+        self.spread_plot = self._plot("Bid-ask spread", "Price units")
+        self.order_flow_plot = self._plot(
+            "Order-flow imbalance", "Normalized OFI"
+        )
 
         grid.addWidget(self.price_plot, 0, 0)
         grid.addWidget(self.return_plot, 0, 1)
@@ -231,7 +246,9 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         grid.addWidget(self.volume_plot, 1, 1)
         grid.addWidget(self.strategy_plot, 2, 0)
         grid.addWidget(self.conservation_plot, 2, 1)
-        for row in range(3):
+        grid.addWidget(self.spread_plot, 3, 0)
+        grid.addWidget(self.order_flow_plot, 3, 1)
+        for row in range(4):
             grid.setRowStretch(row, 1)
         for column in range(2):
             grid.setColumnStretch(column, 1)
@@ -266,6 +283,20 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         self.share_error_curve = self.conservation_plot.plot(
             pen=pg.mkPen(BLUE, width=1.5, style=QtCore.Qt.PenStyle.DashLine),
             name="Shares",
+        )
+        self.spread_curve = self.spread_plot.plot(
+            pen=pg.mkPen(PINK, width=1.8), name="Spread"
+        )
+        self.order_flow_curve = self.order_flow_plot.plot(
+            pen=pg.mkPen(BLUE, width=1.6), name="OFI"
+        )
+        self.order_flow_surprise_curve = self.order_flow_plot.plot(
+            pen=pg.mkPen(
+                GOLD,
+                width=1.3,
+                style=QtCore.Qt.PenStyle.DashLine,
+            ),
+            name="Unexpected OFI",
         )
 
     def _plot(self, title: str, y_label: str) -> pg.PlotWidget:
@@ -331,6 +362,9 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
                 self.noise_curve,
                 self.cash_error_curve,
                 self.share_error_curve,
+                self.spread_curve,
+                self.order_flow_curve,
+                self.order_flow_surprise_curve,
             ):
                 curve.setData([], [])
             self.volume_bars.setOpts(x=[], height=[])
@@ -354,6 +388,19 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         self.share_error_curve.setData(
             days,
             np.maximum(self.model.values("share_relative_error"), 1e-18),
+        )
+        self.spread_curve.setData(
+            days, self.model.values("spread", default=0.0)
+        )
+        self.order_flow_curve.setData(
+            days,
+            self.model.values(
+                "order_flow_imbalance", default=0.0
+            ),
+        )
+        self.order_flow_surprise_curve.setData(
+            days,
+            self.model.values("order_flow_surprise", default=0.0),
         )
         self.status_label.setText(
             f"{self.mode.upper()} · day {int(days[-1])} · "
@@ -398,67 +445,7 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
 
-def _drain_commands(command_queue: Any) -> list[dict[str, Any]]:
-    commands: list[dict[str, Any]] = []
-    while True:
-        try:
-            commands.append(command_queue.get_nowait())
-        except queue.Empty:
-            break
-        except (EOFError, OSError, ValueError):
-            break
-    return commands
-
-
-def live_worker(
-    config_payload: dict[str, Any],
-    output_dir: str,
-    telemetry_queue: Any,
-    command_queue: Any,
-    completion_queue: Any,
-) -> None:
-    try:
-        config = Stage1Config.from_dict(config_payload)
-        sink = NonBlockingQueueSink(telemetry_queue)
-        harness = MarketHarness(config, telemetry_sink=sink)
-        paused = False
-        detached = False
-        speed = 1.0
-        step_budget = 0
-        while harness.next_day_index < config.trading_days:
-            for command in _drain_commands(command_queue):
-                action = command.get("action")
-                if action == "pause":
-                    paused = True
-                elif action == "resume":
-                    paused = False
-                elif action == "step":
-                    paused = True
-                    step_budget += 1
-                elif action == "speed":
-                    speed = max(0.01, float(command.get("value") or 1.0))
-                elif action == "detach":
-                    detached = True
-                    paused = False
-            if paused and step_budget <= 0:
-                time.sleep(0.01)
-                continue
-            harness.step(harness.next_day_index)
-            if step_budget > 0:
-                step_budget -= 1
-            if not detached:
-                time.sleep(0.1 / speed)
-        result = harness.run()
-        result.write(output_dir, config)
-        completion_queue.put(
-            {
-                "fingerprint": result.fingerprint(),
-                "published_frames": sink.published_count,
-                "dropped_frames": sink.dropped_count,
-            }
-        )
-    except Exception as exc:
-        completion_queue.put({"error": f"{type(exc).__name__}: {exc}"})
+live_worker = controlled_run_worker
 
 
 def _application() -> QtWidgets.QApplication:
@@ -560,7 +547,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.mode == "batch":
         config = load_stage1_config(args.config)
         result = run_stage1(config)
-        result.write(args.run_dir, config)
+        result.write(
+            args.run_dir,
+            config,
+            code_revision=resolve_code_revision(),
+        )
         print(json.dumps(result.summary(), ensure_ascii=False, sort_keys=True))
         return 0
     if args.mode == "replay":
