@@ -58,6 +58,9 @@ CRITERION_NAMES = {
     "minimum_news_channel_price_response_ratio",
     "minimum_agent_channel_price_response_ratio",
     "minimum_endogenous_tail_excess",
+    "minimum_logit_strategy_turnover",
+    "minimum_logit_fitness_alignment",
+    "maximum_logit_daily_volatility",
 }
 SCENARIO_NAMES = (
     "full",
@@ -75,6 +78,7 @@ SCENARIO_NAMES = (
     "liquidity_stress",
     "concentrated_wealth",
     "garch_t_control",
+    "logit_learning",
 )
 
 METRIC_NAMES = (
@@ -104,6 +108,9 @@ METRIC_NAMES = (
     "price_cap_hits",
     "maximum_cash_relative_error",
     "maximum_share_relative_error",
+    "return_skewness",
+    "leverage_correlation",
+    "learning_fitness_alignment",
 )
 
 
@@ -255,8 +262,16 @@ def result_metrics(
     if volatility > 0:
         standardized = (returns - float(returns.mean())) / volatility
         excess_kurtosis = float(np.mean(standardized**4) - 3.0)
+        return_skewness = float(np.mean(standardized**3))
     else:
         excess_kurtosis = 0.0
+        return_skewness = 0.0
+    if returns.size > 1 and volatility > 0:
+        leverage_correlation = _correlation(
+            returns[:-1], np.abs(returns[1:])
+        )
+    else:
+        leverage_correlation = 0.0
     running_peak = np.maximum.accumulate(boundary_prices)
     drawdowns = boundary_prices / running_peak - 1.0
     log_gap = np.log(closing_prices / closing_fundamentals)
@@ -298,6 +313,8 @@ def result_metrics(
             np.abs(returns), 50
         ),
         "excess_kurtosis": excess_kurtosis,
+        "return_skewness": return_skewness,
+        "leverage_correlation": leverage_correlation,
         "volume_absolute_return_correlation": _correlation(
             volumes,
             np.abs(returns),
@@ -326,6 +343,24 @@ def result_metrics(
         "crash_day_fraction": float(np.mean(returns < -0.05)),
         "strategy_turnover": float(strategy_updates),
         "final_wealth_gini": _gini(final_wealth),
+        "learning_fitness_alignment": (
+            float(
+                np.mean(
+                    [
+                        int(
+                            int(np.argmax(audit.choice_probabilities))
+                            == int(np.argmax(audit.mean_fitness_by_strategy))
+                        )
+                        for audit in result.learning_audits
+                        if audit.day > burn_in_days
+                    ]
+                )
+            )
+            if any(
+                audit.day > burn_in_days for audit in result.learning_audits
+            )
+            else 1.0
+        ),
         "price_cap_hits": float(
             sum(int(audit.price_cap_hit) for audit in result.daily_audits)
         ),
@@ -418,6 +453,10 @@ def build_scenarios(config: Stage1Config) -> dict[str, Stage1Config]:
             fundamental_shock_df=5.5,
             fundamental_arch=0.11,
             fundamental_garch=0.88,
+        ),
+        "logit_learning": replace(
+            config,
+            learning_enabled=True,
         ),
     }
 
@@ -876,6 +915,43 @@ def evaluate_gate(
             median("full", "strategy_turnover") == 0.0
             and median("no_logit", "strategy_turnover") == 0.0
         ),
+        "logit_imitation_fires_and_tracks_fitness": (
+            median("logit_learning", "strategy_turnover")
+            >= criterion("minimum_logit_strategy_turnover", 1.0)
+            and float(
+                summary["logit_learning"]["learning_fitness_alignment"][
+                    "median"
+                ]
+            )
+            >= criterion("minimum_logit_fitness_alignment", 0.99)
+            and scenario_evidence(
+                "logit_imitation_fires_and_tracks_fitness",
+                "logit_learning",
+                lambda row: (
+                    float(row["strategy_turnover"])
+                    >= criterion("minimum_logit_strategy_turnover", 1.0)
+                    and float(row["learning_fitness_alignment"])
+                    >= criterion("minimum_logit_fitness_alignment", 0.99)
+                ),
+                observed=median("logit_learning", "strategy_turnover"),
+                threshold=criterion("minimum_logit_strategy_turnover", 1.0),
+            )
+        ),
+        "logit_market_remains_active_and_bounded": scenario_evidence(
+            "logit_market_remains_active_and_bounded",
+            "logit_learning",
+            lambda row: (
+                criterion("minimum_daily_volatility", 0.005)
+                <= float(row["daily_volatility"])
+                <= criterion("maximum_logit_daily_volatility", 0.04)
+                and float(row["price_cap_hits"]) == 0.0
+            ),
+            observed=median("logit_learning", "daily_volatility"),
+            threshold={
+                "minimum": criterion("minimum_daily_volatility", 0.005),
+                "maximum": criterion("maximum_logit_daily_volatility", 0.04),
+            },
+        ),
         "persistent_order_flow_is_observable": (
             float(full["order_flow_imbalance_acf_1"]["median"])
             >= criterion(
@@ -1133,6 +1209,18 @@ def _write_markdown(
             f"{full['mean_spread_bps']['median']:.6f} |",
             f"| Three-sigma tail fraction | "
             f"{full['three_sigma_tail_fraction']['median']:.6f} |",
+            f"| Return skewness | "
+            f"{full['return_skewness']['median']:.6f} |",
+            f"| Leverage correlation, r(t) vs |r|(t+1) | "
+            f"{full['leverage_correlation']['median']:.6f} |",
+            f"| Crash-day fraction, r < -5% | "
+            f"{full['crash_day_fraction']['median']:.6f} |",
+            f"| Bubble-day fraction, log gap > 10% | "
+            f"{full['bubble_day_fraction']['median']:.6f} |",
+            f"| Maximum drawdown | "
+            f"{full['maximum_drawdown']['median']:.6f} |",
+            f"| Final wealth Gini | "
+            f"{full['final_wealth_gini']['median']:.6f} |",
         ]
     )
     lines.extend(

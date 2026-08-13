@@ -5,13 +5,16 @@
 策略人口暂时固定，Logit 学习默认关闭。
 项目优先保证模型边界清晰、运行结果可复现、状态变化可审计，再逐步扩展到信息图传播、学习算法和真实数据。
 
-> **当前状态：Stage 1 机制已修复，正式验收仍未执行，Stage 2 暂停。**
+> **当前状态：Stage 1 行为门槛已实现但尚未对未见种子稳健，正式验收未执行，Stage 2 暂停。**
 > 工程框架、审计、回放、双通道归因、可恢复验证和正式冻结保护已经可用。
-> 最新 v6 开发协议使用 5 个开发种子 × 15 个场景，结果为 **`20/20 PASS`**；
-> 报告位于 `reports/stage1_structural_dev_v6_20260813/`。
-> 10 个未参与调优种子的 holdout 为 `19/20`（`reports/stage1_structural_holdout_v6_20260813/`），
-> 唯一未通过的门槛是部分种子的波动聚集衰减（|r| ACF(20) 长记忆）。
-> 因此当前状态是 `development / holdout-partial`，尚未生成冻结清单，也未运行 50 个正式种子。
+> 最新 20 种子开发协议（`stage1-mechanism-dev-v8` × 16 场景）结果为 **`21/22`**：
+> 唯一未过的门槛是 `full_volatility_clustering_has_decay`（8/20 种子，
+> 报告 `reports/stage1_structural_dev_v8_20260813/`）。
+> 2026-08-13 重新登记的全新 holdout 种子（20261301–10）结果为 `18/22`
+> （`reports/stage1_structural_holdout_v7_20260813/`），暴露了厚尾与
+> 波动聚集门槛的样本外稳健性差距。
+> 因此当前状态是 `development`；holdout 全过前不生成冻结清单，不运行
+> 50 个正式种子。
 >
 > 2026-07-30 的 `stage1-mechanism-acceptance-v1` 虽然得到 `16/16 PASS`，
 > 但该协议主要检查完整模型的汇总指标，没有阻止异常机制彼此抵消。
@@ -162,25 +165,28 @@ Kenneth French 49 数据和旧 29/10/10 协议保留为数量级与风格事实�
 
 测试覆盖配置校验、数据结构、策略、订单结算、场景、Manifest、可视化和 Stage 1 Harness。测试通过只是代码和基准契约的证据，不替代真实市场校准或样本外研究。
 
-## 运行当前 v6 开发回归
+## 运行当前开发回归
 
 v6 引入快速 EWMA 波动率状态驱动深度压力与参与度反馈（volatility–liquidity 闭环）、
 随波动率缩放的需求噪声，以及供给约束的头寸上限；同时修复了结算的保证金强平和
-做市商做空吸收。使用 1000 名交易者、200 日 burn-in、1000 日统计期、
-5 个开发种子和 15 个场景，当前报告为 **`20/20 PASS`**，重跑只产生开发证据：
+做市商做空吸收。v7/v8 协议扩展了协议级 Logit 学习场景、偏度/杠杆效应等报告指标，
+并把开发种子组合扩到 20 个（1000 名交易者、200 日 burn-in、1000 日统计期、
+16 个场景）。当前报告为 **`21/22`**，重跑只产生开发证据：
 
 ```powershell
 .\.venv\Scripts\python.exe -m abm.mechanism_validation `
   --config configs\stage1_structural_dev_v6.json `
-  --protocol configs\stage1_mechanism_dev_v6.json `
-  --output reports\stage1_structural_dev_v6_new `
+  --protocol configs\stage1_mechanism_dev_v8.json `
+  --output reports\stage1_structural_dev_v8_new `
   --workers 4
 ```
 
-10 个未参与调优种子的 holdout（`configs\stage1_mechanism_holdout_v6.json`）当前为
-`19/20`：`full_volatility_clustering_has_decay` 在部分种子上仍受 |r| 长记忆影响。
-输出目录会逐任务写入 `checkpoint.json`；中断后可在相同源码、配置和协议下增加
-`--resume`。身份不匹配时程序拒绝混用旧 checkpoint。
+唯一未过的门槛是 `full_volatility_clustering_has_decay`：约 40% 的种子上
+|r| 存在 ACF(20) 长记忆平台或 ACF(1)/ACF(5) 偏弱。10 个全新未见种子的 holdout
+（`configs\stage1_mechanism_holdout_v7.json`，种子 20261301–10）为 `18/22`，
+厚尾与聚集门槛的样本外稳健性仍有差距。输出目录会逐任务写入 `checkpoint.json`；
+中断后可在相同源码、配置和协议下增加 `--resume`。身份不匹配时程序拒绝混用旧
+checkpoint。
 
 ## 正式验收保护
 

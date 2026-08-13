@@ -1,0 +1,15 @@
+{
+  "decision": "DEVELOPMENT_EVIDENCE_ONLY",
+  "formal_report": "reports\\stage1_structural_holdout_v7_20260813\\mechanism_report.json",
+  "formal_seeds": 0,
+  "freeze_verification": null,
+  "may_enter_stage2": false,
+  "passed_checks": 18,
+  "protocol": "stage1-mechanism-holdout-v7",
+  "protocol_stage": "development",
+  "scenarios_per_seed": 16,
+  "schema_version": "1.0.0",
+  "simulations": 160,
+  "stage1_complete": false,
+  "total_checks": 22
+}

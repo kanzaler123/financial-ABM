@@ -477,6 +477,7 @@ def test_policy_submits_incremental_target_position_rebalancing() -> None:
         initial_subjective_value_dispersion=0.0,
         information_response_dispersion=0.0,
         value_update_rate=1.0,
+        value_target_adjustment=0.1,
     )
     population = TraderPopulation.initialize(config, np.random.default_rng(1))
     assert population.value_update_probabilities is not None
@@ -590,6 +591,7 @@ def test_three_rule_policies_create_distinct_order_distributions() -> None:
         load_stage1_config(CONFIG_PATH),
         population_size=300,
         strategy_shares={"value": 1 / 3, "trend": 1 / 3, "noise": 1 / 3},
+        trend_sensitivity=2.0,
     )
     seed_sequence = np.random.SeedSequence(config.seed)
     population_seed, policy_seed = seed_sequence.spawn(2)
@@ -601,6 +603,7 @@ def test_three_rule_policies_create_distinct_order_distributions() -> None:
         fundamental_value=105.0,
         price_history=np.array([95.0, 100.0]),
         public_news_return=float(np.log(1.05)),
+        realized_volatility=0.01,
     )
 
     orders = RuleBasedPolicy(config).act(

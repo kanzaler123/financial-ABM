@@ -265,7 +265,7 @@ def test_config_discovery_excludes_non_stage1_protocols(tmp_path) -> None:
 
     assert response.status_code == 200
     assert "stage1" in {item["id"] for item in response.json()}
-    assert "stage1_mechanism_dev_v6" not in {
+    assert "stage1_mechanism_dev_v8" not in {
         item["id"] for item in response.json()
     }
 

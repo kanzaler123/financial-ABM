@@ -46,20 +46,20 @@ def test_protocol_separates_development_and_formal_seeds(tmp_path) -> None:
     assert protocol.excluded_development_seeds == (3, 4)
 
 
-def test_v6_seed_groups_and_criteria_are_pre_registered() -> None:
+def test_seed_groups_and_criteria_are_pre_registered() -> None:
     tuning = MechanismProtocol.from_json(
-        PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v6.json"
+        PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v8.json"
     )
     holdout = MechanismProtocol.from_json(
-        PROJECT_ROOT / "configs" / "stage1_mechanism_holdout_v6.json"
+        PROJECT_ROOT / "configs" / "stage1_mechanism_holdout_v7.json"
     )
     formal = MechanismProtocol.from_json(
-        PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v6.json"
+        PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v7.json"
     )
 
     assert tuning.stage == holdout.stage == "development"
     assert formal.stage == "formal"
-    assert len(tuning.seeds) == 5
+    assert len(tuning.seeds) == 20
     assert len(holdout.seeds) == 10
     assert len(formal.seeds) == 50
     assert not (set(tuning.seeds) & set(holdout.seeds))
@@ -124,6 +124,7 @@ def test_scenarios_make_complex_shocks_explicit_controls() -> None:
     assert scenarios["fixed_liquidity"].liquidity_volatility_sensitivity == 0.0
     assert scenarios["fixed_liquidity"].minimum_liquidity_fraction == 1.0
     assert not scenarios["no_logit"].learning_enabled
+    assert scenarios["logit_learning"].learning_enabled
 
 
 def test_result_metrics_align_post_burn_in_days() -> None:
