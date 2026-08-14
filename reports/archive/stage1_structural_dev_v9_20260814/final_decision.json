@@ -1,0 +1,15 @@
+{
+  "decision": "DEVELOPMENT_EVIDENCE_ONLY",
+  "formal_report": "reports\\stage1_structural_dev_v9_20260814\\mechanism_report.json",
+  "formal_seeds": 0,
+  "freeze_verification": null,
+  "may_enter_stage2": false,
+  "passed_checks": 22,
+  "protocol": "stage1-mechanism-development-v8",
+  "protocol_stage": "development",
+  "scenarios_per_seed": 16,
+  "schema_version": "1.0.0",
+  "simulations": 320,
+  "stage1_complete": false,
+  "total_checks": 22
+}

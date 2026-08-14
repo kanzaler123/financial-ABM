@@ -33,6 +33,7 @@ class MarketObservation:
     price_history: FloatArray
     public_news_return: float = 0.0
     realized_volatility: float = 0.0
+    realized_volatility_reference: float = 0.0
     spread: float = 0.0
     depth: float = 0.0
 
@@ -62,12 +63,13 @@ class RuleBasedPolicy:
     ) -> FloatArray:
         price = observation.price
         wealth = population.wealth(price)
+        reference_wealth = population.reference_wealth
         maximum_position = np.minimum(
-            self.config.target_position_fraction * wealth / price,
+            self.config.target_position_fraction * reference_wealth / price,
             self.config.position_cap,
         )
         maximum_rebalance = (
-            self.config.max_order_fraction * wealth / price
+            self.config.max_order_fraction * reference_wealth / price
         )
         sensitivity_multiplier = 1.0 / population.risk_aversion
 
@@ -82,6 +84,7 @@ class RuleBasedPolicy:
             or population.liquidity_needs is None
             or population.reference_positions is None
             or population.desired_positions is None
+            or population.reference_wealth is None
         ):
             raise RuntimeError(
                 "policy state arrays are missing from the trader population"
@@ -165,9 +168,13 @@ class RuleBasedPolicy:
             * normalized_trend
         )
 
-        volatility_reference = max(
-            self.config.fundamental_volatility,
-            self.config.signal_volatility_floor,
+        volatility_reference = (
+            observation.realized_volatility_reference
+            if observation.realized_volatility_reference > 0
+            else max(
+                self.config.fundamental_volatility,
+                self.config.signal_volatility_floor,
+            )
         )
         flow_volatility_ratio = (
             observation.realized_volatility / volatility_reference
@@ -249,13 +256,17 @@ class RuleBasedPolicy:
             maximum_rebalance,
         )
 
-        volatility_reference = max(
-            self.config.fundamental_volatility,
-            self.config.signal_volatility_floor,
+        volatility_reference = (
+            observation.realized_volatility_reference
+            if observation.realized_volatility_reference > 0
+            else max(
+                self.config.fundamental_volatility,
+                self.config.signal_volatility_floor,
+            )
         )
         volatility_stress = min(
             observation.realized_volatility / volatility_reference,
-            5.0,
+            3.0,
         )
         self.activity_state = (
             self.config.activity_persistence * self.activity_state
@@ -277,15 +288,21 @@ class RuleBasedPolicy:
         submitted = np.where(active, submitted, 0.0)
 
         # The price cap is included in the affordability bound, so a permitted
-        # buy remains affordable at the eventual execution price.
+        # buy remains affordable at the eventual execution price. The short
+        # bound additionally carries a news cushion, matching the settlement
+        # margin floor.
         maximum_execution_price = price * np.exp(self.config.max_log_return)
+        margin_floor_price = price * np.exp(
+            self.config.max_log_return
+            + 4.0 * self.config.fundamental_volatility
+        )
         affordable_buys = population.cash / (
             maximum_execution_price * (1.0 + self.config.transaction_cost_rate)
         )
         maximum_short_positions = (
             self.config.max_short_leverage
             * wealth
-            / maximum_execution_price
+            / margin_floor_price
         )
         minimum_positions = np.maximum(
             -maximum_short_positions,

@@ -51,10 +51,10 @@ def test_seed_groups_and_criteria_are_pre_registered() -> None:
         PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v8.json"
     )
     holdout = MechanismProtocol.from_json(
-        PROJECT_ROOT / "configs" / "stage1_mechanism_holdout_v7.json"
+        PROJECT_ROOT / "configs" / "stage1_mechanism_holdout_v13.json"
     )
     formal = MechanismProtocol.from_json(
-        PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v7.json"
+        PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v13.json"
     )
 
     assert tuning.stage == holdout.stage == "development"

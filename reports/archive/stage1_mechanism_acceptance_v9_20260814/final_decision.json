@@ -1,0 +1,22 @@
+{
+  "decision": "FAIL_STAGE1_FORMAL_ACCEPTANCE",
+  "formal_report": "reports\\stage1_mechanism_acceptance_v9_20260814\\mechanism_report.json",
+  "formal_seeds": 50,
+  "freeze_verification": {
+    "checked_files": 33,
+    "freeze_id": "b5434a3cc4cb28930f24e4502746dbf89d0f4cc28de759347a83abcc43875e35",
+    "manifest": "configs\\stage1_mechanism_freeze_v9.json",
+    "mismatched_files": [],
+    "missing_files": [],
+    "verified": true
+  },
+  "may_enter_stage2": false,
+  "passed_checks": 18,
+  "protocol": "stage1-mechanism-acceptance-v9",
+  "protocol_stage": "formal",
+  "scenarios_per_seed": 16,
+  "schema_version": "1.0.0",
+  "simulations": 800,
+  "stage1_complete": false,
+  "total_checks": 22
+}

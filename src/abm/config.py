@@ -103,6 +103,7 @@ class Stage1Config:
     participation_pressure_exponent: float = 1.0
     demand_volatility_exponent: float = 0.0
     max_position_float_multiple: float = 5.0
+    volatility_reference_decay: float = 0.99
     burn_in_days: int = 0
 
     def __post_init__(self) -> None:
@@ -181,6 +182,7 @@ class Stage1Config:
             "participation_pressure_exponent",
             "demand_volatility_exponent",
             "max_position_float_multiple",
+            "volatility_reference_decay",
         )
         for name in positive_fields:
             value = getattr(self, name)
@@ -233,6 +235,8 @@ class Stage1Config:
             raise ValueError(
                 "max_position_float_multiple must not exceed one hundred"
             )
+        if self.volatility_reference_decay > 1:
+            raise ValueError("volatility_reference_decay must not exceed one")
         if not math.isfinite(self.fundamental_drift):
             raise ValueError("fundamental_drift must be finite")
         if self.public_news_price_pass_through > 1:

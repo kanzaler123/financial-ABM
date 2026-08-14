@@ -26,9 +26,9 @@
   "max_short_leverage": 0.25,
   "base_activity_rate": 0.3,
   "activity_volatility_sensitivity": 2.5,
-  "liquidity_volatility_sensitivity": 4.0,
-  "liquidity_stress_threshold": 0.55,
-  "minimum_liquidity_fraction": 0.55,
+  "liquidity_volatility_sensitivity": 1.0,
+  "liquidity_stress_threshold": 0.8,
+  "minimum_liquidity_fraction": 0.35,
   "value_sensitivity": 8.0,
   "trend_sensitivity": 0.3,
   "noise_scale": 1.0,
@@ -65,7 +65,7 @@
   "order_flow_memory": 0.3,
   "base_spread_bps": 5.0,
   "spread_volatility_sensitivity": 8.0,
-  "depth_resilience": 0.07,
+  "depth_resilience": 0.15,
   "burn_in_days": 1000,
   "strategy_shares": {
     "value": 0.4,
@@ -92,5 +92,6 @@
   "volatility_ewma_decay": 0.7,
   "participation_pressure_exponent": 1.0,
   "demand_volatility_exponent": 1.0,
-  "max_position_float_multiple": 5.0
+  "max_position_float_multiple": 5.0,
+  "volatility_reference_decay": 0.99
 }

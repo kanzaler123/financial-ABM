@@ -217,8 +217,13 @@ def _lag_one_autocorrelation(values: FloatArray) -> float:
 
 
 def _gini(values: FloatArray) -> float:
-    if values.size == 0 or np.any(values < 0):
-        raise ValueError("gini values must be nonempty and nonnegative")
+    if values.size == 0:
+        raise ValueError("gini values must be nonempty")
+    if np.any(values < -1e-6):
+        raise ValueError("gini values contain material negative wealth")
+    # Final marked wealth may carry float crumbs below zero within the
+    # harness audit tolerance; clamp before measuring inequality.
+    values = np.maximum(values, 0.0)
     total = float(values.sum())
     if total <= 0:
         return 0.0
@@ -438,10 +443,10 @@ def build_scenarios(config: Stage1Config) -> dict[str, Stage1Config]:
         ),
         "liquidity_stress": replace(
             config,
-            liquidity_volatility_sensitivity=8.0,
+            liquidity_volatility_sensitivity=2.0,
             liquidity_stress_threshold=0.0,
             minimum_liquidity_fraction=0.25,
-            depth_resilience=0.05,
+            depth_resilience=0.08,
         ),
         "concentrated_wealth": replace(
             config,

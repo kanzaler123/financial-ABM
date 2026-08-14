@@ -346,6 +346,34 @@ def test_settlement_allows_only_bounded_short_positions() -> None:
     assert population.positions[0] == -2.0
 
 
+def test_margin_covers_are_exempt_from_counterparty_rationing() -> None:
+    population = TraderPopulation(
+        cash=np.array([20_000.0, 20_000.0]),
+        positions=np.array([-100.0, 100.0]),
+        strategies=np.array([0, 1], dtype=np.int8),
+        risk_aversion=np.ones(2),
+    )
+    engine = SettlementEngine(transaction_cost_rate=0.0)
+
+    # Trader 0 needs a forced cover of +60 shares while trader 1 sells 100.
+    # The market maker only has 500 cash, which would ration the batch, but
+    # the margin cover must execute in full regardless.
+    result = engine.settle(
+        population=population,
+        submitted_orders=np.array([0.0, -100.0]),
+        execution_price=100.0,
+        market_maker_cash=500.0,
+        market_maker_inventory=1000.0,
+        minimum_positions=np.array([-40.0, -10.0]),
+    )
+
+    assert result.executed_orders[0] == 60.0
+    assert population.positions[0] == -40.0
+    # The voluntary sale is rationed by the counterparty cash.
+    assert result.executed_orders[1] <= -5.0
+    assert result.market_maker_cash >= 0.0
+
+
 # --- Quasi order book -----------------------------------------------------
 
 

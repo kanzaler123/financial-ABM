@@ -50,6 +50,7 @@ class TraderPopulation:
     liquidity_needs: FloatArray | None = None
     reference_positions: FloatArray | None = None
     desired_positions: FloatArray | None = None
+    reference_wealth: FloatArray | None = None
 
     @classmethod
     def initialize(
@@ -152,6 +153,14 @@ class TraderPopulation:
             ),
             reference_positions=initial_positions.copy(),
             desired_positions=initial_positions.copy(),
+            # Order sizing is anchored to the initial stake, so the wealth
+            # random-walk level does not inject long memory into order flow.
+            reference_wealth=(
+                config.initial_agent_cash * wealth_multipliers
+                + config.initial_agent_position
+                * wealth_multipliers
+                * config.initial_price
+            ).astype(np.float64, copy=False),
         )
 
     @property
@@ -204,6 +213,7 @@ class TraderPopulation:
             self.liquidity_needs,
             self.reference_positions,
             self.desired_positions,
+            self.reference_wealth,
         )
         for array in optional_arrays:
             if array is not None and array.shape != self.cash.shape:

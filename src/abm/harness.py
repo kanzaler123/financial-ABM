@@ -442,6 +442,7 @@ class MarketHarness:
         self.prices = np.empty(config.trading_days + 1, dtype=np.float64)
         self.prices[0] = config.initial_price
         self.volatility_ewma = config.fundamental_volatility**2
+        self.volatility_reference_ewma = config.fundamental_volatility**2
         self.execution_prices = np.empty(
             config.trading_days, dtype=np.float64
         )
@@ -511,13 +512,23 @@ class MarketHarness:
                 + (1.0 - self.config.volatility_ewma_decay)
                 * previous_log_return**2
             )
+            self.volatility_reference_ewma = (
+                self.config.volatility_reference_decay
+                * self.volatility_reference_ewma
+                + (1.0 - self.config.volatility_reference_decay)
+                * previous_log_return**2
+            )
         realized_volatility = float(np.sqrt(self.volatility_ewma))
+        realized_volatility_reference = float(
+            np.sqrt(self.volatility_reference_ewma)
+        )
         observation = MarketObservation(
             price=price_before,
             fundamental_value=fundamental_value,
             price_history=self.prices[: day_index + 1].copy(),
             public_news_return=public_news_return,
             realized_volatility=realized_volatility,
+            realized_volatility_reference=realized_volatility_reference,
             spread=(
                 float(self.spreads[day_index - 1])
                 if day_index > 0
@@ -533,9 +544,19 @@ class MarketHarness:
             submitted_orders=submitted,
             public_news_impact=public_news_impact,
             realized_volatility=realized_volatility,
+            realized_volatility_reference=realized_volatility_reference,
         )
         execution_price = quote.execution_price
 
+        # The margin floor is computed against a worst-case price that also
+        # covers plausible news moves, so a forced cover stays affordable
+        # even when a news jump pushes execution above the price-cap bound.
+        margin_floor_price = price_before * float(
+            np.exp(
+                self.config.max_log_return
+                + 4.0 * self.config.fundamental_volatility
+            )
+        )
         settlement = self.settlement.settle(
             population=self.population,
             submitted_orders=submitted,
@@ -545,7 +566,7 @@ class MarketHarness:
             minimum_positions=np.maximum(
                 -self.config.max_short_leverage
                 * trade_wealth_before
-                / (price_before * float(np.exp(self.config.max_log_return))),
+                / margin_floor_price,
                 -self.config.position_cap,
             ),
         )

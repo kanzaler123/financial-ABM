@@ -1,0 +1,28 @@
+check,kind,comparison,observed,threshold,pass_rate,required_pass_rate,failed_seeds
+full_volatility_in_daily_range,scenario,full,0.01763459078790524,"{""maximum"": 0.03, ""minimum"": 0.005}",1.0,0.8,
+full_return_autocorrelation_near_zero_across_lags,scenario,full,0.13472947439701527,0.2,0.9,0.8,20261334
+full_volatility_clustering_has_decay,scenario,full,0.20087468155109253,0.03,1.0,0.8,
+full_heavier_than_gaussian,scenario,full,2.627939605658267,0.1,1.0,0.8,
+full_volume_volatility_relation_positive,scenario,full,0.3746228648374255,0.05,1.0,0.8,
+full_price_discovery_bounded,scenario,full,0.019492210167804204,0.1,1.0,0.8,
+endogenous_liquidity_feedback_increases_tail_weight,paired_difference,full - fixed_liquidity,2.1245704712305695,0.05,1.0,0.8,
+public_news_marginal_response,paired_ratio,full -> no_direct_news,12.707956035047275,1.0,1.0,0.8,
+public_news_independent_response,paired_ratio,no_agent_information -> no_information_channels,9.924575106371709,1.0,1.0,0.8,
+agent_information_marginal_response,paired_ratio,full -> no_agent_information,1.3965395338810667,1.0,1.0,0.8,
+agent_information_independent_response,paired_ratio,no_direct_news -> no_information_channels,1.1919588107397918,1.0,0.9,0.8,20261333
+empty_information_baseline_is_weakest_discovery,paired_ratio,full -> no_information_channels,14.225825411513789,1.0,1.0,0.8,
+value_only_remains_active,scenario,value_only,0.01276884978021863,0.001,1.0,0.8,
+trend_only_remains_active,scenario,trend_only,0.024508684086761007,0.002,1.0,0.8,
+noise_only_remains_active,scenario,noise_only,0.07760736543024829,0.003,1.0,0.8,
+value_only_avoids_pathological_return_predictability,scenario,value_only,0.0795307001641238,0.25,1.0,0.8,
+trend_only_avoids_pathological_return_predictability,scenario,trend_only,0.008920205759078774,0.25,1.0,0.8,
+noise_only_avoids_pathological_return_predictability,scenario,noise_only,0.10167557604318626,0.25,0.9,0.8,20261335
+independent_signals_avoids_pathological_return_predictability,scenario,independent_signals,0.04656745835907172,0.25,1.0,0.8,
+fixed_participation_avoids_pathological_return_predictability,scenario,fixed_participation,0.0737698976375342,0.25,1.0,0.8,
+fixed_liquidity_avoids_pathological_return_predictability,scenario,fixed_liquidity,0.01743376494682371,0.25,1.0,0.8,
+liquidity_stress_avoids_pathological_return_predictability,scenario,liquidity_stress,0.09910025831941663,0.25,1.0,0.8,
+spread_and_depth_are_finite,scenario,full,6.844269432349641,"{""maximum"": 25.0, ""minimum"": 1.0}",1.0,0.8,
+liquidity_stress_increases_clustering,paired_difference,liquidity_stress - full,0.058406924061450885,0.0,1.0,0.8,
+logit_imitation_fires_and_tracks_fitness,scenario,logit_learning,2550.0,150.0,1.0,0.8,
+logit_market_remains_active_and_bounded,scenario,logit_learning,0.019790972320807534,"{""maximum"": 0.04, ""minimum"": 0.005}",0.9,0.8,20261336
+persistent_order_flow_is_observable,scenario,full,0.43750819261376694,0.05,1.0,0.8,

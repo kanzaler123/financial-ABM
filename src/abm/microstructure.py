@@ -60,6 +60,7 @@ class QuasiOrderBook:
         submitted_orders: FloatArray,
         public_news_impact: float,
         realized_volatility: float,
+        realized_volatility_reference: float = 0.0,
     ) -> MarketQuote:
         if submitted_orders.ndim != 1:
             raise ValueError("submitted_orders must be one-dimensional")
@@ -73,23 +74,41 @@ class QuasiOrderBook:
             raise ValueError(
                 "realized_volatility must be finite and nonnegative"
             )
+        if (
+            realized_volatility_reference < 0
+            or not np.isfinite(realized_volatility_reference)
+        ):
+            raise ValueError(
+                "realized_volatility_reference must be finite and nonnegative"
+            )
 
-        volatility_reference = max(
-            self.config.fundamental_volatility,
-            self.config.signal_volatility_floor,
+        volatility_reference = (
+            realized_volatility_reference
+            if realized_volatility_reference > 0
+            else max(
+                self.config.fundamental_volatility,
+                self.config.signal_volatility_floor,
+            )
         )
-        volatility_stress = max(
-            realized_volatility / volatility_reference
-            - self.config.liquidity_stress_threshold,
-            0.0,
+        volatility_stress = min(
+            max(
+                realized_volatility / volatility_reference
+                - self.config.liquidity_stress_threshold,
+                0.0,
+            ),
+            1.0,
         )
+        # Symmetric multiplicative response with no one-sided floor regime:
+        # depth = base * exp(-sens * stress). The minimum fraction is a soft
+        # tail clamp far below the typical operating point, so calm markets
+        # and stressed markets both sit inside the responsive zone.
         target_depth_fraction = max(
             self.config.minimum_liquidity_fraction,
-            1.0
-            / (
-                1.0
-                + self.config.liquidity_volatility_sensitivity
-                * volatility_stress
+            float(
+                np.exp(
+                    -self.config.liquidity_volatility_sensitivity
+                    * volatility_stress
+                )
             ),
         )
         gross_order_flow = float(np.abs(submitted_orders).sum())

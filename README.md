@@ -5,16 +5,14 @@
 策略人口暂时固定，Logit 学习默认关闭。
 项目优先保证模型边界清晰、运行结果可复现、状态变化可审计，再逐步扩展到信息图传播、学习算法和真实数据。
 
-> **当前状态：Stage 1 行为门槛已实现但尚未对未见种子稳健，正式验收未执行，Stage 2 暂停。**
-> 工程框架、审计、回放、双通道归因、可恢复验证和正式冻结保护已经可用。
-> 最新 20 种子开发协议（`stage1-mechanism-dev-v8` × 16 场景）结果为 **`21/22`**：
-> 唯一未过的门槛是 `full_volatility_clustering_has_decay`（8/20 种子，
-> 报告 `reports/stage1_structural_dev_v8_20260813/`）。
-> 2026-08-13 重新登记的全新 holdout 种子（20261301–10）结果为 `18/22`
-> （`reports/stage1_structural_holdout_v7_20260813/`），暴露了厚尾与
-> 波动聚集门槛的样本外稳健性差距。
-> 因此当前状态是 `development`；holdout 全过前不生成冻结清单，不运行
-> 50 个正式种子。
+> **当前状态：Stage 1 机制重设计完成，正式验收 18/22 未过，Stage 2 暂停。**
+> 开发 20 种子协议 22/22、全新未见种子 holdout 22/22
+> （`reports/stage1_structural_dev_v14_20260814/`、
+> `reports/stage1_structural_holdout_v13_20260814/`）。
+> 正式验收（50 种子 × 2500 日统计期）为 `18/22 FAIL`
+> （`reports/stage1_mechanism_acceptance_v13_20260814/`）：剩余差距集中在
+> 长周期样本上的厚尾与波动聚集稳定性。`stage1_complete=false`，
+> Stage 2 继续暂停。
 >
 > 2026-07-30 的 `stage1-mechanism-acceptance-v1` 虽然得到 `16/16 PASS`，
 > 但该协议主要检查完整模型的汇总指标，没有阻止异常机制彼此抵消。

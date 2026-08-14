@@ -60,6 +60,10 @@ class SettlementEngine:
             executed,
             minimum_positions - population.positions,
         )
+        mandatory_covers = np.maximum(
+            minimum_positions - population.positions,
+            0.0,
+        )
         buys = executed > 0
         sells = executed < 0
 
@@ -77,23 +81,27 @@ class SettlementEngine:
             )
 
         # If the counterparty runs out of cash for net purchases, scale the
-        # whole batch pro rata. A single factor preserves the synchronous
-        # batch and avoids one-sided rescaling invalidating the other
-        # resource constraint. Net sales are absorbed by the market maker
-        # short-selling, so inventory imposes no execution bound.
-        market_maker_cash_delta = float(
+        # voluntary part of the batch pro rata. Margin covers are excluded:
+        # solvency enforcement takes precedence over counterparty rationing.
+        # Net sales beyond cash are absorbed by short-selling, so inventory
+        # imposes no execution bound.
+        discretionary = executed - mandatory_covers
+        discretionary_cash_delta = float(
             (
-                executed * execution_price
-                + np.abs(executed)
+                discretionary * execution_price
+                + np.abs(discretionary)
                 * execution_price
                 * self.transaction_cost_rate
             ).sum()
         )
         scale = 1.0
-        if market_maker_cash_delta < -market_maker_cash:
-            scale = min(scale, market_maker_cash / -market_maker_cash_delta)
+        if discretionary_cash_delta < -market_maker_cash:
+            scale = min(
+                scale,
+                market_maker_cash / -discretionary_cash_delta,
+            )
         if scale < 1.0:
-            executed *= scale
+            executed = mandatory_covers + scale * discretionary
 
         transaction_costs = (
             np.abs(executed) * execution_price * self.transaction_cost_rate

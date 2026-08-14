@@ -1,7 +1,7 @@
 {
-  "version": "stage1-mechanism-acceptance-v7",
+  "version": "stage1-mechanism-acceptance-v13",
   "stage": "formal",
-  "purpose": "Frozen v7 structural acceptance (v6 market plus protocol-scale Logit-learning scenario). Seeds re-registered on 2026-08-13 to avoid the calibration common seed. Execution requires a matching SHA-256 freeze manifest and explicit unseal.",
+  "purpose": "Frozen v13 structural acceptance: symmetric self-normalized depth response, reference-wealth order sizing, correlated noise demand, horizon-robust news pass-through, news-cushioned margin floor, covers exempt from counterparty rationing, and a hardened extreme tail. Execution requires a matching SHA-256 freeze manifest and explicit unseal.",
   "minimum_burn_in_days": 1000,
   "minimum_evaluation_days": 2500,
   "seeds": [
