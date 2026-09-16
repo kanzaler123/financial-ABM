@@ -1,0 +1,78 @@
+name: Apply verified audit patch
+
+on:
+  push:
+    branches: ['fix/deep-audit-20260916']
+    paths: ['.github/workflows/apply-audit-once.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    if: github.repository == 'kanzaler123/financial-ABM' && github.ref == 'refs/heads/fix/deep-audit-20260916'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      QT_QPA_PLATFORM: offscreen
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact patch bytes
+        run: |
+          python - <<'PY'
+          import base64
+          import gzip
+          import hashlib
+          from pathlib import Path
+          encoded = ''.join(Path(f'audit-transport/part{i}.b64').read_text().strip() for i in range(1, 5))
+          patch = gzip.decompress(base64.b64decode(encoded, validate=True))
+          expected = 'a00e462821740cd2a3342602fbfff4e45d16cf0a3f911c763d080bd9def93572'
+          assert hashlib.sha256(patch).hexdigest() == expected, 'Patch checksum mismatch'
+          Path('/tmp/deep-audit.patch').write_bytes(patch)
+          print(f'Verified {len(patch)} patch bytes: {expected}')
+          PY
+      - name: Apply source and regression tests
+        run: |
+          git apply --check --index --exclude=.github/workflows/tests.yml /tmp/deep-audit.patch
+          git apply --index --exclude=.github/workflows/tests.yml /tmp/deep-audit.patch
+          git diff --cached --check
+          git diff --cached --stat
+      - name: Install Python runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libegl1 libopengl0
+          python -m pip install -c requirements-lock.txt -e '.[dev]'
+      - name: Full Python regression suite
+        run: python -m pytest --junitxml=audit-test-results.xml
+      - name: Frontend regression, lint and build
+        working-directory: web
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build
+      - name: Commit tested fixes to repair branch only
+        run: |
+          git rm audit-transport/part1.b64 audit-transport/part2.b64 audit-transport/part3.b64 audit-transport/part4.b64
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: harden settlement, learning, validation and web workflows'
+          git push origin HEAD:refs/heads/fix/deep-audit-20260916
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-test-results
+          path: audit-test-results.xml
+          if-no-files-found: ignore
+          retention-days: 7
