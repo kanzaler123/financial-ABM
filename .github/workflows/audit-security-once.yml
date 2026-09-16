@@ -1,0 +1,46 @@
+name: Repair audited dependency vulnerability
+on:
+  push:
+    branches: ['fix/deep-audit-20260916']
+    paths: ['.github/workflows/audit-security-once.yml']
+permissions:
+  contents: read
+jobs:
+  repair:
+    if: github.repository == 'kanzaler123/financial-ABM' && github.ref == 'refs/heads/fix/deep-audit-20260916'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Record and repair compatible dependency versions
+        run: |
+          npm audit --json > /tmp/audit-before.json || true
+          cat /tmp/audit-before.json
+          npm audit fix --ignore-scripts
+          git diff --exit-code -- package.json
+          npm audit --audit-level=high
+      - name: Verify frontend compatibility
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build
+      - name: Commit verified dependency lock only
+        run: |
+          git diff -- package-lock.json
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'fix: update vulnerable frontend dependency within supported range'
+            git push origin HEAD:refs/heads/fix/deep-audit-20260916
+          fi

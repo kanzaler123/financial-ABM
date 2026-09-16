@@ -15,32 +15,48 @@ jobs:
   python:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13']
     env:
       QT_QPA_PLATFORM: offscreen
       MPLBACKEND: Agg
     steps:
       - uses: actions/checkout@v4
-      - name: Archive tested source
-        run: git archive --format=zip --output=source-snapshot.zip HEAD
-      - uses: actions/upload-artifact@v4
-        with:
-          name: source-snapshot
-          path: source-snapshot.zip
-          retention-days: 7
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python }}
           cache: pip
       - name: Install system libraries
         run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0
-      - name: Install package and tests
-        run: python -m pip install -e '.[dev]'
+      - name: Install locked dependencies and package
+        run: python -m pip install -c requirements-lock.txt -e '.[dev]'
       - name: Run test suite
         run: python -m pytest --junitxml=test-results.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ matrix.python }}
           path: test-results.xml
           if-no-files-found: ignore
           retention-days: 7
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+      - run: npm audit --audit-level=high
