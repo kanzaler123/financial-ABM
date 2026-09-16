@@ -52,6 +52,17 @@ def _drain_commands(command_queue: Any) -> list[Mapping[str, Any]]:
     return commands
 
 
+def _publish_status(status_queue: Any | None, status: Mapping[str, Any]) -> None:
+    if status_queue is None:
+        return
+    try:
+        status_queue.put_nowait(status)
+    except (queue.Full, EOFError, OSError, ValueError):
+        # Completion is delivered separately on the reliable completion queue.
+        # A slow or disconnected observer must never abort the simulation.
+        pass
+
+
 def controlled_run_worker(
     config_payload: Mapping[str, Any],
     output_dir: str,
@@ -70,7 +81,7 @@ def controlled_run_worker(
         speed = 1.0
         step_budget = 0
         if status_queue is not None:
-            status_queue.put_nowait(
+            _publish_status(status_queue,
                 RunStatus("starting", 0, config.trading_days).to_dict()
             )
         while harness.next_day_index < config.trading_days:
@@ -95,7 +106,7 @@ def controlled_run_worker(
                     state_changed = True
             if paused and step_budget <= 0:
                 if state_changed and status_queue is not None:
-                    status_queue.put_nowait(
+                    _publish_status(status_queue,
                         RunStatus(
                             "paused",
                             harness.next_day_index,
@@ -110,7 +121,7 @@ def controlled_run_worker(
             if step_budget > 0:
                 step_budget -= 1
             if status_queue is not None:
-                status_queue.put_nowait(
+                _publish_status(status_queue,
                     RunStatus(
                         "paused" if paused else "running",
                         harness.next_day_index,
@@ -139,7 +150,7 @@ def controlled_run_worker(
         completion.pop("error")
         completion_queue.put(completion)
         if status_queue is not None:
-            status_queue.put_nowait(status.to_dict())
+            _publish_status(status_queue, status.to_dict())
     except Exception as exc:
         failure = RunStatus(
             "failed",
@@ -151,4 +162,4 @@ def controlled_run_worker(
         ).to_dict()
         completion_queue.put(failure)
         if status_queue is not None:
-            status_queue.put_nowait(failure)
+            _publish_status(status_queue, failure)

@@ -25,9 +25,14 @@ class LearningAudit:
     def to_dict(self) -> dict[str, object]:
         return {
             "day": self.day,
-            "mean_fitness_by_strategy": dict(
-                zip(STRATEGY_NAMES, self.mean_fitness_by_strategy, strict=True)
-            ),
+            # -inf is an internal softmax mask, not a JSON number.  An absent
+            # cohort has no observed fitness; null must not be confused with 0.
+            "mean_fitness_by_strategy": {
+                name: float(value) if np.isfinite(value) else None
+                for name, value in zip(
+                    STRATEGY_NAMES, self.mean_fitness_by_strategy, strict=True
+                )
+            },
             "choice_probabilities": dict(
                 zip(STRATEGY_NAMES, self.choice_probabilities, strict=True)
             ),
@@ -95,6 +100,14 @@ class LogitImitator:
     risk_penalty: float
     update_fraction: float
 
+    def __post_init__(self) -> None:
+        if not np.isfinite(self.temperature) or self.temperature <= 0:
+            raise ValueError("temperature must be finite and positive")
+        if not np.isfinite(self.risk_penalty) or self.risk_penalty < 0:
+            raise ValueError("risk_penalty must be finite and nonnegative")
+        if not 0 < self.update_fraction <= 1:
+            raise ValueError("update_fraction must be in (0, 1]")
+
     def update(
         self,
         *,
@@ -106,6 +119,8 @@ class LogitImitator:
         individual_fitness = performance.fitness(
             population.risk_aversion, self.risk_penalty
         )
+        if not np.all(np.isfinite(individual_fitness)):
+            raise ValueError("individual fitness must be finite")
         counts_before_array = population.counts()
         mean_fitness = np.full(len(STRATEGY_CODES), -np.inf, dtype=np.float64)
         for strategy in STRATEGY_CODES:
@@ -113,11 +128,17 @@ class LogitImitator:
             if np.any(mask):
                 mean_fitness[strategy] = float(individual_fitness[mask].mean())
 
-        logits = mean_fitness / self.temperature
-        finite = np.isfinite(logits)
-        logits[finite] -= float(logits[finite].max())
-        weights = np.zeros_like(logits)
-        weights[finite] = np.exp(logits[finite])
+        finite = np.isfinite(mean_fitness)
+        if not np.any(finite):
+            raise ValueError("learning requires at least one populated strategy")
+        # Center BEFORE division: a tiny temperature must not turn the best
+        # score into +inf and accidentally remove it from the choice set.
+        with np.errstate(over="ignore", under="ignore"):
+            logits = (
+                mean_fitness[finite] - float(mean_fitness[finite].max())
+            ) / self.temperature
+            weights = np.zeros_like(mean_fitness)
+            weights[finite] = np.exp(logits)
         probabilities = weights / weights.sum()
         update_count = max(
             1, int(round(population.size * self.update_fraction))

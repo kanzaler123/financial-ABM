@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import math
 import multiprocessing
 import queue
 import re
@@ -86,6 +87,13 @@ class ActiveRun:
             completion = None
         if completion:
             self._apply(completion)
+        if (
+            self.state not in ("completed", "failed")
+            and not self.process.is_alive()
+            and self.process.exitcode is not None
+        ):
+            self.state = "failed"
+            self.error = f"worker exited without completion (exit code {self.process.exitcode})"
 
     def _apply(self, update: Mapping[str, Any]) -> None:
         self.state = str(update.get("state", self.state))
@@ -136,7 +144,7 @@ class RunRegistry:
     def list_runs(self) -> list[dict[str, object]]:
         records = {name: run.metadata() for name, run in self.active.items()}
         for child in self.runs_root.iterdir():
-            if not child.is_dir() or child.name in records:
+            if child.is_symlink() or not child.is_dir() or child.name in records:
                 continue
             summary_path = child / "summary.json"
             config_path = child / "config.json"
@@ -145,22 +153,24 @@ class RunRegistry:
             try:
                 summary = json.loads(summary_path.read_text(encoding="utf-8"))
                 config = json.loads(config_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+                if not isinstance(summary, dict) or not isinstance(config, dict):
+                    continue
+                records[child.name] = {
+                    "id": child.name,
+                    "state": "completed",
+                    "active": False,
+                    "current_day": int(summary.get("trading_days", 0)),
+                    "trading_days": int(summary.get("trading_days", 0)),
+                    "seed": int(config.get("seed", 0)),
+                    "population_size": int(config.get("population_size", 0)),
+                    "latest_sequence_no": int(summary.get("telemetry_events", 0)),
+                    "fingerprint": summary.get("fingerprint"),
+                    "published_frames": int(summary.get("telemetry_events", 0)),
+                    "dropped_frames": 0,
+                    "error": None,
+                }
+            except (OSError, ValueError, TypeError):
                 continue
-            records[child.name] = {
-                "id": child.name,
-                "state": "completed",
-                "active": False,
-                "current_day": int(summary.get("trading_days", 0)),
-                "trading_days": int(summary.get("trading_days", 0)),
-                "seed": int(config.get("seed", 0)),
-                "population_size": int(config.get("population_size", 0)),
-                "latest_sequence_no": int(summary.get("telemetry_events", 0)),
-                "fingerprint": summary.get("fingerprint"),
-                "published_frames": int(summary.get("telemetry_events", 0)),
-                "dropped_frames": 0,
-                "error": None,
-            }
         return sorted(records.values(), key=lambda item: str(item["id"]), reverse=True)
 
     def start(self, name: str, config: Stage1Config) -> ActiveRun:
@@ -194,8 +204,13 @@ class RunRegistry:
             completion_queue=completion_queue,
             status_queue=status_queue,
         )
+        try:
+            process.start()
+        except Exception:
+            for channel in (telemetry_queue, command_queue, completion_queue, status_queue):
+                channel.close()
+            raise
         self.active[name] = active
-        process.start()
         return active
 
     def get(self, name: str) -> ActiveRun | None:
@@ -279,7 +294,7 @@ def create_app(
         try:
             return load_stage1_config(path).to_dict()
         except (TypeError, ValueError, KeyError) as exc:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
 
     @app.get("/api/runs")
     def runs(authorization: str | None = Header(default=None)) -> list[dict[str, object]]:
@@ -294,10 +309,12 @@ def create_app(
         authorize(authorization)
         body = await request.body()
         if len(body) > 256 * 1024:
-            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+            raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE)
         try:
             payload = json.loads(body)
-            name = str(payload["name"])
+            name = payload["name"]
+            if not isinstance(name, str):
+                raise ValueError("run name must be a string")
             if "config" in payload:
                 config = Stage1Config.from_dict(payload["config"])
             else:
@@ -310,7 +327,7 @@ def create_app(
         except FileExistsError as exc:
             raise HTTPException(status.HTTP_409_CONFLICT, "run already exists") from exc
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
         return active.metadata()
 
     @app.get("/api/runs/{name}")
@@ -327,7 +344,10 @@ def create_app(
         config_path = path / "config.json"
         if not summary.is_file() or not config_path.is_file():
             raise HTTPException(status.HTTP_404_NOT_FOUND)
-        return next(item for item in registry.list_runs() if item["id"] == name)
+        record = next((item for item in registry.list_runs() if item["id"] == name), None)
+        if record is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND)
+        return record
 
     @app.post("/api/runs/{name}/commands", status_code=status.HTTP_202_ACCEPTED)
     async def command_run(
@@ -336,16 +356,36 @@ def create_app(
         authorization: str | None = Header(default=None),
     ) -> dict[str, str]:
         authorize(authorization)
-        active = registry.get(name)
+        try:
+            active = registry.get(name)
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_404_NOT_FOUND) from exc
         if active is None or not active.process.is_alive():
             raise HTTPException(status.HTTP_409_CONFLICT, "run is not active")
-        payload = await request.json()
-        action = str(payload.get("action", ""))
-        if action not in COMMANDS:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "unknown command")
-        active.command_queue.put_nowait(
-            {"action": action, "value": payload.get("value")}
-        )
+        body = await request.body()
+        if len(body) > 256 * 1024:
+            raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE)
+        try:
+            payload = json.loads(body)
+            if not isinstance(payload, dict):
+                raise ValueError("command must be a JSON object")
+            action = payload.get("action")
+            if not isinstance(action, str) or action not in COMMANDS:
+                raise ValueError("unknown command")
+            value = payload.get("value")
+            if action == "speed" and (
+                isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value <= 0
+            ):
+                raise ValueError("speed must be a finite positive number")
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+        try:
+            active.command_queue.put_nowait({"action": action, "value": value})
+        except queue.Full as exc:
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "command queue is full") from exc
+        except (EOFError, OSError, ValueError) as exc:
+            raise HTTPException(status.HTTP_409_CONFLICT, "run command channel is closed") from exc
         return {"status": "accepted"}
 
     def events_for(name: str, after: int, limit: int | None) -> tuple[TelemetryEvent, ...]:
@@ -384,7 +424,7 @@ def create_app(
         try:
             cursor = int(last_event_id) if last_event_id is not None else -1
         except ValueError as exc:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid Last-Event-ID") from exc
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid Last-Event-ID") from exc
 
         async def generate():
             nonlocal cursor
@@ -428,8 +468,12 @@ def create_app(
                 report = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
+            if not isinstance(report, dict):
+                continue
             gate = report.get("gate", {})
             protocol = report.get("protocol", {})
+            if not isinstance(gate, dict) or not isinstance(protocol, dict):
+                continue
             protocol_version = protocol.get("version")
             protocol_stage = protocol.get("stage", "development")
             decision_path = path.parent / "final_decision.json"
@@ -453,6 +497,7 @@ def create_app(
             )
             formal_pass = bool(
                 protocol_stage == "formal"
+                and gate.get("passed") is True
                 and decision.get("stage1_complete") is True
                 and freeze_verification.get("verified") is True
             )

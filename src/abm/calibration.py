@@ -217,7 +217,8 @@ def simulate_seed_group(
             replace(config, seed=int(seed), trading_days=trading_days),
             fundamental_innovations=innovations,
         )
-        paths[str(seed)] = result.prices[1:] / result.prices[:-1] - 1.0
+        daily_returns = result.prices[1:] / result.prices[:-1] - 1.0
+        paths[str(seed)] = daily_returns[config.burn_in_days :]
     return paths
 
 
@@ -257,6 +258,8 @@ def build_calibration_report(
         "period_start": str(dataset.dates[0]),
         "period_end": str(dataset.dates[-1]),
         "trading_days_per_simulation": protocol.trading_days,
+        "burn_in_days": config.burn_in_days,
+        "evaluation_days_per_simulation": protocol.trading_days - config.burn_in_days,
         "training": {
             "empirical": training_empirical,
             "simulation": training_simulation,
@@ -305,6 +308,8 @@ def build_sealed_test_report(
         "period_start": str(dataset.dates[0]),
         "period_end": str(dataset.dates[-1]),
         "trading_days_per_simulation": protocol.trading_days,
+        "burn_in_days": config.burn_in_days,
+        "evaluation_days_per_simulation": protocol.trading_days - config.burn_in_days,
         "sealed_test_unsealed": True,
         "test": {
             "industries": list(split.test),
