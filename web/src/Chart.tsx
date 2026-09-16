@@ -17,6 +17,7 @@ interface ChartProps {
 
 export function Chart({ title, rows, series, yLabel, valueFormatter }: ChartProps) {
   const root = useRef<HTMLDivElement>(null)
+  const instance = useRef<echarts.ECharts | null>(null)
   const [showTable, setShowTable] = useState(false)
   const option = useMemo<echarts.EChartsOption>(() => ({
     animation: false,
@@ -52,16 +53,21 @@ export function Chart({ title, rows, series, yLabel, valueFormatter }: ChartProp
   }), [rows, series, valueFormatter, yLabel])
 
   useEffect(() => {
-    if (!root.current) return
+    if (showTable || !root.current) return
     const chart = echarts.init(root.current)
-    chart.setOption(option)
+    instance.current = chart
     const resize = new ResizeObserver(() => chart.resize())
     resize.observe(root.current)
     return () => {
       resize.disconnect()
       chart.dispose()
+      instance.current = null
     }
-  }, [option])
+  }, [showTable])
+
+  useEffect(() => {
+    instance.current?.setOption(option, { notMerge: true })
+  }, [option, showTable])
 
   return (
     <section className="chart-card">

@@ -20,11 +20,15 @@ class Announcement:
     source: str
 
     def __post_init__(self) -> None:
-        if self.day < 1:
-            raise ValueError("announcement day uses one-based indexing and must be positive")
+        if type(self.day) is not int or self.day < 1:
+            raise ValueError("announcement day must be a positive integer")
+        if isinstance(self.fundamental_delta, bool) or not isinstance(
+            self.fundamental_delta, (int, float)
+        ):
+            raise ValueError("fundamental_delta must be a finite number")
         if not math.isfinite(self.fundamental_delta):
             raise ValueError("fundamental_delta must be finite")
-        if not self.source.strip():
+        if not isinstance(self.source, str) or not self.source.strip():
             raise ValueError("announcement source must not be empty")
 
 
@@ -107,6 +111,23 @@ class Stage1Config:
     burn_in_days: int = 0
 
     def __post_init__(self) -> None:
+        # Dataclass annotations do not validate JSON or direct constructors.
+        # Reject coercions such as True -> 1 and "false" -> truthy before any
+        # random allocation, range iteration, or simulation can take place.
+        for item in fields(self):
+            value = getattr(self, item.name)
+            if item.type in (int, "int") and type(value) is not int:
+                raise ValueError(f"{item.name} must be an integer")
+            if item.type in (bool, "bool") and type(value) is not bool:
+                raise ValueError(f"{item.name} must be a boolean")
+            if item.type in (str, "str") and not isinstance(value, str):
+                raise ValueError(f"{item.name} must be a string")
+            if item.type in (float, "float") and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+            ):
+                raise ValueError(f"{item.name} must be a finite number")
         if not self.schema_version.strip() or not self.asset_id.strip():
             raise ValueError("schema_version and asset_id must not be empty")
         if self.fundamental_process not in FUNDAMENTAL_PROCESSES:
@@ -286,13 +307,23 @@ class Stage1Config:
             )
         if self.burn_in_days < 0 or self.burn_in_days >= self.trading_days:
             raise ValueError("burn_in_days must be in [0, trading_days)")
+        if not isinstance(self.strategy_shares, dict):
+            raise ValueError("strategy_shares must be an object")
         if set(self.strategy_shares) != set(STRATEGY_NAMES):
             raise ValueError(f"strategy_shares must define exactly {STRATEGY_NAMES}")
         shares = tuple(self.strategy_shares[name] for name in STRATEGY_NAMES)
-        if any(not math.isfinite(share) or share < 0 for share in shares):
+        if any(
+            isinstance(share, bool) or not isinstance(share, (int, float))
+            or not math.isfinite(share) or share < 0
+            for share in shares
+        ):
             raise ValueError("strategy shares must be finite and nonnegative")
         if not math.isclose(sum(shares), 1.0, abs_tol=1e-12):
             raise ValueError("strategy shares must sum to one")
+        if not isinstance(self.announcements, tuple) or any(
+            not isinstance(event, Announcement) for event in self.announcements
+        ):
+            raise ValueError("announcements must be a tuple of Announcement objects")
         if any(event.day > self.trading_days for event in self.announcements):
             raise ValueError("announcement day exceeds trading_days")
         announcement_days = [event.day for event in self.announcements]
@@ -315,6 +346,8 @@ class Stage1Config:
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "Stage1Config":
+        if not isinstance(payload, Mapping):
+            raise TypeError("Stage1Config must be a JSON object")
         config_fields = fields(cls)
         expected = {field.name for field in config_fields}
         required = {
@@ -333,18 +366,15 @@ class Stage1Config:
         announcements = values.get("announcements", [])
         if not isinstance(announcements, list):
             raise TypeError("announcements must be a JSON array")
-        values["announcements"] = tuple(
-            Announcement(
-                day=int(item["day"]),
-                fundamental_delta=float(item["fundamental_delta"]),
-                source=str(item["source"]),
-            )
-            for item in announcements
-        )
-        values["strategy_shares"] = {
-            str(name): float(share)
-            for name, share in dict(values["strategy_shares"]).items()
-        }
+        for item in announcements:
+            if not isinstance(item, dict) or set(item) != {
+                "day", "fundamental_delta", "source"
+            }:
+                raise ValueError("invalid announcement keys; expected day, fundamental_delta, source")
+        values["announcements"] = tuple(Announcement(**item) for item in announcements)
+        if not isinstance(values["strategy_shares"], dict):
+            raise TypeError("strategy_shares must be a JSON object")
+        values["strategy_shares"] = dict(values["strategy_shares"])
         return cls(**values)
 
     def to_dict(self) -> dict[str, Any]:
