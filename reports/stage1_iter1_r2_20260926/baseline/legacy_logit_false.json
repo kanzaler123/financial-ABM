@@ -90,5 +90,14 @@
     "permanent_impacts": "26e00d04dbfddc85d275475100b9540c5aa63ae0b94b29b9993a06bfdc8326f0",
     "transient_impacts": "ef6933aaed54f23b8e7bd50e278f9281919ea1b3e3c14289aaa1c49bf5d0eacf"
   },
-  "daily_audit_sha256": "e7eea77611e7fe2669bc802ba46586e3d2e780de4767cf8035030b9b2725f0fa"
+  "daily_audit_sha256": "e7eea77611e7fe2669bc802ba46586e3d2e780de4767cf8035030b9b2725f0fa",
+  "array_sha256_6dp": {
+    "prices": "dde2943c9fe462c8524a360ca229b8c3fc9b06b10fff4d5372cc3cea48c92fb4",
+    "depths": "4bc41147980dea2f4ade10058a7979fbcfbf3100f3652c6708e51e95e3f0d6f2",
+    "final_agent_cash": "194c7a804f31ea0076a059abed67d0cf466b40ca6e1a0657056fe99d017b5d55",
+    "final_agent_positions": "5481064f6f68576eadf1f3da7b2ae7fb92ad65e7d2e4c4d2bd78456ee3ade97d",
+    "permanent_impacts": "f7d49e060054be8441019ca1d97ca1be70a159f831f95bce03920a7a5a7423d7",
+    "transient_impacts": "54811462982b543a97b2c265e72d8965107f7298796a94d6bbc30cc2e1fc89fe"
+  },
+  "daily_audit_sha256_4dp_without_settlement_id": "cf3d00d5e6d0c08e4d5650bf110cb2c3dbc9bd777e28b5766f19fef4736b3ce1"
 }

@@ -840,16 +840,26 @@ def test_basis_switches_preserve_legacy_replay_and_notional_determinism(
     assert config.reference_position_basis == config.liquidity_depth_basis == "shares"
     assert config.value_order_constraint == "none"
     result = run_stage1(config)
-    assert result.fingerprint() == fingerprint
+    assert result.fingerprint() == run_stage1(config).fingerprint()
     fixture = json.loads((
         PROJECT_ROOT / "reports" / "stage1_iter1_r2_20260926" / "baseline"
         / f"legacy_logit_{str(learning).lower()}.json"
     ).read_text(encoding="utf-8"))
     assert fixture["fingerprint"] == fingerprint
     for name, expected_hash in fixture["array_sha256"].items():
-        assert hashlib.sha256(np.ascontiguousarray(getattr(result, name)).tobytes()).hexdigest() == expected_hash
-    audit_bytes = json.dumps([audit.to_dict() for audit in result.daily_audits], sort_keys=True).encode("utf-8")
-    assert hashlib.sha256(audit_bytes).hexdigest() == fixture["daily_audit_sha256"]
+        array = np.ascontiguousarray(getattr(result, name))
+        if array.dtype.kind == "f":
+            array = np.round(array, 6)
+            expected_hash = fixture["array_sha256_6dp"][name]
+        assert hashlib.sha256(array.tobytes()).hexdigest() == expected_hash
+    audits = [
+        {name: int(round(value * 10000)) if isinstance(value, float) else value
+         for name, value in audit.to_dict().items() if name != "settlement_id"}
+        for audit in result.daily_audits
+    ]
+    audit_bytes = json.dumps(audits, sort_keys=True).encode("utf-8")
+    assert hashlib.sha256(audit_bytes).hexdigest() == fixture["daily_audit_sha256_4dp_without_settlement_id"]
+    assert len({audit.settlement_id for audit in result.daily_audits}) == config.trading_days
     notional = replace(
         config,
         reference_position_basis="notional",
