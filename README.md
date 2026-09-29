@@ -1,18 +1,16 @@
 # 可审计人工金融市场 ABM
 
 这是一个面向研究用途的人工金融市场（Agent-Based Model，ABM）项目。
-当前仓库正在重建第一阶段：单一资产、日频、固定种子可精确重放的市场基准。
-策略人口暂时固定，Logit 学习默认关闭。
-项目优先保证模型边界清晰、运行结果可复现、状态变化可审计，再逐步扩展到信息图传播、学习算法和真实数据。
+当前包含一阶段市场基准，以及二阶段的信息图、投资者 Bandit 和企业表格 Q-learning。
+一阶段配置默认关闭 Logit；二阶段保持偏好和类型不变，只学习行动策略。
 
-> **当前状态：Stage 1 机制重设计完成，正式验收 18/22 未过，Stage 2 暂停。**
-> 开发 20 种子协议 22/22、全新未见种子 holdout 22/22
-> （`reports/stage1_structural_dev_v14_20260814/`、
-> `reports/stage1_structural_holdout_v13_20260814/`）。
-> 正式验收（50 种子 × 2500 日统计期）为 `18/22 FAIL`
-> （`reports/stage1_mechanism_acceptance_v13_20260814/`）：剩余差距集中在
-> 长周期样本上的厚尾与波动聚集稳定性。`stage1_complete=false`，
-> Stage 2 继续暂停。
+> **2026-09-26：Stage 1 正式验收 22/22 PASS；Stage 2 合成机制与工程验收通过。**
+> 一阶段第六轮开发 320 次、全新 holdout 160 次、正式 800 次均为 22/22；
+> 正式样本为 50 个新种子 × 16 场景，每条 1000 日预热 + 2500 日统计期。
+> [正式决策](reports/stage1_iter6_20260926/formal/final_decision.json)记录
+> `stage1_complete=true`；[分析与冻结说明](reports/stage1_iter6_20260926/analysis.md)
+> 保留失败轮次、预注册和源码归档。二阶段通过 1000 人 × 250 日试跑，
+> 详见[二阶段验收](reports/stage2_20260926/analysis.md)。
 >
 > 2026-07-30 的 `stage1-mechanism-acceptance-v1` 虽然得到 `16/16 PASS`，
 > 但该协议主要检查完整模型的汇总指标，没有阻止异常机制彼此抵消。
@@ -20,8 +18,9 @@
 
 ## 当前真实性结论
 
-当前版本应称为“具有机制消融能力的人工市场实验原型”，而不是可用于后续政策、
-ESG、LLM 或强化学习研究的真实市场基线。
+当前版本是可复现的合成人工市场实验原型。一阶段冻结的统计门槛已经通过，
+二阶段学习器通过已知最优解和工程契约测试；这些证据不等同于真实市场校准、
+政策有效性或独立研究审稿。
 
 | 历史 v1 场景            |            报告中位数 | 暴露的问题                 |
 | ----------------------- | --------------------: | -------------------------- |
@@ -33,8 +32,8 @@ ESG、LLM 或强化学习研究的真实市场基线。
 
 上表是历史 v1 结果。v2 已经针对这些问题完成代码重构：订单改为目标仓位增量，
 价格由聚合型准订单簿形成，流动性冲击逐步衰减，Agent 异步参与且具有持续性流动性需求。
-现在必须通过更长样本、多滞后 ACF、尾部、价差、深度和订单流指标的冻结验收，
-才能改变 Stage 1 状态。
+第六轮已经通过长样本、多滞后 ACF、尾部、价差、深度和订单流的冻结验收。
+其永久冲击按净股数和固定流动性尺度计算，避免变动深度对往返订单产生永久漂移。
 
 ## 快速启动
 
@@ -76,18 +75,25 @@ Set-Location ..
 ```powershell
 .\.venv\Scripts\abm-desktop.exe `
   --mode replay `
-  --run-dir runs\stage1_structural_v2_dev_20260730
+  --run-dir runs\stage2_five_nodes_20260926
 ```
 
 PySide6 桌面端继续保留为离线/兼容选项，并与 Web 复用同一 worker 控制逻辑。
+选择 `Agents & information` 查看 VisPy 信息图、财富、动作概率、Q 值和奖励分量。
+取消 `Follow latest` 后可按日期、交易者、企业和来源筛选。新建五节点实时运行：
+
+```powershell
+.\.venv\Scripts\abm-desktop.exe --mode live `
+  --config configs\stage2_five_nodes.json --run-dir runs\my_stage2_live_01
+```
 
 ### 4. 不打开界面，全速运行
 
 ```powershell
 .\.venv\Scripts\abm-desktop.exe `
   --mode batch `
-  --config configs\stage1_structural_dev_v6.json `
-  --run-dir runs\my_stage1_batch_01
+  --config configs\stage2.json `
+  --run-dir runs\my_stage2_batch_01
 ```
 
 三种启动模式的区别：
@@ -98,7 +104,7 @@ PySide6 桌面端继续保留为离线/兼容选项，并与 Web 复用同一 wo
 | `live`   |             是 |           是 | 必须是新目录     |
 | `batch`  |             是 |           否 | 必须是新目录     |
 
-如果只想先确认项目能正常使用，依次执行“第一次安装”和“查看当前诊断结果”即可。
+本机已有依赖和示例结果时，可直接启动 Web 或打开五节点回放。
 
 ## 主要功能
 
@@ -110,7 +116,7 @@ PySide6 桌面端继续保留为离线/兼容选项，并与 Web 复用同一 wo
 - 订单流冲击拆分为永久与暂时分量：有符号订单流形成永久价格发现，未预期 OFI 只形成逐步衰减的暂时冲击。
 - Agent 采用异步参与、持续性活跃状态、流动性需求和策略内持续共同信念。
 - 显式双通道价格发现：公开新闻惊喜可直接进入报价，Agent 主观估值与订单流形成独立通道；做市商不读取或持续锚定潜在真实基本面水平。
-- Logit 学习代码保留但默认关闭，固定人口市场通过验收前不启用。
+- Logit 学习保留为一阶段对照；二阶段 Bandit/Q-learning 与 Logit 不同时启用。
 - 检查现金守恒、股份守恒、非负现金、非负净财富、卖空边界和每日唯一结算编号。
 - 保存配置、随机种子、代码版本、运行摘要、状态数组和逐日审计日志。
 - 自动生成市场概览与微观结构诊断的 PNG/SVG 图表。
@@ -118,6 +124,34 @@ PySide6 桌面端继续保留为离线/兼容选项，并与 Web 复用同一 wo
 - 通过非阻塞 `multiprocessing.Queue` 向 Web 或 PySide6 观察者发送只读 `TelemetryEvent`。
 - 支持 `batch`、`live`、`replay` 三种模式，以及暂停、继续、单步和播放速度控制。
 - 将完整遥测写入 DuckDB/Parquet；显示队列满时可丢帧，但不丢失回放数据。
+- 二阶段追加逐日落盘日志，保存主体观察、行动、结算、消息来源/路径/到达时间、学习表和奖励分量。
+- 投资者每 20 日选择价值、趋势、逆向或减仓策略；企业每 60 日选择真实投入、披露投入或维持。
+- 静态图支持信任衰减和传播延迟；动态图仅根据过去 20 日已执行订单更新边权，次日生效。
+
+## 二阶段配置与证据
+
+`configs/stage2.json` 为 1000 名投资者、6 家企业、250 日动态图；
+`configs/stage2_five_nodes.json` 为 4 名投资者、1 家企业、120 日固定图。
+Web 中选择这两个配置即可运行；`Agents & information` 提供日志播放、单步和筛选。
+
+| 开关 | 行为 |
+| --- | --- |
+| `stage2_enabled=false` | 完整旁路二阶段，回到同参数的一阶段 |
+| `bandit_enabled=false` | 单独保留原有固定规则交易者 |
+| `company_learning_enabled=false` | 单独固定企业为维持现状 |
+| 两个学习开关同时为 `false` | 包括企业/图在内全部旁路，精确恢复一阶段 |
+| `graph_enabled=false` | 当日公开消息直接广播，去掉图的延迟与路径衰减 |
+| `dynamic_graph_enabled=false` | 保留静态信息图 |
+
+投资者和企业各使用 4 个三档状态变量（81 状态），分别按原交易者类型和企业规模共享学习表。
+未满 20/60 日的末尾窗口只记录，不提前分配奖励。交易者奖励中的费用只扣一次；
+企业五项奖励分别记录。企业生产、披露和核验参数属于合成机制，尚未做真实数据估计。
+`factor_preferences` 是稳定的通用因子偏好占位属性，本阶段不把它解释为 ESG，也不让它改变金融奖励。
+
+逐日 JSONL 在发送显示帧前落盘。正常结束后与 DuckDB/Parquet 一起保存；
+中断时可从 `runs/.<run-name>.events.jsonl` 读取已经完整写入的日期，末尾不完整行不会进入回放。
+这支持日志恢复，不是继续训练的状态检查点。每次新运行须使用新目录名。
+完整方法、测试边界和结果指纹见[二阶段验收报告](reports/stage2_20260926/analysis.md)。
 
 ## 当前模型边界
 
@@ -126,8 +160,8 @@ PySide6 桌面端继续保留为离线/兼容选项，并与 Web 复用同一 wo
 
 当前版本暂不包含：
 
-- 多资产市场、交易网络和信息传播；
-- Contextual Bandit、表格 Q-learning、PPO 或 LLM Agent；
+- 多资产市场和真实社交网络校准；
+- PPO、LLM Agent 和第三阶段真实事件/因子接入；
 - 实时交易、逐笔连续限价订单簿和生产级公网服务（现有 Web 仅为 loopback 研究工具）。
 
 Kenneth French 49 数据和旧 29/10/10 协议保留为数量级与风格事实诊断，
@@ -161,32 +195,32 @@ Kenneth French 49 数据和旧 29/10/10 协议保留为数量级与风格事实�
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-测试覆盖配置校验、数据结构、策略、订单结算、场景、Manifest、可视化和 Stage 1 Harness。测试通过只是代码和基准契约的证据，不替代真实市场校准或样本外研究。
+测试覆盖配置、结算、Manifest、两阶段 Harness、因果信息传播、学习窗口、已知最优动作、串并行确定性和界面回放。测试通过只是代码和基准契约的证据，不替代真实市场校准或样本外研究。
 
 ## 运行当前开发回归
 
-v6 引入快速 EWMA 波动率状态驱动深度压力与参与度反馈（volatility–liquidity 闭环）、
-随波动率缩放的需求噪声，以及供给约束的头寸上限；同时修复了结算的保证金强平和
-做市商做空吸收。v7/v8 协议扩展了协议级 Logit 学习场景、偏度/杠杆效应等报告指标，
-并把开发种子组合扩到 20 个（1000 名交易者、200 日 burn-in、1000 日统计期、
-16 个场景）。当前报告为 **`21/22`**，重跑只产生开发证据：
+当前一阶段配置为 `stage1_structural_dev_v11.json`，开发协议为 v13。
+已冻结的开发结果为 **22/22**；在当前源码上重跑只产生开发回归证据：
 
 ```powershell
 .\.venv\Scripts\python.exe -m abm.mechanism_validation `
-  --config configs\stage1_structural_dev_v6.json `
-  --protocol configs\stage1_mechanism_dev_v8.json `
-  --output reports\stage1_structural_dev_v8_new `
+  --config configs\stage1_structural_dev_v11.json `
+  --protocol configs\stage1_mechanism_dev_v13.json `
+  --output reports\stage1_dev_v13_new `
   --workers 4
 ```
 
-唯一未过的门槛是 `full_volatility_clustering_has_decay`：约 40% 的种子上
-|r| 存在 ACF(20) 长记忆平台或 ACF(1)/ACF(5) 偏弱。10 个全新未见种子的 holdout
-（`configs\stage1_mechanism_holdout_v7.json`，种子 20261301–10）为 `18/22`，
-厚尾与聚集门槛的样本外稳健性仍有差距。输出目录会逐任务写入 `checkpoint.json`；
+历史正式 v13 为 18/22，第五轮为 20/22，均保留原始失败结论；
+第六轮 holdout v15 和正式 v15 均为 22/22。输出目录逐任务写入 `checkpoint.json`；
 中断后可在相同源码、配置和协议下增加 `--resume`。身份不匹配时程序拒绝混用旧
 checkpoint。
 
 ## 正式验收保护
+
+正式 v15 的原始源码保存在 `reports/stage1_iter6_20260926/frozen_stage1_source.zip`。
+二阶段已扩展当前源码，旧冻结清单会正确拒绝在当前工作树上运行；精确复现历史正式实验须使用该归档。
+当前源码与归档的一条完整 3500 日路径、以及历史 Logit 开/关结果均已进行指纹比对。
+下面保留历史冻结命令示例；新的研究验收必须另行预注册未使用的种子，不能把旧种子重跑称为新验收。
 
 holdout 全部 PASS 前，**不得运行 50 个正式种子**。正式协议只有在后续开发和未见
 holdout 全部 PASS、冻结文件生成后才能执行。CLI 同时要求匹配清单与显式解封：
@@ -252,20 +286,20 @@ Stage 1 完成（该协议文件已归档于 `reports/archive/`）：
 
 规模配置 `configs/stage1.json` 为 10000 名交易者、10000 个交易日、前 1000 日
 burn-in、随机种子 `20260729`。快速试跑请改用
-`configs/stage1_structural_dev_v6.json`：
+`configs/stage1_structural_dev_v11.json`：
 
 ```powershell
 .\.venv\Scripts\abm-run.exe `
-  --config configs\stage1_structural_dev_v6.json `
-  --output runs\stage1_structural_v6_new
+  --config configs\stage1_structural_dev_v11.json `
+  --output runs\stage1_structural_v11_new
 ```
 
 也可以使用模块入口：
 
 ```powershell
 .\.venv\Scripts\python.exe -m abm.runner `
-  --config configs\stage1_structural_dev_v6.json `
-  --output runs\stage1_structural_v6_new
+  --config configs\stage1_structural_dev_v11.json `
+  --output runs\stage1_structural_v11_new
 ```
 
 输出目录必须不存在；程序不会覆盖已有运行结果。命令行最后会打印 JSON 格式的运行摘要，
@@ -338,6 +372,10 @@ runs/<run-name>/
 ├── state_arrays.npz        # 价格、基本面、成交量和最终状态数组
 ├── daily_audit.jsonl       # 每个交易日一条结算审计记录
 ├── learning_audit.json     # 默认为空；启用 Logit 后记录更新
+├── stage2_audit.json       # 二阶段学习表、次数、偏好与企业账本
+├── events.jsonl            # 二阶段逐日持久化日志
+├── telemetry.duckdb       # 完整市场与主体事件
+├── telemetry.parquet
 ├── stage1_overview.png     # 市场概览图
 ├── stage1_overview.svg
 ├── stage1_microstructure.png # 价差、深度、OFI 和冲击分解
@@ -361,7 +399,8 @@ runs/<run-name>/
 | `price_impact`                     | 未预期 OFI 的价格影响强度                 |
 | `liquidity_scale`                  | 流动性尺度                                |
 | `fundamental_process`              | Gaussian、Student-t 或 GARCH-t 基本面过程 |
-| `public_news_price_pass_through`   | 公开信息进入做市商报价的比例；v6 开发值为 0.85 |
+| `public_news_price_pass_through`   | 公开信息进入做市商报价的比例；v11 验收值为 1.0 |
+| `permanent_impact_basis`           | `participation` 保留旧路径；`net_shares` 为 v11 固定尺度永久冲击 |
 | `base_activity_rate`               | Agent 每日基础参与率                      |
 | `activity_rate_dispersion`         | Agent 基础参与率的个体异质性              |
 | `activity_persistence`             | 市场活跃状态的持续性                      |
@@ -377,7 +416,7 @@ runs/<run-name>/
 | `transient_impact_decay`           | 暂时冲击的逐期衰减率                      |
 | `order_flow_memory`                | 做市商对可预测订单流的估计记忆            |
 | `burn_in_days`                     | 不进入正式统计的预热期                    |
-| `learning_enabled`                 | 当前必须为`false`                       |
+| `learning_enabled`                 | 一阶段 Logit 开关；二阶段启用时须为 `false` |
 | `strategy_shares`                  | value、trend、noise 的初始比例            |
 | `announcements`                    | 指定交易日的基本面公告                    |
 

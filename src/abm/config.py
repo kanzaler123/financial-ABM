@@ -105,8 +105,22 @@ class Stage1Config:
     max_position_float_multiple: float = 5.0
     volatility_reference_decay: float = 0.99
     burn_in_days: int = 0
+    reference_position_basis: str = "shares"
+    liquidity_depth_basis: str = "shares"
+    value_order_constraint: str = "none"
+    value_inventory_control: str = "none"
+    permanent_impact_basis: str = "participation"
 
     def __post_init__(self) -> None:
+        if self.permanent_impact_basis not in ("participation", "net_shares"):
+            raise ValueError("permanent_impact_basis must be participation or net_shares")
+        if self.value_inventory_control not in ("none", "budget_priority"):
+            raise ValueError("value_inventory_control must be none or budget_priority")
+        if self.value_order_constraint not in ("none", "valuation_direction"):
+            raise ValueError("value_order_constraint must be none or valuation_direction")
+        for name in ("reference_position_basis", "liquidity_depth_basis"):
+            if getattr(self, name) not in ("shares", "notional"):
+                raise ValueError(f"{name} must be shares or notional")
         if not self.schema_version.strip() or not self.asset_id.strip():
             raise ValueError("schema_version and asset_id must not be empty")
         if self.fundamental_process not in FUNDAMENTAL_PROCESSES:

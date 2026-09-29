@@ -27,6 +27,19 @@ class PolicyDiagnostics:
 
 
 @dataclass(frozen=True, slots=True)
+class PolicyOrderDiagnostics:
+    value_signal: FloatArray
+    before_constraint: FloatArray
+    after_constraint: FloatArray
+    after_risk: FloatArray
+    forced_cover_orders: FloatArray
+    after_budget: FloatArray | None = None
+    budget_adjustment: FloatArray | None = None
+    budget_limit: FloatArray | None = None
+    maximum_rebalance: FloatArray | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class MarketObservation:
     price: float
     fundamental_value: float
@@ -54,13 +67,26 @@ class RuleBasedPolicy:
     activity_state: float = 0.0
     common_signal_state: FloatArray | None = None
     diagnostics: PolicyDiagnostics = PolicyDiagnostics()
+    instrument_orders: bool = False
+    order_diagnostics: PolicyOrderDiagnostics | None = None
 
     def act(
         self,
         observation: MarketObservation,
         population: TraderPopulation,
         rng: np.random.Generator,
+        *,
+        actions: NDArray[np.int64] | None = None,
+        public_news_returns: FloatArray | None = None,
     ) -> FloatArray:
+        if actions is not None and (
+            actions.shape != (population.size,) or not np.all(np.isin(actions, (0, 1, 2, 3)))
+        ):
+            raise ValueError("trader actions must contain one valid action per trader")
+        if public_news_returns is not None and (
+            public_news_returns.shape != (population.size,) or not np.all(np.isfinite(public_news_returns))
+        ):
+            raise ValueError("public news must contain one finite return per trader")
         price = observation.price
         wealth = population.wealth(price)
         reference_wealth = population.reference_wealth
@@ -90,12 +116,14 @@ class RuleBasedPolicy:
                 "policy state arrays are missing from the trader population"
             )
 
-        value_mask = population.strategies == VALUE_STRATEGY
-        population.pending_information[value_mask] += (
-            observation.public_news_return
+        value_mask = population.strategies == VALUE_STRATEGY if actions is None else actions == 0
+        information_mask = value_mask if actions is None else np.ones(population.size, dtype=bool)
+        population.pending_information[information_mask] += (
+            observation.public_news_return if public_news_returns is None
+            else public_news_returns[information_mask]
         )
         update_draws = rng.random(population.size)
-        value_updates = value_mask & (
+        value_updates = information_mask & (
             update_draws < population.value_update_probabilities
         )
         population.subjective_values[value_updates] *= np.exp(
@@ -220,19 +248,26 @@ class RuleBasedPolicy:
         )
 
         signals = np.zeros(population.size, dtype=np.float64)
-        trend_mask = population.strategies == TREND_STRATEGY
+        trend_mask = population.strategies == TREND_STRATEGY if actions is None else np.isin(actions, (1, 2))
         signals[value_mask] = (
             value_signal[value_mask] + idiosyncratic_signal[value_mask]
         )
         signals[trend_mask] = (
             trend_signal[trend_mask] + idiosyncratic_signal[trend_mask]
         )
-        noise_mask = population.strategies == NOISE_STRATEGY
+        if actions is not None:
+            signals[actions == 2] -= 2.0 * trend_signal[actions == 2]
+        noise_mask = population.strategies == NOISE_STRATEGY if actions is None else np.zeros(population.size, dtype=bool)
         signals[noise_mask] = noise_signal[noise_mask]
         signals += population.liquidity_needs
 
+        reference_positions = population.reference_positions
+        if self.config.reference_position_basis == "notional":
+            reference_positions = reference_positions * (
+                self.config.initial_price / price
+            )
         raw_target_positions = np.clip(
-            population.reference_positions
+            reference_positions
             + maximum_position * np.tanh(signals),
             -maximum_position,
             maximum_position,
@@ -243,13 +278,22 @@ class RuleBasedPolicy:
         raw_target_positions[no_trade_value_agents] = population.positions[
             no_trade_value_agents
         ]
+        if actions is not None:
+            raw_target_positions[actions == 3] = 0.0
         adjustment_rates = np.empty(population.size, dtype=np.float64)
         adjustment_rates[value_mask] = self.config.value_target_adjustment
         adjustment_rates[trend_mask] = self.config.trend_target_adjustment
         adjustment_rates[noise_mask] = self.config.noise_target_adjustment
+        if actions is not None:
+            adjustment_rates[actions == 3] = self.config.noise_target_adjustment
         population.desired_positions += adjustment_rates * (
             raw_target_positions - population.desired_positions
         )
+        if actions is not None:
+            reduce_mask = actions == 3
+            population.desired_positions[reduce_mask] = (
+                population.positions[reduce_mask] * (1 - self.config.noise_target_adjustment)
+            )
         submitted = np.clip(
             population.desired_positions - population.positions,
             -maximum_rebalance,
@@ -286,6 +330,34 @@ class RuleBasedPolicy:
         activity_rates = 1.0 / (1.0 + np.exp(-activity_logits))
         active = rng.random(population.size) < activity_rates
         submitted = np.where(active, submitted, 0.0)
+        if self.instrument_orders:
+            before_constraint = submitted.copy()
+        if (
+            self.config.value_order_constraint == "valuation_direction"
+            and self.config.value_sensitivity != 0
+        ):
+            opposing_value_orders = value_mask & (
+                ((value_signal > 0) & (submitted < 0))
+                | ((value_signal < 0) & (submitted > 0))
+            )
+            submitted[opposing_value_orders] = 0.0
+        if self.instrument_orders:
+            after_constraint = submitted.copy()
+        if self.config.value_inventory_control == "budget_priority":
+            lower_orders = np.maximum(
+                -maximum_position - population.positions, -maximum_rebalance
+            )
+            upper_orders = np.minimum(
+                maximum_position - population.positions, maximum_rebalance
+            )
+            reachable = lower_orders <= upper_orders
+            budget_orders = -np.sign(population.positions) * maximum_rebalance
+            budget_orders[reachable] = np.clip(
+                submitted[reachable], lower_orders[reachable], upper_orders[reachable]
+            )
+            submitted[value_mask] = budget_orders[value_mask]
+        if self.instrument_orders:
+            after_budget = submitted.copy()
 
         # The price cap is included in the affordability bound, so a permitted
         # buy remains affordable at the eventual execution price. The short
@@ -314,4 +386,23 @@ class RuleBasedPolicy:
             np.minimum(submitted, affordable_buys),
             np.maximum(submitted, -available_sales),
         )
+        if self.instrument_orders:
+            snapshots = [
+                value_signal.copy(),
+                before_constraint,
+                after_constraint,
+                submitted.copy(),
+                np.where(
+                    (after_budget <= 0) & (available_sales < 0),
+                    -available_sales,
+                    0.0,
+                ),
+                after_budget,
+                after_budget - after_constraint,
+                maximum_position.copy(),
+                maximum_rebalance.copy(),
+            ]
+            for snapshot in snapshots:
+                snapshot.flags.writeable = False
+            self.order_diagnostics = PolicyOrderDiagnostics(*snapshots)
         return submitted.astype(np.float64, copy=False)

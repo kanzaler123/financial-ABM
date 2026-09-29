@@ -1,4 +1,4 @@
-"""Command-line entry point for an auditable Stage 1 acceptance run."""
+"""Command-line entry point for an auditable market run."""
 
 from __future__ import annotations
 
@@ -8,8 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import Sequence
 
-from .config import load_stage1_config
-from .harness import run_stage1
+from .stage2 import create_market_harness, load_simulation_config
 
 
 def resolve_code_revision() -> str:
@@ -37,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--config",
         type=Path,
         default=Path("configs/stage1.json"),
-        help="Stage 1 JSON configuration",
+        help="Stage 1 or Stage 2 JSON configuration",
     )
     parser.add_argument(
         "--output",
@@ -50,9 +49,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    config = load_stage1_config(args.config)
-    result = run_stage1(config)
-    result.write(args.output, config, code_revision=resolve_code_revision())
+    if args.output.exists():
+        raise FileExistsError(args.output)
+    config = load_simulation_config(args.config)
+    revision = resolve_code_revision()
+    journal = args.output.parent / f".{args.output.name}.events.jsonl"
+    result = create_market_harness(config, event_log=journal, code_revision=revision).run()
+    result.write(args.output, config, code_revision=revision)
     print(json.dumps(result.summary(), ensure_ascii=False, sort_keys=True))
     return 0
 

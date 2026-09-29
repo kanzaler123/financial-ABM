@@ -1,0 +1,153 @@
+{
+  "stage2_five_nodes_20260926": {
+    "summary": {
+      "burn_in_days": 0,
+      "company_reward_windows": 2,
+      "evaluation_days": 120,
+      "final_price": 106.59546291246562,
+      "final_strategy_counts": {
+        "noise": 1,
+        "trend": 1,
+        "value": 2
+      },
+      "fingerprint": "fb157a5ec31738f2fdc2372555683fd4063c6bdab97045d487827a404c6153d2",
+      "initial_price": 100.0,
+      "learning_updates": 0,
+      "llm_api_calls": 0,
+      "llm_api_tokens": 0,
+      "market_fingerprint": "df4ec9f152b93541fd299ebd47a84dedd8df312bb83d17f651ef7802cdb31572",
+      "maximum_absolute_cash_error": 7.450580596923828e-08,
+      "maximum_absolute_share_error": 5.820766091346741e-11,
+      "minimum_agent_cash": 9106.69447439783,
+      "minimum_agent_position": 0.11529215046068482,
+      "population_size": 4,
+      "price_cap_hits": 0,
+      "price_formation": "quasi_order_book",
+      "stage": 2,
+      "telemetry_events": 120,
+      "trader_reward_windows": 6,
+      "trading_days": 120
+    },
+    "lossless_events": 120,
+    "journal_parquet_duckdb_equal": true,
+    "source_hashes_verified": 27,
+    "trader_reward_days": [
+      20,
+      40,
+      60,
+      80,
+      100,
+      120
+    ],
+    "company_reward_days": [
+      60,
+      120
+    ],
+    "graph_arrivals": 28,
+    "dynamic_edge_updates": 0,
+    "company_cash_maximum_error": 1.4551915228366852e-11,
+    "message_sources": [
+      "company-0"
+    ],
+    "pending_trader_days": 0,
+    "pending_company_days": 0,
+    "files": {
+      "config.json": "bef4ec6c5dac2c81081dbb75adee8798eddc311c8a22d60b49da25a1904bd55b",
+      "daily_audit.jsonl": "4eb5292f370ad9e90557248106c11c91fa3b619a31b10f256b02598ce81af1e4",
+      "events.jsonl": "fcc469fd4ade7161f015c27fe1d85bb68cf41cff4de0a4f0d1a521385afb3828",
+      "learning_audit.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+      "run_manifest.json": "6d394972ad227c12a18609554d10957506a81c73c47e1b08cc16b2b17a233655",
+      "stage1_microstructure.png": "b51441d74684c29ff9def7d048b99a8c7f2f6e6cf9df0147887fa501013792bf",
+      "stage1_microstructure.svg": "0ebb7905741ef8fb4f07ce48959bf0a586974acc2a858ad638eb1437435072fc",
+      "stage1_overview.png": "5a94c12baa0803721863cabe9bf545ad89058863c24f3f59b78ea3033b9d48cf",
+      "stage1_overview.svg": "3c33edfb08300623711756e0d97224d586564a7c358eaedaf782871c7042c2ba",
+      "stage2_audit.json": "6d96be24a9915b6c55102133600edb15bd1138ff7e2c13ddb5777489d477e034",
+      "state_arrays.npz": "acd9f4c7cf3531480ca9d834374b5b7c17a7344bd4f258485b5f44f9ab9c0d23",
+      "summary.json": "425eb42308e87973608f7183b56be8997611542185683db196df6a09fa9b1ae9",
+      "telemetry.duckdb": "b9bb40a3887c27161874cdcdd340d7079d7a55a74230618783f570d8040a896e",
+      "telemetry.parquet": "9403fcd6ec5b909b88e0b0dd014efa1f3d9db6e6ed4e6f7d97fdea3f597688cc"
+    }
+  },
+  "stage2_1000_250_20260926": {
+    "summary": {
+      "burn_in_days": 0,
+      "company_reward_windows": 4,
+      "evaluation_days": 250,
+      "final_price": 119.68610308472023,
+      "final_strategy_counts": {
+        "noise": 200,
+        "trend": 400,
+        "value": 400
+      },
+      "fingerprint": "affeff2fd12df6ef775a7620448256855502f7bb6108a78a883afc4c033acde2",
+      "initial_price": 100.0,
+      "learning_updates": 0,
+      "llm_api_calls": 0,
+      "llm_api_tokens": 0,
+      "market_fingerprint": "e250f5382ff95a00a150730e819b67c438432a0ba8aa72ef9add90a0ff6aadff",
+      "maximum_absolute_cash_error": 8.940696716308594e-08,
+      "maximum_absolute_share_error": 4.3655745685100555e-11,
+      "minimum_agent_cash": 8459.81327263616,
+      "minimum_agent_position": -7.456071316231875,
+      "population_size": 1000,
+      "price_cap_hits": 0,
+      "price_formation": "quasi_order_book",
+      "stage": 2,
+      "telemetry_events": 250,
+      "trader_reward_windows": 12,
+      "trading_days": 250
+    },
+    "lossless_events": 250,
+    "journal_parquet_duckdb_equal": true,
+    "source_hashes_verified": 26,
+    "trader_reward_days": [
+      20,
+      40,
+      60,
+      80,
+      100,
+      120,
+      140,
+      160,
+      180,
+      200,
+      220,
+      240
+    ],
+    "company_reward_days": [
+      60,
+      120,
+      180,
+      240
+    ],
+    "graph_arrivals": 63997,
+    "dynamic_edge_updates": 12000,
+    "company_cash_maximum_error": 2.9103830456733704e-10,
+    "message_sources": [
+      "company-0",
+      "company-1",
+      "company-2",
+      "company-3",
+      "company-4",
+      "company-5"
+    ],
+    "pending_trader_days": 10,
+    "pending_company_days": 10,
+    "files": {
+      "config.json": "3362f860e4ffef3a3edb1a7d8c982fbb08c5e5f47a84a36362fd194eb5108bf8",
+      "daily_audit.jsonl": "9155444803694670478fbbfecfa53ec50513683d233089b9b0700e6472aa3c85",
+      "events.jsonl": "059da3d65a38a227ed85eb0e8ae368d7329cb160ea515ae2ecef80291b460075",
+      "learning_audit.json": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+      "run_manifest.json": "5667aeacf0c6db886019182ef600f35a677b84822c0c4653980760b82cd40be8",
+      "stage1_microstructure.png": "873d2f122d86f94a16959a192eecd16c393058b65e82f682facdd49adb81c91b",
+      "stage1_microstructure.svg": "f460ebd343bd01108ce5322f4416dba9a7b21475ee4c0ae3c6522a75b9385fee",
+      "stage1_overview.png": "0a03ea8278c135fc534a027683e859270465d5e77d159f10a79415537efd5416",
+      "stage1_overview.svg": "beeb296c5aa403379c9a55c122f7f9526d8e27d717999bebd8604401343df216",
+      "stage2_audit.json": "1db26b7e8c4dccae70b3dc837c35c20c50978aedbec87dca58a9310f5c465a24",
+      "state_arrays.npz": "d8f08a8562a62a7870392da0fe94cc612ecf5ecd60892c3656c7bc0d9fb83841",
+      "summary.json": "0382b2cad7edd64c7d292579fc5ce6bf51f16906fe551efc01e3963f6fe55b1f",
+      "telemetry.duckdb": "bb7cee66116a5a92ffbbf4ae6def387d873d5c38ba882a7fc301f72212aa1ed1",
+      "telemetry.parquet": "8933b08ebf59efa67f52201b70b159e2606240ef1d6951c746d393a4940fb649"
+    }
+  }
+}

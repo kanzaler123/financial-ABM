@@ -1,0 +1,35 @@
+{
+  "kind": "deterministic order-book unit counterexample; not a statistical market run",
+  "aggregate_orders": [
+    200,
+    -200
+  ],
+  "public_news_returns": [
+    0.03,
+    -0.03
+  ],
+  "config": "configs/stage1_structural_dev_v11.json",
+  "evidence": {
+    "participation": {
+      "first_depth": 14560.0,
+      "second_depth": 14231.378750873082,
+      "first_permanent_impact": 0.0018887362637362642,
+      "second_permanent_impact": -0.0019323496676885861,
+      "permanent_round_trip_residual": -4.361340395232197e-05,
+      "final_transient_state": -0.004642071217299698,
+      "final_price": 99.53252760727985,
+      "price_cap_hits": 0
+    },
+    "net_shares": {
+      "first_depth": 14560.0,
+      "second_depth": 14233.7980953966,
+      "first_permanent_impact": 0.0017187500000000004,
+      "second_permanent_impact": -0.0017187500000000004,
+      "permanent_round_trip_residual": 0.0,
+      "final_transient_state": -0.004640396147881894,
+      "final_price": 99.53703538558028,
+      "price_cap_hits": 0
+    }
+  },
+  "interpretation": "Only permanent impact cancels by construction. The final transient state may remain nonzero and is not relabelled permanent. The new normalization is a model choice, whose aggregate consequences still require all unchanged gates."
+}

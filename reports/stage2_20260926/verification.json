@@ -1,0 +1,39 @@
+{
+  "verified_at": "2026-09-26T12:19:28.912431+00:00",
+  "stage1_complete": true,
+  "stage1_evidence": "reports/stage1_iter6_20260926/formal/final_decision.json",
+  "stage2_complete": true,
+  "scope": "synthetic mechanism and engineering acceptance; author self-review, no independent semantic review or real-data calibration",
+  "tests": {
+    "passed": 203,
+    "stage2_tests": 26,
+    "exit_code": 0
+  },
+  "web_build_exit_code": 0,
+  "web_lint_exit_code": 0,
+  "browser_live_equals_batch": {
+    "events": 120,
+    "fingerprint": "fb157a5ec31738f2fdc2372555683fd4063c6bdab97045d487827a404c6153d2"
+  },
+  "scale_future_information_violations": 0,
+  "llm_api_calls": 0,
+  "llm_api_tokens": 0,
+  "source_archive": {
+    "file": "source_snapshot.zip",
+    "files": 57,
+    "sha256": "da6ded1d0287d6fde29033afb1b2f833a0e55770548ae5213458d4618ab79806",
+    "crc_verified": true
+  },
+  "evidence_sha256": {
+    "artifact_verification.json": "793366be890dc1e393d7f9aad956bbbdfd91e516215d85eea934a4d925613e1f",
+    "frozen_stage1_regression.json": "f9828c9ab073e543e65e594f353905d3c3b5abd41b4ed22058c86d08f8238e8c",
+    "full_tests.txt": "c2c148521e40eac0cb18ac2d0da30745a3998c3af4c9132f728ac0ede43356d9",
+    "native_day3.png": "83857975f7a27557771478182088045a7205966f88723293c31eee1c23397b83",
+    "native_day60.png": "a1b5402fbfc791149e35aa33c49e012532c900cd9d938caa9ee2bb03b3a25ca4",
+    "web_completed.png": "da8ad6ff755c46ac28017ad10e59445f5a51b9cac7c308561b29952e2498d3f4",
+    "analysis.md": "128d97c421696c408c47f9713055c373c26b206c4959853ad64d9af4be685c8f",
+    "web_build.txt": "fc01c399dba23b6959332e3930c29f2b4415c67b8d40c71de994f171eb2f6b2c",
+    "web_lint.txt": "217cd0a2916417fc8356a74f8a63d9892bd8366423524fe1ded9934695d41507"
+  },
+  "web_dialog_cancel_creates_no_run": true
+}

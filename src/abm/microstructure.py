@@ -45,6 +45,7 @@ class QuasiOrderBook:
     depth: float
     transient_impact: float = 0.0
     expected_order_flow_imbalance: float = 0.0
+    depth_fraction: float = 1.0
 
     @classmethod
     def initialize(cls, config: Stage1Config) -> "QuasiOrderBook":
@@ -114,10 +115,20 @@ class QuasiOrderBook:
         gross_order_flow = float(np.abs(submitted_orders).sum())
         net_order_flow = float(submitted_orders.sum())
         base_depth = self.config.liquidity_scale
-        target_depth = base_depth * target_depth_fraction
-        self.depth += self.config.depth_resilience * (
-            target_depth - self.depth
-        )
+        if self.config.liquidity_depth_basis == "notional":
+            base_depth *= self.config.initial_price / self.mid_price
+            self.depth_fraction += self.config.depth_resilience * (
+                target_depth_fraction - self.depth_fraction
+            )
+            self.depth_fraction = max(
+                self.depth_fraction, self.config.minimum_liquidity_fraction
+            )
+            self.depth = base_depth * self.depth_fraction
+        else:
+            target_depth = base_depth * target_depth_fraction
+            self.depth += self.config.depth_resilience * (
+                target_depth - self.depth
+            )
         self.depth = max(
             self.depth,
             base_depth * self.config.minimum_liquidity_fraction,
@@ -152,6 +163,10 @@ class QuasiOrderBook:
             * order_flow_imbalance
             * amplified_pressure
         )
+        if self.config.permanent_impact_basis == "net_shares":
+            permanent_flow_impact = (
+                self.config.price_impact * net_order_flow / self.config.liquidity_scale
+            )
         transient_flow_impact = (
             self.config.price_impact
             * order_flow_surprise

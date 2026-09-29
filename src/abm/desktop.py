@@ -14,10 +14,10 @@ from typing import Any, Sequence
 import numpy as np
 import pyqtgraph as pg
 from PySide6 import QtCore, QtGui, QtWidgets
-from vispy import scene
 
-from .config import Stage1Config, load_stage1_config
-from .harness import run_stage1
+from .config import Stage1Config
+from .stage2 import create_market_harness, load_simulation_config
+from .stage2_view import Stage2Panel
 from .run_service import controlled_run_worker
 from .runner import resolve_code_revision
 from .telemetry import (
@@ -74,13 +74,13 @@ class TelemetryModel:
     def days(self) -> np.ndarray:
         return np.array([event.sim_time for event in self.events], dtype=np.float64)
 
-    def signature(self) -> tuple[tuple[int, tuple[tuple[str, float], ...]], ...]:
+    def signature(self) -> tuple[tuple[int, tuple[tuple[str, Any], ...]], ...]:
         return tuple(
             (
                 event.sequence_no,
                 tuple(
                     sorted(
-                        (key, float(value)) for key, value in event.payload.items()
+                        event.payload.items()
                     )
                 ),
             )
@@ -128,25 +128,6 @@ class ReplayController:
         return batch
 
 
-class VisPyNetworkView(QtWidgets.QWidget):
-    """Stage 2 network canvas adapter, reserved by the Stage 1 shell."""
-
-    def __init__(self, parent: QtWidgets.QWidget | None = None):
-        super().__init__(parent)
-        layout = QtWidgets.QVBoxLayout(self)
-        label = QtWidgets.QLabel(
-            "VisPy network view is reserved for Stage 2 message propagation."
-        )
-        label.setStyleSheet(f"color: {MUTED}; padding: 8px;")
-        layout.addWidget(label)
-        canvas = scene.SceneCanvas(keys=None, bgcolor="white", show=False)
-        view = canvas.central_widget.add_view()
-        view.camera = scene.PanZoomCamera(rect=(-1, -1, 2, 2))
-        scene.visuals.GridLines(color=(0.88, 0.9, 0.93, 1), parent=view.scene)
-        layout.addWidget(canvas.native, 1)
-        self.canvas = canvas
-
-
 class MarketMonitorWindow(QtWidgets.QMainWindow):
     def __init__(
         self,
@@ -184,7 +165,7 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         outer.setSpacing(8)
 
         title_row = QtWidgets.QHBoxLayout()
-        title = QtWidgets.QLabel("Stage 1 Artificial Market Monitor")
+        title = QtWidgets.QLabel("Artificial Market Monitor · Stages 1 / 2")
         title.setStyleSheet(
             f"font-size: 22px; font-weight: 700; color: {INK}; padding: 4px;"
         )
@@ -252,7 +233,10 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
             grid.setRowStretch(row, 1)
         for column in range(2):
             grid.setColumnStretch(column, 1)
-        outer.addWidget(grid_widget, 1)
+        self.tabs = QtWidgets.QTabWidget()
+        self.tabs.addTab(grid_widget, "Market")
+        self.stage2_panel = None
+        outer.addWidget(self.tabs, 1)
         self.setCentralWidget(central)
 
         self.price_curve = self.price_plot.plot(
@@ -336,6 +320,10 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
             return
         self.replay.reset()
         self.model = TelemetryModel()
+        if self.stage2_panel is not None:
+            self.tabs.removeTab(self.tabs.indexOf(self.stage2_panel))
+            self.stage2_panel.deleteLater()
+            self.stage2_panel = None
         self.refresh_plots()
 
     def _speed_changed(self) -> None:
@@ -348,6 +336,11 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         if not events:
             return
         self.model.extend(events)
+        if "stage2_json" in self.model.events[-1].payload:
+            if self.stage2_panel is None:
+                self.stage2_panel = Stage2Panel()
+                self.tabs.addTab(self.stage2_panel, "Agents & information")
+            self.stage2_panel.set_events(self.model.events)
         self.refresh_plots()
 
     def refresh_plots(self) -> None:
@@ -483,6 +476,8 @@ def run_replay_window(
     window.show()
     if screenshot is not None:
         window.ingest(events)
+        if window.stage2_panel is not None:
+            window.tabs.setCurrentWidget(window.stage2_panel)
         application.processEvents()
         screenshot.parent.mkdir(parents=True, exist_ok=True)
         if not window.grab().save(str(screenshot)):
@@ -545,12 +540,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     visualizer_config = VisualizerConfig(mode=args.mode, max_fps=args.max_fps)
     if args.mode == "batch":
-        config = load_stage1_config(args.config)
-        result = run_stage1(config)
+        if args.run_dir.exists():
+            raise FileExistsError(args.run_dir)
+        config = load_simulation_config(args.config)
+        revision = resolve_code_revision()
+        result = create_market_harness(
+            config, event_log=args.run_dir.parent / f".{args.run_dir.name}.events.jsonl",
+            code_revision=revision,
+        ).run()
         result.write(
             args.run_dir,
             config,
-            code_revision=resolve_code_revision(),
+            code_revision=revision,
         )
         print(json.dumps(result.summary(), ensure_ascii=False, sort_keys=True))
         return 0
@@ -560,7 +561,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             visualizer_config,
             screenshot=args.screenshot,
         )
-    config = load_stage1_config(args.config)
+    config = load_simulation_config(args.config)
     return run_live_window(config, args.run_dir, visualizer_config)
 
 

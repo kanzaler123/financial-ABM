@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from abm.config import load_stage1_config
+from abm.config import Stage1Config, load_stage1_config
 from abm.harness import build_fundamental_path
 from abm.scenario import load_synthetic_scenario
 from abm.schemas import MarketState, Message, Order
@@ -58,6 +58,16 @@ def test_strategy_shares_must_sum_to_one() -> None:
             config,
             strategy_shares={"value": 0.5, "trend": 0.5, "noise": 0.5},
         )
+
+
+@pytest.mark.parametrize("name", ["reference_position_basis", "liquidity_depth_basis"])
+def test_notional_basis_is_explicit_and_round_trips(name: str) -> None:
+    config = load_stage1_config(CONFIG_PATH)
+    assert getattr(config, name) == "shares"
+    enabled = replace(config, **{name: "notional"})
+    assert Stage1Config.from_dict(enabled.to_dict()) == enabled
+    with pytest.raises(ValueError, match=name):
+        replace(config, **{name: "invalid"})
 
 
 def test_fundamental_volatility_dynamics_must_be_stationary() -> None:
@@ -174,3 +184,44 @@ def test_invalid_order_quantities_are_rejected(
             submitted_at=datetime(2026, 1, 5, tzinfo=timezone.utc),
             reason_code="test",
         )
+
+
+def test_value_order_constraint_defaults_and_round_trips() -> None:
+    config = load_stage1_config(CONFIG_PATH)
+    payload = config.to_dict()
+    payload.pop("value_order_constraint")
+    implicit = Stage1Config.from_dict(payload)
+    assert implicit.value_order_constraint == "none"
+    assert implicit == replace(config, value_order_constraint="none")
+    enabled = replace(config, value_order_constraint="valuation_direction")
+    assert Stage1Config.from_dict(enabled.to_dict()) == enabled
+    with pytest.raises(ValueError, match="value_order_constraint"):
+        replace(config, value_order_constraint="invalid")
+
+
+def test_value_inventory_control_defaults_and_round_trips() -> None:
+    config = load_stage1_config(CONFIG_PATH)
+    assert config.value_inventory_control == "none"
+    payload = config.to_dict()
+    payload.pop("value_inventory_control")
+    implicit = Stage1Config.from_dict(payload)
+    assert implicit == replace(config, value_inventory_control="none")
+    for direction in ("none", "valuation_direction"):
+        for budget in ("none", "budget_priority"):
+            enabled = replace(config, value_order_constraint=direction,
+                              value_inventory_control=budget)
+            assert Stage1Config.from_dict(enabled.to_dict()) == enabled
+    with pytest.raises(ValueError, match="value_inventory_control"):
+        replace(config, value_inventory_control="invalid")
+
+
+def test_permanent_impact_basis_defaults_and_round_trips() -> None:
+    config = load_stage1_config(CONFIG_PATH)
+    payload = config.to_dict()
+    payload.pop("permanent_impact_basis")
+    assert Stage1Config.from_dict(payload) == config
+    assert config.permanent_impact_basis == "participation"
+    candidate = replace(config, permanent_impact_basis="net_shares")
+    assert Stage1Config.from_dict(candidate.to_dict()) == candidate
+    with pytest.raises(ValueError, match="permanent_impact_basis"):
+        replace(config, permanent_impact_basis="invalid")

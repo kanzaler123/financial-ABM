@@ -194,8 +194,9 @@ def read_telemetry(
     source = Path(run_dir)
     parquet_path = source / "telemetry.parquet"
     database_path = source / "telemetry.duckdb"
+    pending_journal = source.parent / f".{source.name}.events.jsonl"
     limit_clause = "" if limit is None else f" LIMIT {limit}"
-    if parquet_path.is_file():
+    if parquet_path.is_file() and not pending_journal.is_file():
         connection = duckdb.connect()
         try:
             escaped_parquet_path = str(parquet_path).replace("'", "''")
@@ -210,7 +211,7 @@ def read_telemetry(
             ).fetchall()
         finally:
             connection.close()
-    elif database_path.is_file():
+    elif database_path.is_file() and not pending_journal.is_file():
         connection = duckdb.connect(str(database_path), read_only=True)
         try:
             rows = connection.execute(
@@ -225,7 +226,22 @@ def read_telemetry(
         finally:
             connection.close()
     else:
-        raise FileNotFoundError(f"no telemetry store found in {source}")
+        journal = source / "events.jsonl"
+        if not journal.is_file():
+            journal = source.parent / f".{source.name}.events.jsonl"
+        if not journal.is_file():
+            raise FileNotFoundError(f"no telemetry store found in {source}")
+        events = []
+        with journal.open(encoding="utf-8") as stream:
+            for line in stream:
+                if not line.endswith("\n"):
+                    break
+                event = TelemetryEvent.from_dict(json.loads(line))
+                if event.sequence_no > after_sequence:
+                    events.append(event)
+                    if limit is not None and len(events) == limit:
+                        break
+        return tuple(events)
     return tuple(
         TelemetryEvent(
             run_id=row[0],

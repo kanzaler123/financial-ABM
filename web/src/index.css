@@ -1,37 +1,44 @@
 :root {
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: #0b0b0b;
-  background: #f9f9f7;
+  font-family: Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #112553;
+  background: #f7faff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
+  --page: #f7faff;
+  --surface: #ffffff;
+  --surface-tint: #f4f7fd;
   --surface-raised: #ffffff;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --muted: #898781;
-  --gridline: #e1e0d9;
-  --axis: #c3c2b7;
+  --text-primary: #112553;
+  --text-secondary: #506b98;
+  --muted: #8498b6;
+  --gridline: #e4ecfb;
+  --axis: #c5d5ee;
+  --track: #edf2fc;
+  --card-shadow: 0 3px 9px #7195d00b;
   --sidebar: #131b24;
   --sidebar-ink: #f6f7f8;
-  --blue: #2a78d6;
+  --blue: #377dff;
   --orange: #eb6834;
   --aqua: #1baf7a;
-  --good: #0ca30c;
+  --good: #069d77;
   --warning: #fab219;
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d0d0d;
-  --surface: #1a1a19;
-  --surface-raised: #20201f;
-  --text-primary: #ffffff;
-  --text-secondary: #c3c2b7;
-  --muted: #898781;
-  --gridline: #2c2c2a;
-  --axis: #383835;
+  --page: #101b2e;
+  --surface: #17253b;
+  --surface-tint: #1b2b43;
+  --surface-raised: #21334e;
+  --text-primary: #e0eaff;
+  --text-secondary: #9eb5d7;
+  --muted: #879ebf;
+  --gridline: #293c58;
+  --axis: #3f5575;
+  --track: #263956;
+  --card-shadow: 0 3px 10px #0712231c;
+  --good: #53d5b1;
   --sidebar: #0b1118;
   --blue: #3987e5;
   --orange: #d95926;
@@ -43,6 +50,9 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--page); color: var(--text-primary); }
 button, input, select { font: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; transition: background-color .15s, box-shadow .15s; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+button:not(:disabled):hover { filter: brightness(.98); }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 h1, h2, h3, p { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }

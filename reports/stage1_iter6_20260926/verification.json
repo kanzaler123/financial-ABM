@@ -1,0 +1,117 @@
+{
+  "verified_at": "2026-09-26T11:24:36.170138+00:00",
+  "stages": {
+    "development": {
+      "runs": 320,
+      "seeds": 20,
+      "checks": 22,
+      "exit_code": 0,
+      "minimum_observed_seed_pass_rate": 1.0,
+      "price_gap_summary": {
+        "maximum": 0.061517479961265824,
+        "median": 0.03750738883164874,
+        "minimum": 0.018273968750853,
+        "q10": 0.0225690450633794,
+        "q90": 0.05111277663119862
+      }
+    },
+    "holdout": {
+      "runs": 160,
+      "seeds": 10,
+      "checks": 22,
+      "exit_code": 0,
+      "minimum_observed_seed_pass_rate": 1.0,
+      "price_gap_summary": {
+        "maximum": 0.05403479740801563,
+        "median": 0.037611486985336964,
+        "minimum": 0.02266345357706216,
+        "q10": 0.02454641842696286,
+        "q90": 0.04804977463057565
+      }
+    },
+    "formal": {
+      "runs": 800,
+      "seeds": 50,
+      "checks": 22,
+      "exit_code": 0,
+      "minimum_observed_seed_pass_rate": 1.0,
+      "price_gap_summary": {
+        "maximum": 0.057392063522005946,
+        "median": 0.0381315943810756,
+        "minimum": 0.017611403703755725,
+        "q10": 0.018855990601123196,
+        "q90": 0.051738086896750496
+      }
+    }
+  },
+  "registered_runs_completed": 1280,
+  "full_tests_passed": 177,
+  "tests_exit_code": 0,
+  "preregistered_inputs_unchanged": 33,
+  "post_formal_freeze": {
+    "verified": true,
+    "freeze_id": "4bbed0056788a9b7aee9172feeaaa57de7d7a43e8f2dd8024e5f501c99e542f7",
+    "manifest": "configs\\stage1_mechanism_freeze_v15.json",
+    "checked_files": 34,
+    "missing_files": [],
+    "mismatched_files": []
+  },
+  "source_archive": {
+    "file_count": 41,
+    "frozen_file_count": 34,
+    "archive_sha256": "864b4c35627479c0a855b473c30043e6c1e07ed7ee8430ac9465069ee133d7d0",
+    "crc_and_frozen_hashes_verified": true,
+    "freeze_id": "4bbed0056788a9b7aee9172feeaaa57de7d7a43e8f2dd8024e5f501c99e542f7"
+  },
+  "stage1_complete": true,
+  "paired_development_price_gap_difference": {
+    "mean": -0.01541562777417627,
+    "improved_seeds": [
+      20261101,
+      20261104,
+      20261105,
+      20261106,
+      20261107,
+      20261108,
+      20261109,
+      20261112,
+      20261113,
+      20261114,
+      20261115,
+      20261116,
+      20261118,
+      20261120
+    ],
+    "worsened_seeds": [
+      20261102,
+      20261103,
+      20261110,
+      20261111,
+      20261117,
+      20261119
+    ],
+    "per_seed": {
+      "20261101": -0.0027289674393040017,
+      "20261102": 0.030963780769077184,
+      "20261103": 0.004512408366760989,
+      "20261104": -0.013432685685731409,
+      "20261105": -0.006045893566569902,
+      "20261106": -0.0021235352717922235,
+      "20261107": -0.09424498001821707,
+      "20261108": -0.04284433888135221,
+      "20261109": -0.0036196390174813367,
+      "20261110": 0.011211622858692778,
+      "20261111": 0.017249713322082656,
+      "20261112": -0.0655728085750915,
+      "20261113": -0.047325058885644554,
+      "20261114": -0.014518704472301254,
+      "20261115": -0.06198440836623869,
+      "20261116": -0.015536749746437616,
+      "20261117": 0.0018154357614972375,
+      "20261118": -0.010236155806958976,
+      "20261119": 0.008324428324989183,
+      "20261120": -0.0021760191535046755
+    }
+  },
+  "review_scope": "Engineering tests, deterministic mechanism properties, preregistered out-of-sample statistical acceptance, and author self-review. No external semantic reviewer used."
+}

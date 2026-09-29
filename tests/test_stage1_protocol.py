@@ -70,6 +70,35 @@ def test_seed_groups_and_criteria_are_pre_registered() -> None:
     assert formal.minimum_evaluation_days == 2500
 
 
+def test_notional_development_preserves_formal_criteria_and_long_window() -> None:
+    config = load_stage1_config(
+        PROJECT_ROOT / "configs" / "stage1_structural_dev_v7.json"
+    )
+    development = MechanismProtocol.from_json(
+        PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v9.json"
+    )
+    previous = MechanismProtocol.from_json(
+        PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v8.json"
+    )
+    formal = MechanismProtocol.from_json(
+        PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v13.json"
+    )
+
+    assert development.stage == "development"
+    assert development.seeds == previous.seeds
+    assert len(development.seeds) == 20
+    assert development.criteria == previous.criteria == formal.criteria
+    assert development.minimum_burn_in_days == config.burn_in_days == 1000
+    assert development.minimum_evaluation_days == 2500
+    assert config.trading_days - config.burn_in_days == 2500
+    assert config.reference_position_basis == config.liquidity_depth_basis == "notional"
+    fixed_liquidity = build_scenarios(config)["fixed_liquidity"]
+    assert fixed_liquidity.reference_position_basis == "notional"
+    assert fixed_liquidity.liquidity_depth_basis == "notional"
+    assert fixed_liquidity.liquidity_volatility_sensitivity == 0.0
+    assert fixed_liquidity.minimum_liquidity_fraction == 1.0
+
+
 def test_protocol_rejects_unknown_keys_and_criteria(tmp_path) -> None:
     unknown_key = tmp_path / "unknown-key.json"
     unknown_key.write_text(
@@ -154,6 +183,29 @@ def test_result_metrics_align_post_burn_in_days() -> None:
 
     assert np.isclose(metrics["mean_spread_bps"], expected_spread_bps)
     assert np.isclose(metrics["mean_absolute_log_price_gap"], expected_gap)
+
+
+@pytest.mark.parametrize("cap_days", [(2,), (8,), (2, 8)])
+def test_price_cap_metrics_include_burn_in_audits(cap_days) -> None:
+    config = replace(
+        load_stage1_config(CONFIG_PATH),
+        population_size=20,
+        trading_days=12,
+        burn_in_days=5,
+        announcements=(),
+    )
+    result = run_stage1(config)
+    result = replace(
+        result,
+        daily_audits=tuple(
+            replace(audit, price_cap_hit=audit.day in cap_days)
+            for audit in result.daily_audits
+        ),
+    )
+
+    metrics = result_metrics(result, burn_in_days=config.burn_in_days)
+
+    assert metrics["price_cap_hits"] == len(cap_days)
 
 
 def test_result_metrics_are_finite_and_capture_strategy_turnover() -> None:
@@ -247,7 +299,8 @@ def test_run_protocol_checkpoint_resumes_without_duplicate_tasks(tmp_path) -> No
     assert resumed_rows == first_rows
     assert resumed_summary == first_summary
     assert resumed_gate == first_gate
-    assert len(resumed_rows) == len(build_scenarios(config))
+    assert len(resumed_rows) == len(build_scenarios(config)) == 16
+    assert first_gate["total_checks"] == len(first_gate["checks"]) == 22
     assert len(
         {(row["scenario"], row["seed"]) for row in resumed_rows}
     ) == len(resumed_rows)
@@ -336,3 +389,57 @@ def test_freeze_manifest_identity_is_tamper_evident(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="identity hash"):
         verify_freeze_manifest(output, project_root=tmp_path)
+
+
+def test_value_constraint_protocol_keeps_registered_parameters_and_gate() -> None:
+    old_config = load_stage1_config(PROJECT_ROOT / "configs" / "stage1_structural_dev_v7.json")
+    config = load_stage1_config(PROJECT_ROOT / "configs" / "stage1_structural_dev_v8.json")
+    assert config == replace(old_config, value_order_constraint="valuation_direction")
+    previous = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v9.json")
+    protocol = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v10.json")
+    formal = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v13.json")
+    assert protocol == replace(previous, version=protocol.version, purpose=protocol.purpose)
+    assert protocol.criteria == previous.criteria == formal.criteria
+    assert protocol.stage == "development"
+    assert protocol.seeds == tuple(range(20261101, 20261121))
+    assert protocol.minimum_burn_in_days == config.burn_in_days == 1000
+    assert protocol.minimum_evaluation_days == config.trading_days - config.burn_in_days == 2500
+    scenarios = build_scenarios(config)
+    assert len(scenarios) == 16
+    assert all(scenario.value_order_constraint == "valuation_direction" for scenario in scenarios.values())
+    assert scenarios["no_agent_information"].value_sensitivity == 0.0
+    assert scenarios["no_information_channels"].value_sensitivity == 0.0
+    small = replace(config, population_size=20, trading_days=12, burn_in_days=0)
+    small_protocol = replace(protocol, seeds=(71,), excluded_development_seeds=(),
+                             minimum_burn_in_days=0, minimum_evaluation_days=0)
+    rows, _, gate = run_protocol(small, small_protocol)
+    assert len(rows) == 16
+    assert gate["total_checks"] == len(gate["checks"]) == 22
+
+
+def test_value_budget_protocol_keeps_registered_parameters_and_gate() -> None:
+    old_config = load_stage1_config(PROJECT_ROOT / "configs" / "stage1_structural_dev_v8.json")
+    config = load_stage1_config(PROJECT_ROOT / "configs" / "stage1_structural_dev_v9.json")
+    assert config == replace(old_config, value_inventory_control="budget_priority")
+    previous = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v10.json")
+    protocol = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_dev_v11.json")
+    formal = MechanismProtocol.from_json(PROJECT_ROOT / "configs" / "stage1_mechanism_acceptance_v13.json")
+    assert protocol == replace(previous, version=protocol.version, purpose=protocol.purpose)
+    assert protocol.criteria == previous.criteria == formal.criteria
+    assert protocol.stage == "development"
+    assert protocol.seeds == tuple(range(20261101, 20261121))
+    assert protocol.minimum_burn_in_days == config.burn_in_days == 1000
+    assert protocol.minimum_evaluation_days == config.trading_days - config.burn_in_days == 2500
+    scenarios = build_scenarios(config)
+    assert len(scenarios) == 16
+    assert all(scenario.value_order_constraint == "valuation_direction" for scenario in scenarios.values())
+    assert all(scenario.value_inventory_control == "budget_priority" for scenario in scenarios.values())
+    for name in ("no_agent_information", "no_information_channels"):
+        assert scenarios[name].value_sensitivity == 0.0
+        assert scenarios[name].value_update_rate == 0.0
+    small = replace(config, population_size=20, trading_days=12, burn_in_days=0)
+    small_protocol = replace(protocol, seeds=(71,), excluded_development_seeds=(),
+                             minimum_burn_in_days=0, minimum_evaluation_days=0)
+    rows, _, gate = run_protocol(small, small_protocol)
+    assert len(rows) == 16
+    assert gate["total_checks"] == len(gate["checks"]) == 22

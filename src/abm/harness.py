@@ -480,6 +480,9 @@ class MarketHarness:
         self.next_day_index = 0
         self._settlement_ids: set[str] = set()
 
+    def _public_news_return(self, day: int) -> float:
+        return float(np.log(float(self.fundamentals[day]) / float(self.fundamentals[day - 1])))
+
     def step(self, day_index: int) -> DailyAudit:
         if day_index != self.next_day_index:
             raise RuntimeError(
@@ -492,10 +495,7 @@ class MarketHarness:
         day = day_index + 1
         price_before = float(self.prices[day_index])
         fundamental_value = float(self.fundamentals[day])
-        fundamental_before = float(self.fundamentals[day - 1])
-        public_news_return = float(
-            np.log(fundamental_value / fundamental_before)
-        )
+        public_news_return = self._public_news_return(day)
         public_news_impact = (
             self.config.public_news_price_pass_through * public_news_return
         )
@@ -570,6 +570,7 @@ class MarketHarness:
                 -self.config.position_cap,
             ),
         )
+        self.last_settlement = settlement
         self.market_maker_cash = settlement.market_maker_cash
         self.market_maker_inventory = settlement.market_maker_inventory
         wealth_after = self.population.wealth(quote.mid_price_after)

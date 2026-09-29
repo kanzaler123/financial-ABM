@@ -25,9 +25,10 @@ class LearningAudit:
     def to_dict(self) -> dict[str, object]:
         return {
             "day": self.day,
-            "mean_fitness_by_strategy": dict(
-                zip(STRATEGY_NAMES, self.mean_fitness_by_strategy, strict=True)
-            ),
+            "mean_fitness_by_strategy": {
+                name: value if np.isfinite(value) else None
+                for name, value in zip(STRATEGY_NAMES, self.mean_fitness_by_strategy, strict=True)
+            },
             "choice_probabilities": dict(
                 zip(STRATEGY_NAMES, self.choice_probabilities, strict=True)
             ),

@@ -1,0 +1,22 @@
+{
+  "nodes": ["company-0", "trader-0", "trader-1", "trader-2", "trader-3"],
+  "edges": [
+    {"source_id": "company-0", "target_id": "trader-0", "edge_type": "disclosure", "weight": 1.0, "trust": 0.8, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "company-0", "target_id": "trader-1", "edge_type": "disclosure", "weight": 1.0, "trust": 0.5, "delay_days": 0, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-0", "target_id": "trader-2", "edge_type": "interaction", "weight": 1.0, "trust": 0.9, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-1", "target_id": "trader-2", "edge_type": "interaction", "weight": 1.0, "trust": 0.9, "delay_days": 2, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-2", "target_id": "trader-3", "edge_type": "interaction", "weight": 1.0, "trust": 0.8, "delay_days": 1, "valid_from": "2026-01-05", "valid_to": null},
+    {"source_id": "trader-3", "target_id": "trader-0", "edge_type": "interaction", "weight": 1.0, "trust": 0.7, "delay_days": 0, "valid_from": "2026-01-05", "valid_to": null}
+  ],
+  "message": {
+    "message_id": "disclosure-0", "source_id": "company-0", "target_scope": ["public"],
+    "event_time": "2026-01-05T00:00:00+00:00", "available_at": "2026-01-05T00:00:00+00:00",
+    "content_type": "disclosure", "payload": {"log_change": 0.03}, "credibility": 1.0, "parent_message_id": null
+  },
+  "expected": [
+    {"target": "trader-1", "delay": 0, "credibility": 0.5, "path": ["company-0", "trader-1"]},
+    {"target": "trader-0", "delay": 1, "credibility": 0.8, "path": ["company-0", "trader-0"]},
+    {"target": "trader-2", "delay": 2, "credibility": 0.72, "path": ["company-0", "trader-0", "trader-2"]},
+    {"target": "trader-3", "delay": 3, "credibility": 0.576, "path": ["company-0", "trader-0", "trader-2", "trader-3"]}
+  ]
+}

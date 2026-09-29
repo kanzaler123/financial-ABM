@@ -8,9 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from .config import Stage1Config
-from .harness import MarketHarness
 from .runner import resolve_code_revision
+from .stage2 import create_market_harness, simulation_config_from_dict
 from .telemetry import NonBlockingQueueSink
 
 RunState = Literal["starting", "running", "paused", "completed", "failed"]
@@ -63,8 +62,16 @@ def controlled_run_worker(
     """Run one simulation without allowing observers to affect its state."""
     sink = NonBlockingQueueSink(telemetry_queue)
     try:
-        config = Stage1Config.from_dict(config_payload)
-        harness = MarketHarness(config, telemetry_sink=sink)
+        destination = Path(output_dir)
+        if destination.exists():
+            raise FileExistsError(destination)
+        config = simulation_config_from_dict(config_payload)
+        revision = resolve_code_revision()
+        harness = create_market_harness(
+            config, telemetry_sink=sink,
+            event_log=destination.parent / f".{destination.name}.events.jsonl",
+            code_revision=revision,
+        )
         paused = False
         detached = False
         speed = 1.0
@@ -125,7 +132,7 @@ def controlled_run_worker(
         result.write(
             Path(output_dir),
             config,
-            code_revision=resolve_code_revision(),
+            code_revision=revision,
         )
         status = RunStatus(
             "completed",

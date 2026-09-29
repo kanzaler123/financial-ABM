@@ -1,0 +1,15 @@
+{
+  "legacy_logit_false": {
+    "fingerprint": "3102a3020e2decc12cad4a60b0b51c39963e4dfe83ba041aae88dd61b4444e7e",
+    "match": true
+  },
+  "legacy_logit_true": {
+    "fingerprint": "41ed29300137693c1c96aeb45f8509f78612733eb51ea7cf1f24980fa89dd1fb",
+    "match": true
+  },
+  "frozen_v15_full_3500_day_run": {
+    "fingerprint": "0a53a5f6cd696c83f4df494d616c98ea9292ca700d5f5768171ac62ae309032a",
+    "match": true,
+    "frozen_archive": "reports/stage1_iter6_20260926/frozen_stage1_source.zip"
+  }
+}

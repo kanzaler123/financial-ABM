@@ -20,8 +20,9 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from .config import Stage1Config, load_stage1_config
+from .config import Stage1Config
 from .run_service import controlled_run_worker
+from .stage2 import load_simulation_config, simulation_config_from_dict
 from .telemetry import TelemetryEvent, read_telemetry
 
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -35,6 +36,8 @@ ARTIFACTS = {
     "state-arrays": "state_arrays.npz",
     "telemetry-parquet": "telemetry.parquet",
     "telemetry-duckdb": "telemetry.duckdb",
+    "stage2-audit": "stage2_audit.json",
+    "events": "events.jsonl",
     "overview-png": "stage1_overview.png",
     "overview-svg": "stage1_overview.svg",
     "microstructure-png": "stage1_microstructure.png",
@@ -165,7 +168,7 @@ class RunRegistry:
 
     def start(self, name: str, config: Stage1Config) -> ActiveRun:
         output_dir = self.path_for(name)
-        if output_dir.exists() or name in self.active:
+        if output_dir.exists() or (output_dir.parent / f".{name}.events.jsonl").exists() or name in self.active:
             raise FileExistsError(name)
         context = multiprocessing.get_context("spawn")
         telemetry_queue = context.Queue(maxsize=4096)
@@ -259,7 +262,7 @@ def create_app(
         records = []
         for path in sorted(config_root.glob("*.json")):
             try:
-                config = load_stage1_config(path)
+                config = load_simulation_config(path)
             except (TypeError, ValueError, KeyError):
                 continue
             records.append(
@@ -299,9 +302,9 @@ def create_app(
             payload = json.loads(body)
             name = str(payload["name"])
             if "config" in payload:
-                config = Stage1Config.from_dict(payload["config"])
+                config = simulation_config_from_dict(payload["config"])
             else:
-                config = load_stage1_config(
+                config = load_simulation_config(
                     json_file(config_root, str(payload["config_name"]))
                 )
             if config.population_size > 100_000 or config.trading_days > 100_000:
@@ -352,6 +355,10 @@ def create_app(
         active = registry.get(name)
         if active is not None:
             active.refresh()
+            try:
+                return read_telemetry(active.output_dir, after_sequence=after, limit=limit)
+            except FileNotFoundError:
+                pass
             events = tuple(event for event in active.events if event.sequence_no > after)
             return events if limit is None else events[:limit]
         path = registry.path_for(name)
@@ -400,6 +407,8 @@ def create_app(
                         allow_nan=False,
                     )
                     yield f"id: {cursor}\nevent: telemetry\ndata: {data}\n\n"
+                if len(batch) == 1000:
+                    continue
                 active = registry.get(name)
                 if active is None or not active.process.is_alive():
                     state = "completed" if active is None else active.metadata()["state"]
@@ -423,7 +432,11 @@ def create_app(
         records = []
         if not report_root.is_dir():
             return records
-        for path in sorted(report_root.glob("*/mechanism_report.json"), reverse=True):
+        report_paths = (*report_root.glob("*/mechanism_report.json"),
+                        *report_root.glob("*/*/mechanism_report.json"))
+        for path in sorted(report_paths, reverse=True):
+            if "archive" in path.relative_to(report_root).parts:
+                continue
             try:
                 report = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
@@ -468,7 +481,7 @@ def create_app(
                 scientific_status = "failed"
             records.append(
                 {
-                    "id": path.parent.name,
+                    "id": path.parent.relative_to(report_root).as_posix(),
                     "passed": gate.get("passed"),
                     "passed_checks": gate.get("passed_checks"),
                     "total_checks": gate.get("total_checks"),
@@ -484,13 +497,13 @@ def create_app(
             )
         return records
 
-    @app.get("/api/reports/{name}")
+    @app.get("/api/reports/{name:path}")
     def report(name: str, authorization: str | None = Header(default=None)) -> object:
         authorize(authorization)
-        if not SAFE_NAME.fullmatch(name):
+        if any(not SAFE_NAME.fullmatch(part) or part == "archive" for part in name.split("/")):
             raise HTTPException(status.HTTP_404_NOT_FOUND)
         path = (report_root / name / "mechanism_report.json").resolve()
-        if path.parent.parent != report_root or not path.is_file():
+        if report_root not in path.parents or not path.is_file():
             raise HTTPException(status.HTTP_404_NOT_FOUND)
         return json.loads(path.read_text(encoding="utf-8"))
 

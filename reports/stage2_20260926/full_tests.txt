@@ -1,0 +1,19 @@
+........................................................................ [ 35%]
+........................................................................ [ 70%]
+...........................................................              [100%]
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\kanzaler\Desktop\ABM\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_ui.py::test_run_path_traversal_and_unknown_artifact_are_rejected
+  C:\Users\kanzaler\Desktop\ABM\.venv\Lib\site-packages\fastapi\routing.py:352: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    return await dependant.call(**values)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================= slowest 5 durations =============================
+28.35s call     tests/test_ui.py::test_stage1_visualizations_are_exported_as_png_and_svg
+20.89s call     tests/test_stage2.py::test_display_drops_do_not_change_results_or_lossless_journal
+16.05s call     tests/test_tools.py::test_value_budget_replays_both_sources_and_preserves_four_branch_results
+13.50s call     tests/test_stage2.py::test_native_five_node_live_and_replay_filters_match
+11.26s call     tests/test_stage2.py::test_web_discovers_nested_formal_acceptance_and_replays_stage2
