@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { api, type ConfigRecord, type ReportRecord, type RunRecord, type TelemetryEvent, streamTelemetry } from './api'
+import { api, type ConfigRecord, type ReportRecord, type RunRecord, type TelemetryEvent, loadRunEvents, streamTelemetry } from './api'
 import { Chart, type SeriesSpec } from './Chart'
 import { Stage2Panel } from './Stage2Panel'
 import { useLanguage } from './i18n'
@@ -91,6 +91,7 @@ function App() {
   const [loadError, setLoadError] = useState(false)
   const [reportId, setReportId] = useState<string | null>(null)
   const cursor = useRef(-1)
+  const dialog = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -111,12 +112,12 @@ function App() {
     queryFn: () => api<ReportDetail>(`/api/reports/${formalReport!.id.split('/').map(encodeURIComponent).join('/')}`) })
   const stage1Complete = reports.data?.some((item) => item.stage1_complete) ?? false
   const chooseRun = (id: string) => { setSelectedRun(id); setReplayIndex(null); setPlaying(false) }
-  const openRunDialog = () => (document.getElementById('run-dialog') as HTMLDialogElement).showModal()
+  const openRunDialog = () => { startRun.reset(); dialog.current?.showModal() }
 
   const startRun = useMutation({
     mutationFn: () => api<RunRecord>('/api/runs', { method: 'POST', body: JSON.stringify({ name: runName, config_name: configName }) }),
     onSuccess: (run) => {
-      (document.getElementById('run-dialog') as HTMLDialogElement).close()
+      dialog.current?.close()
       chooseRun(run.id)
       setPage('dashboard')
       queryClient.invalidateQueries({ queryKey: ['runs'] })
@@ -133,17 +134,18 @@ function App() {
     cursor.current = -1
     if (!runId) return
     const controller = new AbortController()
-    api<TelemetryEvent[]>(`/api/runs/${encodeURIComponent(runId)}/events?after=-1&limit=10000`, { signal: controller.signal }).then((loaded) => {
+    loadRunEvents(runId, controller.signal).then(async (loaded) => {
       if (controller.signal.aborted) return
       setEvents(loaded)
       cursor.current = loaded.at(-1)?.sequence_no ?? -1
       if (selected?.active) {
-        streamTelemetry(runId, cursor.current, controller.signal, (event) => {
+        await streamTelemetry(runId, cursor.current, controller.signal, (event) => {
+          if (controller.signal.aborted || event.sequence_no <= cursor.current) return
           cursor.current = event.sequence_no
-          setEvents((current) => current.some((item) => item.sequence_no === event.sequence_no) ? current : [...current, event])
-        }).catch((error) => { if (error.name !== 'AbortError') setLoadError(true) })
+          setEvents((current) => [...current, event])
+        })
       }
-    }).catch((error) => { if (error.name !== 'AbortError') setLoadError(true) })
+    }).catch(() => { if (!controller.signal.aborted) setLoadError(true) })
     return () => controller.abort()
   }, [runId, selected?.active])
 
@@ -247,7 +249,7 @@ function App() {
       </div>
     </main>
 
-    <dialog id="run-dialog"><form method="dialog" onSubmit={(event) => { event.preventDefault(); startRun.mutate() }}><header><h2>{t('Start a Market Experiment', '新建市场仿真实验')}</h2><button type="button" aria-label={t('Close', '关闭')} onClick={() => (document.getElementById('run-dialog') as HTMLDialogElement).close()}>×</button></header><label>{t('Experiment name', '实验名称')}<input value={runName} onChange={(event) => setRunName(event.target.value)} pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,63}" title={t('1–64 letters, numbers, dots, underscores or hyphens; start with a letter or number.', '使用 1–64 位英文字母、数字、点、下划线或连字符，以字母或数字开头。')} required /><small>{t('Letters, numbers, dots, underscores and hyphens.', '可使用英文字母、数字、点、下划线和连字符。')}</small></label><label>{t('Configuration', '仿真配置')}<select value={configName} onChange={(event) => setConfigName(event.target.value)}>{configs.data?.map((config) => <option key={config.id} value={config.id}>{config.id} · {format(config.population_size, 0)} {t('agents', '智能体')} · {format(config.trading_days, 0)} {t('days', '天')}</option>)}</select></label>{startRun.error && <p className="error" role="alert">{t('Unable to start. Use a unique name and an available configuration.', '启动失败，请使用未占用的名称和可用配置。')}</p>}<button className="primary" type="submit" disabled={startRun.isPending || !configs.data?.length}>{startRun.isPending ? t('Starting…', '启动中…') : t('Start simulation', '开始仿真')}</button></form></dialog>
+    <dialog id="run-dialog" ref={dialog}><form method="dialog" onSubmit={(event) => { event.preventDefault(); if (!startRun.isPending) startRun.mutate() }}><header><h2>{t('Start a Market Experiment', '新建市场仿真实验')}</h2><button type="button" aria-label={t('Close', '关闭')} onClick={() => dialog.current?.close()}>×</button></header><label>{t('Experiment name', '实验名称')}<input value={runName} onChange={(event) => setRunName(event.target.value)} pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,63}" title={t('1–64 letters, numbers, dots, underscores or hyphens; start with a letter or number.', '使用 1–64 位英文字母、数字、点、下划线或连字符，以字母或数字开头。')} required /><small>{t('Letters, numbers, dots, underscores and hyphens.', '可使用英文字母、数字、点、下划线和连字符。')}</small></label><label>{t('Configuration', '仿真配置')}<select value={configName} onChange={(event) => setConfigName(event.target.value)}>{configs.data?.map((config) => <option key={config.id} value={config.id}>{config.id} · {format(config.population_size, 0)} {t('agents', '智能体')} · {format(config.trading_days, 0)} {t('days', '天')}</option>)}</select></label>{startRun.error && <p className="error" role="alert">{t('Unable to start. Use a unique name and an available configuration.', '启动失败，请使用未占用的名称和可用配置。')}</p>}<button className="primary" type="submit" disabled={startRun.isPending || !configs.data?.length}>{startRun.isPending ? t('Starting…', '启动中…') : t('Start simulation', '开始仿真')}</button></form></dialog>
     <dialog id="guide-dialog"><div className="guide-content"><header><h2>{t('Using the Laboratory', '实验室使用指南')}</h2><button type="button" aria-label={t('Close guide', '关闭指南')} onClick={() => (document.getElementById('guide-dialog') as HTMLDialogElement).close()}>×</button></header><h3>{t('01 · Run an experiment', '01 · 运行实验')}</h3><p>{t('Select an existing experiment or create one from a configuration. The same random seed and configuration reproduce the same simulation.', '选择已有实验，或使用配置新建实验。相同的随机种子与配置可复现同一仿真。')}</p><h3>{t('02 · Explore the market', '02 · 观察市场')}</h3><p>{t('Follow prices, volume and agent composition on the dashboard. Pause or step a live simulation; use the replay slider to explore recorded days.', '在仪表盘观察价格、成交量和智能体组成。运行时可暂停或单步执行；回放时可通过滑块选择已记录的天数。')}</p><h3>{t('03 · Inspect agents and evidence', '03 · 检查智能体与证据')}</h3><p>{t('The Agents page shows information paths, decisions and learning rewards for Stage 2. Reports distinguish formal validation from development checks.', '智能体页面显示第二阶段的信息路径、决策和学习奖励。验证报告会区分正式验收与开发检查。')}</p></div></dialog>
   </div>
 }

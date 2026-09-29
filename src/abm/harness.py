@@ -383,6 +383,9 @@ def build_fundamental_path(
                 )
             )
             previous_shock = shock
+        else:
+            # Zero volatility removes randomness, not the configured drift.
+            current *= float(np.exp(config.fundamental_drift))
         current += announcements.get(day, 0.0)
         if current <= 0 or not np.isfinite(current):
             raise ValueError(f"announcement on day {day} creates an invalid fundamental")

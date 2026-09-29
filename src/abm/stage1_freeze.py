@@ -37,9 +37,9 @@ def collect_freeze_paths(
         root / "web" / "package.json",
         root / "web" / "package-lock.json",
     }
-    required.update((root / "src" / "abm").glob("*.py"))
+    required.update((root / "src" / "abm").rglob("*.py"))
     for pattern in ("*.ts", "*.tsx", "*.css"):
-        required.update((root / "web" / "src").glob(pattern))
+        required.update((root / "web" / "src").rglob(pattern))
     missing = sorted(str(path) for path in required if not path.is_file())
     if missing:
         raise FileNotFoundError(
@@ -95,10 +95,9 @@ def write_freeze_manifest(
     if path.exists():
         raise FileExistsError(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
+    serialized = json.dumps(manifest, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    with path.open("x", encoding="utf-8") as destination:
+        destination.write(serialized)
     return path
 
 
@@ -146,6 +145,21 @@ def verify_freeze_manifest(
     ).hexdigest()
     if payload.get("freeze_id") != expected_freeze_id:
         raise ValueError("freeze manifest identity hash is invalid")
+    for name in ("formal_config", "formal_protocol"):
+        if not isinstance(payload.get(name), str):
+            raise ValueError(f"freeze manifest {name} must be a path string")
+    expected_paths = collect_freeze_paths(
+        root,
+        formal_config=root / payload["formal_config"],
+        formal_protocol=root / payload["formal_protocol"],
+    )
+    expected_inventory = {_relative_path(item, root) for item in expected_paths}
+    if set(hashes) != expected_inventory:
+        raise ValueError(
+            "freeze manifest source inventory does not match; "
+            f"unrecorded={sorted(expected_inventory - set(hashes))}, "
+            f"unexpected={sorted(set(hashes) - expected_inventory)}"
+        )
     result = {
         "verified": not missing and not mismatched,
         "freeze_id": expected_freeze_id,

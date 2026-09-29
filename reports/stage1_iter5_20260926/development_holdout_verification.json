@@ -1,0 +1,37 @@
+{
+  "verified_at": "2026-09-26T10:44:16.518596+00:00",
+  "development_and_holdout": {
+    "development": {
+      "runs": 320,
+      "checks": 22,
+      "exit_code": 0,
+      "price_discovery_pass": 18,
+      "agent_marginal_pass": 16,
+      "agent_independent_pass": 16
+    },
+    "holdout": {
+      "runs": 160,
+      "checks": 22,
+      "exit_code": 0,
+      "price_discovery_pass": 9,
+      "agent_marginal_pass": 9,
+      "agent_independent_pass": 10
+    }
+  },
+  "candidate_changes_from_iteration1": {
+    "public_news_price_pass_through": [
+      0.95,
+      1.0
+    ]
+  },
+  "preregistered_inputs_unchanged": 26,
+  "files_unchanged_since_171_passed_full_suite": 32,
+  "frozen_inputs_unchanged": 34,
+  "freeze_id": "7c0f236a6ad8f33b0dc8394c9deef7faab9bff12daf75d1412f8a410d5eb461b",
+  "source_archive": "reports/stage1_iter5_20260926/frozen_stage1_source.zip",
+  "archive_file_count": 41,
+  "archive_sha256": "2700a62a21d3ee7e25295bbfc2f7ccad9210c748925e12d77726602c59dfb497",
+  "archive_crc_and_frozen_hashes_verified": true,
+  "formal_status": "RUNNING",
+  "stage1_complete": false
+}

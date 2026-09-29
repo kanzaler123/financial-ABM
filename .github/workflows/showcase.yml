@@ -1,0 +1,77 @@
+name: GitHub showcase
+
+on:
+  push:
+    branches: [master]
+    paths: ['showcase/**', '.github/assets/**', '.github/workflows/showcase.yml', 'README.md', 'reports/**']
+  pull_request:
+    paths: ['showcase/**', '.github/assets/**', '.github/workflows/showcase.yml', 'README.md', 'reports/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: showcase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      pages_enabled: ${{ steps.pages.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript
+        run: node --check showcase/app.js
+      - name: Test source data and offline build
+        run: python -m unittest discover -s showcase -p 'test_*.py' -v
+      - name: Build self-contained exhibition
+        run: python showcase/build.py --output _site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: github-showcase
+          path: _site/
+          retention-days: 14
+      - name: Check Pages availability without changing settings
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          enabled=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.has_pages')
+          echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
+          if [ "$enabled" != 'true' ]; then
+            echo '### Exhibition built; Pages is not enabled' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Download github-showcase for an offline preview. To publish, select Settings → Pages → Source: GitHub Actions, then run this workflow.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/master' && needs.build.outputs.pages_enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: github-showcase
+          path: _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment

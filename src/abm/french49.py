@@ -212,12 +212,15 @@ def deterministic_split(industries: Sequence[str]) -> IndustrySplit:
 
 
 def _autocorrelation(values: NDArray[np.float64], lag: int = 1) -> float:
-    finite = np.isfinite(values)
-    values = values[finite]
-    if values.size <= lag:
-        return float("nan")
-    first = values[:-lag]
-    second = values[lag:]
+    if lag < 1:
+        raise ValueError("autocorrelation lag must be positive")
+    # Preserve trading-day spacing. Removing missing days first would join
+    # nonadjacent observations and turn a multi-day gap into a one-day lag.
+    first, second = values[:-lag], values[lag:]
+    valid_pairs = np.isfinite(first) & np.isfinite(second)
+    first, second = first[valid_pairs], second[valid_pairs]
+    if first.size < 2:
+        raise ValueError("autocorrelation requires at least two finite lagged pairs")
     if np.std(first) == 0 or np.std(second) == 0:
         return 0.0
     return float(np.corrcoef(first, second)[0, 1])
@@ -242,8 +245,8 @@ def return_statistics(values: NDArray[np.float64]) -> dict[str, float]:
         "observations": int(finite.size),
         "mean_daily_return": mean,
         "daily_volatility": standard_deviation,
-        "return_autocorrelation_lag1": _autocorrelation(finite),
-        "absolute_return_autocorrelation_lag1": _autocorrelation(np.abs(finite)),
+        "return_autocorrelation_lag1": _autocorrelation(values),
+        "absolute_return_autocorrelation_lag1": _autocorrelation(np.abs(values)),
         "skewness": skewness,
         "excess_kurtosis": excess_kurtosis,
         "quantile_01": float(np.quantile(finite, 0.01)),

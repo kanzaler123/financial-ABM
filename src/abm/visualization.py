@@ -249,7 +249,11 @@ def plot_learning_diagnostics(run_dir: str | Path) -> tuple[Path, Path]:
     strategy_names = ("value", "trend", "noise")
     fitness = {
         name: np.array(
-            [float(audit["mean_fitness_by_strategy"][name]) for audit in audits]
+            [
+                float(value) if value is not None else np.nan
+                for audit in audits
+                for value in [audit["mean_fitness_by_strategy"][name]]
+            ]
         )
         for name in strategy_names
     }

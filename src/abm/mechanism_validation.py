@@ -7,6 +7,7 @@ import csv
 import hashlib
 import json
 import os
+import platform
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, replace
@@ -157,22 +158,26 @@ class MechanismProtocol:
         ):
             if criteria.get(rate_name, 1.0) > 1.0:
                 raise ValueError(f"{rate_name} must not exceed one")
-        seeds = tuple(int(value) for value in payload["seeds"])
-        excluded = tuple(
-            int(value) for value in payload["excluded_development_seeds"]
-        )
+        for name in ("seeds", "excluded_development_seeds"):
+            values = payload[name]
+            if not isinstance(values, list) or any(
+                type(value) is not int or value < 0 for value in values
+            ):
+                raise ValueError(f"protocol {name} must be an array of nonnegative integers")
+        seeds = tuple(payload["seeds"])
+        excluded = tuple(payload["excluded_development_seeds"])
         if not seeds or len(seeds) != len(set(seeds)):
             raise ValueError("protocol seeds must be nonempty and unique")
         if set(seeds) & set(excluded):
             raise ValueError(
                 "formal seeds must be disjoint from development seeds"
             )
-        minimum_burn_in_days = int(
-            payload.get("minimum_burn_in_days", 0)
-        )
-        minimum_evaluation_days = int(
-            payload.get("minimum_evaluation_days", 0)
-        )
+        for name in ("minimum_burn_in_days", "minimum_evaluation_days"):
+            value = payload.get(name, 0)
+            if type(value) is not int or value < 0:
+                raise ValueError(f"protocol {name} must be a nonnegative integer")
+        minimum_burn_in_days = payload.get("minimum_burn_in_days", 0)
+        minimum_evaluation_days = payload.get("minimum_evaluation_days", 0)
         stage = str(payload.get("stage", "development"))
         if stage not in ("development", "formal"):
             raise ValueError("protocol stage must be development or formal")
@@ -501,6 +506,14 @@ def evaluate_gate(
         raise ValueError(
             f"mechanism summary is missing scenarios: {sorted(missing_scenarios)}"
         )
+    if rows is None or not rows:
+        raise ValueError("mechanism gate requires nonempty per-seed evidence")
+    seeds = tuple(sorted({row.get("seed") for row in rows}, key=str))
+    _validate_checkpoint_rows(rows, seeds)
+    if len(rows) != len(SCENARIO_NAMES) * len(seeds):
+        raise ValueError("mechanism per-seed evidence must contain the complete scenario matrix")
+    if summary != _summarize(rows):
+        raise ValueError("mechanism summary disagrees with per-seed evidence")
     full = summary["full"]
 
     def median(scenario: str, metric: str) -> float:
@@ -539,7 +552,7 @@ def evaluate_gate(
             for row in scenario_rows
         }
         pass_rate = (
-            float(np.mean(tuple(outcomes.values()))) if outcomes else 1.0
+            float(np.mean(tuple(outcomes.values())))
         )
         evidence[name] = {
             "kind": "scenario",
@@ -589,9 +602,9 @@ def evaluate_gate(
         }
         outcomes = {seed: ratio >= threshold for seed, ratio in ratios.items()}
         pass_rate = (
-            float(np.mean(tuple(outcomes.values()))) if outcomes else 1.0
+            float(np.mean(tuple(outcomes.values())))
         )
-        median_ratio = float(np.median(tuple(ratios.values()))) if ratios else 1.0
+        median_ratio = float(np.median(tuple(ratios.values())))
         evidence[name] = {
             "kind": "paired_ratio",
             "baseline_scenario": baseline_scenario,
@@ -627,12 +640,10 @@ def evaluate_gate(
             for seed, difference in differences.items()
         }
         pass_rate = (
-            float(np.mean(tuple(outcomes.values()))) if outcomes else 1.0
+            float(np.mean(tuple(outcomes.values())))
         )
         median_difference = (
             float(np.median(tuple(differences.values())))
-            if differences
-            else threshold
         )
         evidence[name] = {
             "kind": "paired_difference",
@@ -1260,14 +1271,7 @@ def _protocol_identity(
     protocol: MechanismProtocol,
 ) -> str:
     package_root = Path(__file__).resolve().parent
-    implementation_files = (
-        package_root / "config.py",
-        package_root / "population.py",
-        package_root / "policies.py",
-        package_root / "harness.py",
-        package_root / "microstructure.py",
-        package_root / "mechanism_validation.py",
-    )
+    implementation_files = sorted(package_root.rglob("*.py"))
     payload = {
         "config": config.to_dict(),
         "protocol": {
@@ -1284,8 +1288,10 @@ def _protocol_identity(
         },
         "scenarios": list(SCENARIO_NAMES),
         "implementation_sha256": {
-            path.name: sha256_file(path) for path in implementation_files
+            path.relative_to(package_root).as_posix(): sha256_file(path)
+            for path in implementation_files
         },
+        "runtime": {"python": platform.python_version(), "numpy": np.__version__},
     }
     return hashlib.sha256(canonical_json_bytes(payload)).hexdigest()
 
@@ -1297,12 +1303,35 @@ def _load_checkpoint(
     if not path.is_file():
         return []
     payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("schema_version") != "1.0.0":
+        raise ValueError("unsupported checkpoint schema")
     if payload.get("identity") != expected_identity:
         raise ValueError("checkpoint identity does not match config and protocol")
     rows = payload.get("rows")
     if not isinstance(rows, list):
         raise ValueError("checkpoint rows must be a JSON array")
+    if any(not isinstance(row, dict) for row in rows):
+        raise ValueError("checkpoint rows must contain objects")
     return [dict(row) for row in rows]
+
+
+def _validate_checkpoint_rows(
+    rows: Sequence[Mapping[str, float | int | str]],
+    seeds: Sequence[int],
+) -> None:
+    seen: set[tuple[str, int]] = set()
+    for row in rows:
+        scenario, seed = row.get("scenario"), row.get("seed")
+        if scenario not in SCENARIO_NAMES or type(seed) is not int or seed not in seeds:
+            raise ValueError("checkpoint contains an unknown scenario or seed")
+        key = (str(scenario), seed)
+        if key in seen:
+            raise ValueError("checkpoint contains duplicate scenario/seed rows")
+        seen.add(key)
+        for name in METRIC_NAMES:
+            value = row.get(name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not np.isfinite(value):
+                raise ValueError(f"checkpoint metric {name} must be present and finite")
 
 
 def _write_checkpoint(
@@ -1366,6 +1395,7 @@ def run_protocol(
         if resume and checkpoint_path is not None
         else []
     )
+    _validate_checkpoint_rows(rows, protocol.seeds)
     completed = {
         (str(row["scenario"]), int(row["seed"])) for row in rows
     }

@@ -38,12 +38,20 @@ class SettlementEngine:
         market_maker_inventory: float,
         minimum_positions: FloatArray | None = None,
     ) -> SettlementResult:
+        if population.cash.ndim != 1 or population.positions.shape != population.cash.shape:
+            raise ValueError("population cash and positions must be matching vectors")
+        for name, values in (("cash", population.cash), ("positions", population.positions),
+                             ("submitted_orders", submitted_orders)):
+            if not np.all(np.isfinite(values)):
+                raise ValueError(f"{name} must be finite")
+        if np.any(population.cash < 0):
+            raise ValueError("population cash must be nonnegative")
         if submitted_orders.shape != population.cash.shape:
             raise ValueError("submitted_orders shape must match the population")
         if execution_price <= 0 or not np.isfinite(execution_price):
             raise ValueError("execution_price must be finite and positive")
-        if market_maker_cash < 0:
-            raise ValueError("market-maker cash must be nonnegative")
+        if market_maker_cash < 0 or not np.isfinite(market_maker_cash):
+            raise ValueError("market-maker cash must be finite and nonnegative")
         if not np.isfinite(market_maker_inventory):
             raise ValueError("market-maker inventory must be finite")
 
@@ -52,6 +60,8 @@ class SettlementEngine:
             minimum_positions = np.zeros_like(population.positions)
         if minimum_positions.shape != population.positions.shape:
             raise ValueError("minimum_positions shape must match the population")
+        if not np.all(np.isfinite(minimum_positions)):
+            raise ValueError("minimum_positions must be finite")
 
         # Margin call: whatever the submitted direction, no position may end
         # the day below the leverage floor. This also clips sales that would
@@ -94,12 +104,15 @@ class SettlementEngine:
                 * self.transaction_cost_rate
             ).sum()
         )
+        # Mandatory buybacks pay the counterparty too. Include their cash
+        # proceeds before rationing voluntary net sales in this same batch.
+        available_counterparty_cash = market_maker_cash + float(
+            mandatory_covers.sum() * execution_price
+            * (1.0 + self.transaction_cost_rate)
+        )
         scale = 1.0
-        if discretionary_cash_delta < -market_maker_cash:
-            scale = min(
-                scale,
-                market_maker_cash / -discretionary_cash_delta,
-            )
+        if discretionary_cash_delta < -available_counterparty_cash:
+            scale = available_counterparty_cash / -discretionary_cash_delta
         if scale < 1.0:
             executed = mandatory_covers + scale * discretionary
 
@@ -107,11 +120,23 @@ class SettlementEngine:
             np.abs(executed) * execution_price * self.transaction_cost_rate
         )
         trader_cash_delta = -executed * execution_price - transaction_costs
-        population.cash += trader_cash_delta
-        population.positions += executed
-
+        cash_after = population.cash + trader_cash_delta
+        positions_after = population.positions + executed
         market_maker_cash_after = market_maker_cash - float(trader_cash_delta.sum())
         market_maker_inventory_after = market_maker_inventory - float(executed.sum())
+        # Compute and validate both sides before committing either account.
+        if not (
+            np.all(np.isfinite(cash_after))
+            and np.all(np.isfinite(positions_after))
+            and np.all(np.isfinite(transaction_costs))
+            and np.isfinite(market_maker_cash_after)
+            and np.isfinite(market_maker_inventory_after)
+        ):
+            raise ValueError("settlement produced non-finite balances")
+        if np.any(cash_after < -1e-9) or market_maker_cash_after < -1e-9:
+            raise RuntimeError("settlement would create negative cash")
+        population.cash[:] = cash_after
+        population.positions[:] = positions_after
 
         # Remove harmless floating-point crumbs before invariant checks.
         population.cash[np.abs(population.cash) < 1e-12] = 0.0

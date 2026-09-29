@@ -44,27 +44,68 @@ export interface ReportRecord {
 }
 
 let token: string | null = sessionStorage.getItem('abm-token')
+let sessionRequest: Promise<void> | null = null
 
 export async function initializeSession(): Promise<void> {
   if (token) return
-  const response = await fetch('/api/session')
-  if (!response.ok) throw new Error('Unable to initialize the local Web session.')
-  const session = (await response.json()) as { token: string }
-  token = session.token
-  sessionStorage.setItem('abm-token', token)
+  if (!sessionRequest) {
+    sessionRequest = (async () => {
+      const response = await fetch('/api/session')
+      if (!response.ok) throw new Error('Unable to initialize the local Web session.')
+      const session = (await response.json()) as { token: string }
+      token = session.token
+      sessionStorage.setItem('abm-token', token)
+    })().finally(() => { sessionRequest = null })
+  }
+  await sessionRequest
+}
+
+async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
+  await initializeSession()
+  const requestToken = token
+  const headers = new Headers(init?.headers)
+  headers.set('Authorization', `Bearer ${requestToken}`)
+  if (init?.body) headers.set('Content-Type', 'application/json')
+  let response = await fetch(path, { ...init, headers })
+  if (response.status === 401) {
+    // A server restart rotates the token. Only invalidate the token used by
+    // this request; a concurrent request may already have refreshed it.
+    if (token === requestToken) {
+      token = null
+      sessionStorage.removeItem('abm-token')
+    }
+    await initializeSession()
+    headers.set('Authorization', `Bearer ${token}`)
+    response = await fetch(path, { ...init, headers })
+  }
+  return response
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  await initializeSession()
-  const headers = new Headers(init?.headers)
-  headers.set('Authorization', `Bearer ${token}`)
-  if (init?.body) headers.set('Content-Type', 'application/json')
-  const response = await fetch(path, { ...init, headers })
+  const response = await authorizedFetch(path, init)
   if (!response.ok) {
     const detail = await response.text()
     throw new Error(detail || `${response.status} ${response.statusText}`)
   }
   return response.json() as Promise<T>
+}
+
+export async function loadRunEvents(runId: string, signal: AbortSignal): Promise<TelemetryEvent[]> {
+  const events: TelemetryEvent[] = []
+  let after = -1
+  const limit = 10000
+  while (true) {
+    const page = await api<TelemetryEvent[]>(
+      `/api/runs/${encodeURIComponent(runId)}/events?after=${after}&limit=${limit}`,
+      { signal },
+    )
+    if (!page.length) return events
+    const next = page.at(-1)!.sequence_no
+    if (next <= after) throw new Error('Telemetry pagination did not advance.')
+    events.push(...page)
+    after = next
+    if (page.length < limit) return events
+  }
 }
 
 export async function streamTelemetry(
@@ -73,28 +114,29 @@ export async function streamTelemetry(
   signal: AbortSignal,
   onEvent: (event: TelemetryEvent) => void,
 ): Promise<void> {
-  await initializeSession()
-  const response = await fetch(`/api/runs/${encodeURIComponent(runId)}/stream`, {
-    headers: {
-      Accept: 'text/event-stream',
-      Authorization: `Bearer ${token}`,
-      'Last-Event-ID': String(after),
-    },
+  const response = await authorizedFetch(`/api/runs/${encodeURIComponent(runId)}/stream`, {
+    headers: { Accept: 'text/event-stream', 'Last-Event-ID': String(after) },
     signal,
   })
   if (!response.ok || !response.body) throw new Error('Telemetry stream unavailable.')
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
   let buffer = ''
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    buffer += value
-    const frames = buffer.split('\n\n')
-    buffer = frames.pop() ?? ''
-    for (const frame of frames) {
-      const eventType = frame.match(/^event:\s*(.+)$/m)?.[1]
-      const data = frame.match(/^data:\s*(.+)$/m)?.[1]
-      if (eventType === 'telemetry' && data) onEvent(JSON.parse(data) as TelemetryEvent)
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += value
+      const frames = buffer.split(/\r?\n\r?\n/)
+      buffer = frames.pop() ?? ''
+      for (const frame of frames) {
+        const eventType = frame.match(/^event:\s*(.+)$/m)?.[1].trim()
+        const data = frame.match(/^data:\s*(.+)$/m)?.[1]
+        if (eventType === 'complete') return
+        if (eventType === 'telemetry' && data) onEvent(JSON.parse(data) as TelemetryEvent)
+      }
     }
+  } finally {
+    await reader.cancel().catch(() => undefined)
+    reader.releaseLock()
   }
 }
