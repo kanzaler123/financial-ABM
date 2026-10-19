@@ -24,7 +24,7 @@
 In a pre-registered experiment on 1,770 simulated markets, conditional on the model's assumptions:
 
 - **Clearer sight beats heavier fines.** Raising transparency moves firms toward real improvement more than raising the fixed fine, at the doses tested.
-- **Transparency has a tipping point.** Above a threshold, firms stop greenwashing altogether; below it, fines have diminishing bite.
+- **Transparency has a threshold, but how sharp it is depends on costs.** If every firm faces the same cost of greenwashing, firms stop greenwashing altogether above it; if the cost differs across firms, greenwashing falls step by step as transparency rises. Heavier fines have diminishing bite.
 - **Big firms greenwash more,** because a capped fine is negligible next to a large market cap, not because improving costs them more.
 - **Nothing works without investors who care.** Without impact investors' taste for ESG, none of the policies has any effect.
 
