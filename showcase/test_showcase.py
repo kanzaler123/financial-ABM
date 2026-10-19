@@ -3,6 +3,8 @@ import hashlib
 import importlib.util
 import json
 import re
+import shutil
+import subprocess
 import tempfile
 import unittest
 from html.parser import HTMLParser
@@ -153,6 +155,58 @@ class ShowcaseTests(unittest.TestCase):
 
     def test_sandbox_has_share_link(self):
         self.assertIn('id="share-link"', self.sandbox_html)
+
+    # -- panel 1 CSV export ----------------------------------------------------------------
+    def test_sandbox_has_csv_export_button_with_bilingual_text(self):
+        self.assertIn('id="export-csv"', self.sandbox_html)
+        template = (HERE / "sandbox" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('data-i18n="exportCsv"', template)
+        for key in ("zh", "en"):
+            self.assertIn("exportCsv", text_keys(key))
+
+    def test_csv_export_uses_a_blob_and_no_network_request(self):
+        app = (HERE / "sandbox" / "app.js").read_text(encoding="utf-8")
+        export = app.split("const exportCsv", 1)[1].split("const selectFirm", 1)[0]
+        self.assertIn("new Blob", export)
+        self.assertIn("text/csv", export)
+        self.assertIn("URL.createObjectURL", export)
+        self.assertNotIn("fetch(", export)
+        self.assertNotIn("XMLHttpRequest", export)
+
+    def test_csv_export_columns_and_policy_header(self):
+        app = (HERE / "sandbox" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("csvRow(['id', 'size_class', 'market_cap', 'action', 'amount'])", app)
+        self.assertIn("transparency tau", app)
+        self.assertIn("fixed fine", app)
+        self.assertIn("proportional penalty", app)
+        self.assertIn("audit probability", app)
+
+    def test_csv_cell_escaping_matches_rfc4180(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("Node.js is not installed")
+        source = (HERE / "sandbox" / "app.js").read_text(encoding="utf-8")
+        match = re.search(r"const csvCell = value => \{\n(.*?)\n  \};", source, re.DOTALL)
+        self.assertIsNotNone(match, "csvCell helper not found in app.js")
+        cases = [
+            ("plain", "plain"),
+            ("a,b", '"a,b"'),
+            ('say "hi"', '"say ""hi"""'),
+            ("line\nbreak", '"line\nbreak"'),
+            ("123", "123"),
+            ("", ""),
+        ]
+        script = (
+            "const csvCell = value => {\n" + match.group(1) + "\n};\n"
+            "const cases = " + json.dumps(cases) + ";\n"
+            "for (const [input, expected] of cases) {\n"
+            "  const got = csvCell(input);\n"
+            "  if (got !== expected) { console.error('FAIL ' + JSON.stringify(input) + ' => ' + JSON.stringify(got) + ', want ' + JSON.stringify(expected)); process.exit(1); }\n"
+            "}\n"
+            "console.log('csvCell ok');\n"
+        )
+        result = subprocess.run([node, "-e", script], capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
     def test_pages_open_in_english_unless_chinese_was_chosen(self):
         self.assertIn('<html lang="en">', (HERE / "sandbox" / "index.html").read_text(encoding="utf-8"))

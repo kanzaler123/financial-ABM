@@ -541,6 +541,51 @@
     renderSizeBars(d, choices);
     renderFirm(d, choices, factors, room, probability);
   };
+
+  // -- CSV export of panel 1 decisions ---------------------------------------------------
+  // RFC 4180: a field is quoted when it holds a comma, a quote or a line break, and embedded
+  // quotes are doubled. Every column here is a number or a fixed token, but escaping keeps the
+  // file correct for any future column.
+  const csvCell = value => {
+    const text = String(value);
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const csvNumber = x => String(Number(x.toFixed(9)));
+  const csvRow = cells => cells.map(csvCell).join(',');
+  const SIZE_NAMES = ['large', 'mid', 'small'];
+  const ACTION_NAMES = ['improve', 'inflate', 'maintain'];
+  const exportCsv = () => {
+    const d = domain(), r = regime(), text = leverText(state.levers);
+    const choices = decision ? decision.choices : decideAll(d, r).choices;
+    const lines = [
+      '# Financial ABM policy desk - Panel 1 - one decision period',
+      `# domain: ${state.domain}`,
+      `# snapshot day: ${SNAPSHOT_DAY}`,
+      `# transparency tau: ${text.tau}`,
+      `# fixed fine: ${text.fixed}x baseline (CNY 10 m)`,
+      `# proportional penalty: ${text.prop} bp/SD`,
+      `# audit probability: ${text.audit}%`,
+      '# subsidy: 0',
+      '# columns: id, size_class, market_cap (CNY 100 m), action, amount (SD)',
+      csvRow(['id', 'size_class', 'market_cap', 'action', 'amount']),
+    ];
+    for (let i = 0; i < choices.length; i++) {
+      const c = choices[i];
+      lines.push(csvRow([i + 1, SIZE_NAMES[d.firms.size_class[i]], csvNumber(capYi(d, i)), ACTION_NAMES[c.action], csvNumber(c.amount)]));
+    }
+    // Built in the page with a Blob and an object URL: no network request.
+    const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `financial-abm-panel1-${state.domain}.csv`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+  $('export-csv').addEventListener('click', exportCsv);
+
   const selectFirm = i => {
     state.firm = i;
     $('firm-select').value = String(i);
