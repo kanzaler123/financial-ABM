@@ -9,7 +9,9 @@ Inputs (all tracked in git):
   reports/disclosure_decay_grid_20261016/grid_v1_analysis.json
 
 Outputs: paper/figures/fig_*.pdf (vector, for LaTeX) and fig_*.png (for
-previews and social posts). Colours follow one rule across the paper:
+previews and social posts). The PNGs carry a note under the chart (setting,
+window, intervals, fine references), because they travel without the LaTeX
+caption. Colours follow one rule across the paper:
 information policy blue, fixed (per-case) fines orange, proportional fines
 aqua. The palette passed the dataviz validator (light mode, all pairs).
 """
@@ -17,6 +19,7 @@ aqua. The palette passed the dataviz validator (light mode, all pairs).
 from __future__ import annotations
 
 import json
+import textwrap
 from pathlib import Path
 
 import matplotlib
@@ -39,6 +42,7 @@ GRID = "#e5e4df"
 BLUE_RAMP = ["#f3f7fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 
 METRIC = "true_change.equal_weight_sd"
+NOTE_SIZE = 8
 
 plt.rcParams.update({
     "font.family": "STIXGeneral",
@@ -73,11 +77,22 @@ def grid_y(ax) -> None:
     ax.set_axisbelow(True)
 
 
-def save(fig, name: str) -> None:
+def save(fig, name: str, note: str) -> None:
+    """Write the PDF for LaTeX, then the PNG with the note drawn under the chart."""
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None, "ModDate": None})
+    add_note(fig, note)
     fig.savefig(OUT / f"{name}.png", bbox_inches="tight", metadata={"Software": None})
     plt.close(fig)
+
+
+def add_note(fig, note: str) -> None:
+    """Wrap the note to the width of everything drawn so far and place it below."""
+    box = fig.get_tightbbox(fig.canvas.get_renderer())  # inches
+    width, height = fig.get_size_inches()
+    chars = int(box.width * 72 / (0.45 * NOTE_SIZE))
+    fig.text(box.x0 / width, (box.y0 - 0.1) / height, textwrap.fill(note, chars),
+             ha="left", va="top", fontsize=NOTE_SIZE, color=INK_2, linespacing=1.35)
 
 
 def contrast(stage_f: dict, name: str) -> tuple[float, float, float]:
@@ -114,7 +129,10 @@ def fig_decay(decay: dict) -> None:
     ax.plot([], [], marker="o", color=INK_2, markerfacecolor=INK_2, linestyle="none", label="Confirmatory (pre-registered)")
     ax.plot([], [], marker="o", color=INK_2, markerfacecolor="white", linestyle="none", label="Exploratory supplement")
     ax.legend(loc="upper left", frameon=False, handletextpad=0.3)
-    save(fig, "fig_decay")
+    save(fig, "fig_decay",
+         "Policy window days 1200–3500; means over 30 paired seeds, bars are paired 95% intervals. "
+         "Uniform decay only: if true levels revert to the mean instead (exploratory follow-up), "
+         "information − baseline is +0.02 to +0.03 SD, below this range, and fixed fine − baseline about +0.02 SD.")
 
 
 def fig_frontier(stage_f: dict) -> None:
@@ -122,14 +140,16 @@ def fig_frontier(stage_f: dict) -> None:
     sc = stage_f["scenarios"]
     base_x = 100 * sc["B"]["wash"]
     # Dose labels: (scenario, label, label offset in points). Empty labels are
-    # covered by a neighbour's label; tau 0.6-0.8 all sit at zero washing.
+    # covered by a neighbour's label: tau 0.6-0.8 all sit at zero washing, and
+    # the 4x and 8x fines nearly coincide. Fixed-fine labels sit left of their
+    # points, below the information line that runs just above them.
     series = (
         ("Information (transparency $\\tau$)", INFO,
          [("B", "", None), ("I_0p3", "0.3", (6, 3)), ("I_0p5", "0.5", (6, 3)),
           ("I", "", None), ("I_0p7", "", None), ("I_0p8", "$\\tau$ = 0.6, 0.7, 0.8", (8, 4))]),
         ("Fixed fine per case", FIXED,
-         [("F_0x", "0×", (0, 7)), ("B", "", None), ("F_2x", "2×", (7, -3)),
-          ("F", "4×", (7, -3)), ("F_8x", "8×", (7, -1))]),
+         [("F_0x", "0×", (0, 7)), ("B", "", None), ("F_2x", "2×", (-7, -2)),
+          ("F", "", None), ("F_8x", "4×, 8×", (-7, -3))]),
         ("Proportional fine", PROP,
          [("P_1x", "1×", (0, 7)), ("P_2x", "2×", (0, 7)), ("P_4x", "4×", (0, 7))]),
     )
@@ -162,7 +182,11 @@ def fig_frontier(stage_f: dict) -> None:
     ax.set_ylabel("Change in true level vs. baseline (SD)")
     grid_y(ax)
     ax.legend(loc="lower left", frameon=False, handletextpad=0.4)
-    save(fig, "fig_frontier")
+    save(fig, "fig_frontier",
+         "Main setting of the pre-registered stage F experiment: natural decay 0.2 SD/year, the upper end of the "
+         "tested range. Days 1200–3500; points are means over 30 paired seeds, bars are paired 95% intervals. "
+         "Fixed fine 1× = CNY 10m per detected case. Proportional fine 1× = CNY 10m per SD of detected inflation "
+         "for a firm of average value, much lighter per decision than the fixed fine.")
 
 
 def fig_threshold(stage_f: dict) -> None:
@@ -200,7 +224,11 @@ def fig_threshold(stage_f: dict) -> None:
     for side in ("left", "bottom"):
         ax.spines[side].set_visible(False)
     ax.set_title("Share of decisions that inflate; line = predicted $\\tau^*(w)$", loc="left", fontsize=9, color=INK)
-    save(fig, "fig_threshold")
+    save(fig, "fig_threshold",
+         "Main setting (natural decay 0.2 SD/year); within a row every firm has the same wash cost ratio $w$. "
+         "Shares of new decisions in days 1200–3500, means over 30 seeds; inflation already in reports does not "
+         "disappear by itself. Exploratory follow-ups: with $w$ differing across firms, 7% of decisions still inflate "
+         "at $\\tau$ = 0.6; if true levels revert to the mean, $\\tau^*(0.2)$ rises to about 0.8.")
 
 
 def fig_size(stage_f: dict) -> None:
@@ -208,8 +236,10 @@ def fig_size(stage_f: dict) -> None:
     sc = stage_f["scenarios"]
     tiers = ("wash_large", "wash_mid", "wash_small")
     panels = (
-        ("(a) Fixed fine per case", FIXED, [("B", "1×"), ("F_2x", "2×"), ("F", "4×"), ("F_8x", "8×")]),
-        ("(b) Proportional fine (equal-amount reference)", PROP, [("P_1x", "1×"), ("P_2x", "2×"), ("P_4x", "4×")]),
+        ("(a) Fixed fine per case\n1× = CNY 10m per detected case", FIXED,
+         [("B", "1×"), ("F_2x", "2×"), ("F", "4×"), ("F_8x", "8×")]),
+        ("(b) Proportional fine\n1× = CNY 10m per SD of inflation (average firm)", PROP,
+         [("P_1x", "1×"), ("P_2x", "2×"), ("P_4x", "4×")]),
     )
     markers = ("o", "s", "^", "D")
     fig, axes = plt.subplots(1, 2, figsize=(6.3, 2.9), sharey=True)
@@ -228,7 +258,10 @@ def fig_size(stage_f: dict) -> None:
         grid_y(ax)
     axes[0].set_ylabel("Share of decisions that inflate (%)")
     axes[0].set_ylim(0, 100)
-    save(fig, "fig_size")
+    save(fig, "fig_size",
+         "Main setting (natural decay 0.2 SD/year); days 1200–3500, means over 30 seeds. Per decision the "
+         "proportional fine is much lighter than the fixed fine at the same multiple, so (a) against (b) compares "
+         "the two designs at this reference only, not in general.")
 
 
 def main() -> None:

@@ -78,7 +78,6 @@
 ## 5. 文字与发布准备（G.5、G.6）
 
 - README 与 README.en 增加“阶段 F 发现”一节，更新状态说明和路线图；早期诊断中已在阶段 C 解决的“[待查]”条目改为已修正。
-- [X 线程草稿](x_thread_draft.md)：中英各 7 条，按 X 计数规则替换链接后都不超过 280。
 - `CITATION.cff` 与 `pyproject.toml` 升到 0.2.0；[Release 说明草稿](release_notes_v0.2.0.md)。
 
 **发布（2026-10-16，逐项经你确认）：** 推送 `master` → 启用 Pages（Source: GitHub Actions）→ `GitHub showcase` 工作流部署 → 打 tag `v0.2.0` → 发布 Release。线上页面已核对：三个面板与本地一致，阶段 1 展厅在 `stage1/`。Zenodo DOI 由你操作；X 线程由你发布。
