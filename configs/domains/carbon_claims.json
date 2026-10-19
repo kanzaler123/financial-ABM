@@ -1,0 +1,37 @@
+{
+  "_note": "Exploratory, uncalibrated assumptions: every numerical value is a modeling choice, not an empirical estimate, unless a source is cited. Carbon-neutrality claims here mean overstating progress toward net-zero relative to actual emissions reductions or offsets, consistent with greenwashing literature. The 0-100 score and higher-is-preferred direction are conventions for a latent transition attribute, not a measured carbon intensity or a claim that higher scores are socially optimal. Sources establish terminology and context only; they do not calibrate model parameters. Equal size cost multipliers avoid assuming a large-firm cost advantage. This configuration tests the disclosure-game mechanism on a second domain, not external validity or policy effectiveness.",
+  "_sources": [
+    "https://www.ipcc.ch/report/ar6/wg3/",
+    "https://sciencebasedtargets.org/resources/files/Net-Zero-Standard.pdf"
+  ],
+  "name": "carbon_claims",
+  "attribute_label": "carbon transition progress (illustrative)",
+  "unit": "illustrative score, 0-100",
+  "direction": 1,
+  "initial_mean": 40.0,
+  "initial_sd": 12.0,
+  "raw_lower": 0.0,
+  "raw_upper": 100.0,
+  "natural_decay": 0.25,
+  "real_cost_scale": 0.06,
+  "real_cost_log_sd": 0.5,
+  "size_cost_multipliers": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "cost_level_elasticity": 1.2,
+  "max_change_per_period": 0.2,
+  "wash_cost_ratio": 0.15,
+  "implementation_delay_days": 150,
+  "disclosure_delay_days": 30,
+  "baseline_audit_probability": 0.015,
+  "baseline_penalty": 0.006,
+  "baseline_transparency": 0.12,
+  "baseline_subsidy": 0.0,
+  "action_labels": {
+    "improve": "真实减排",
+    "wash": "碳中和漂绿",
+    "maintain": "维持现状"
+  }
+}
