@@ -64,7 +64,7 @@ from .financing import financing_signal_factors
 from .harness import CrossSectionMarket, CrossSectionResult, _cap_buys_to_cash
 from .investors import IMPACT_INVESTOR, PROFIT_MAXIMIZER
 from .learning import batch_update, choose_actions, context_states, discrete_candidates, npv_discrete, realized_rewards, table_fingerprint
-from .policy import PolicyRegime, PolicySchedule
+from .policy import PolicyRegime, PolicySchedule, audit_probabilities
 
 FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int64]
@@ -249,6 +249,9 @@ def npv_choices(
     new_case_fine: FloatArray | None = None,
     wash_cost_ratio: FloatArray | None = None,
     real_persistence: FloatArray | None = None,
+    audit_probability: float | FloatArray | None = None,
+    first_audit_probability: float | None = None,
+    flag_room: FloatArray | None = None,
 ) -> FirmChoices:
     """Choose using annual financing savings per initial SD / current cap.
 
@@ -257,13 +260,21 @@ def npv_choices(
     like the proportional fine. ``wash_cost_ratio`` gives firm-level ratios
     (default: the domain's common one); ``real_persistence`` discounts real
     changes that revert (see ``financing_signal_factors``).
+
+    ``audit_probability`` is the audit probability firms plan with (default:
+    the regime's). Under a known jump rule, inflation beyond ``flag_room``
+    flags the firm, so the new report's first audit has
+    ``first_audit_probability``; the firm then inflates either as much as
+    stays within the room or the best amount beyond it, whichever is worth
+    more. Effects of a flag on older undetected inflation are not counted.
     """
     disclosure_delay = domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
+    planned = regime.audit_probability if audit_probability is None else audit_probability
     real_annuity, displaced_annuity, wash_annuity, detection = financing_signal_factors(
         cost_of_capital, decision_day=decision_day, horizon_days=horizon_days,
         repricing_interval=repricing_interval, period_days=period_days,
         implementation_delay=domain.implementation_delay_days,
-        disclosure_delay=disclosure_delay, audit_probability=regime.audit_probability,
+        disclosure_delay=disclosure_delay, audit_probability=planned,
         transparency=regime.transparency, publish_audit_results=regime.publish_audit_results,
         published_now=published_now,
         reporting_interval_days=regime.reporting_interval_days,
@@ -294,6 +305,31 @@ def npv_choices(
     wash_value = inflate_gain * inflate_amount - wash_cost * inflate_amount**2
     if new_case_fine is not None:
         wash_value = wash_value - np.where(inflate_amount > 0, new_case_fine * detection, 0.0)
+    if flag_room is not None:
+        _, _, flagged_annuity, flagged_detection = financing_signal_factors(
+            cost_of_capital, decision_day=decision_day, horizon_days=horizon_days,
+            repricing_interval=repricing_interval, period_days=period_days,
+            implementation_delay=domain.implementation_delay_days, disclosure_delay=disclosure_delay,
+            audit_probability=planned, transparency=regime.transparency,
+            publish_audit_results=regime.publish_audit_results,
+            reporting_interval_days=regime.reporting_interval_days,
+            real_persistence=real_persistence, first_audit_probability=first_audit_probability,
+        )
+        room = np.maximum(flag_room, 0.0)
+        kept_amount = np.minimum(inflate_amount, room)
+        kept_value = inflate_gain * kept_amount - wash_cost * kept_amount**2
+        flagged_gain = np.maximum(benefit * (1.0 - regime.transparency) * flagged_annuity
+                                  - regime.penalty * flagged_detection, 0.0)
+        flagged_amount = np.minimum(flagged_gain / (2.0 * wash_cost), inflate_cap)
+        flagged_value = flagged_gain * flagged_amount - wash_cost * flagged_amount**2
+        if new_case_fine is not None:
+            kept_value = kept_value - np.where(kept_amount > 0, new_case_fine * detection, 0.0)
+            flagged_value = flagged_value - np.where(flagged_amount > 0, new_case_fine * flagged_detection, 0.0)
+        # Only firms whose unflagged optimum would cross the threshold choose between the two.
+        crossing = inflate_amount > room
+        flagged_choice = crossing & (flagged_amount > room) & (flagged_value > kept_value)
+        inflate_amount = np.where(crossing, np.where(flagged_choice, flagged_amount, kept_amount), inflate_amount)
+        wash_value = np.where(crossing, np.where(flagged_choice, flagged_value, kept_value), wash_value)
     values = np.column_stack((
         real_value + regime.subsidy * improve_amount - marginal_cost * improve_amount**2,
         wash_value,
@@ -314,7 +350,7 @@ def npv_choices(
 
 def new_case_probability(
     inflation: FloatArray, pending: list[tuple[int, int, IntArray, FloatArray]], *,
-    decision_day: int, wash_due: int, period_days: int, audit_probability: float,
+    decision_day: int, wash_due: int, period_days: int, audit_probability: float | FloatArray,
 ) -> FloatArray:
     """Probability that inflation decided now opens a new case instead of joining one.
 
@@ -385,6 +421,9 @@ class DisclosureResult:
     coverage_forced: NDArray[np.bool_] | None = None
     learning_update: NDArray[np.bool_] | None = None
     wash_cost_ratio: FloatArray | None = None
+    # Per decision period and firm, recorded only when the schedule targets audits.
+    audit_probability: FloatArray | None = None
+    audit_flags: NDArray[np.bool_] | None = None
 
     def fingerprint(self) -> str:
         digest = hashlib.sha256(self.market.fingerprint().encode("ascii"))
@@ -399,6 +438,7 @@ class DisclosureResult:
             self.learning_states, self.learning_groups, self.valid_actions,
             self.learning_rewards, self.learning_transition, self.unvisited_state,
             self.learning_choices, self.coverage_forced, self.learning_update, self.wash_cost_ratio,
+            self.audit_probability, self.audit_flags,
         ):
             if array is None:
                 continue
@@ -478,6 +518,15 @@ class DisclosureMarket(CrossSectionMarket):
             for regime in (policy.baseline, policy.intervention)
         ):
             raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
+        regimes = [regime for regime in (policy.baseline, policy.intervention) if regime is not None]
+        self.audit_targeting = any(regime.audit_allocation != "uniform" for regime in regimes)
+        if self.audit_targeting and (config.firm_policy != "npv" or domain.natural_reversion or any(
+            regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes
+        )):
+            raise ValueError("targeted audits are modelled only with NPV firms, daily reports, unpublished audits "
+                             "and non-reverting true values")
+        # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
+        self.report_after_audit: FloatArray | None = None
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
 
         investors = self.investors
@@ -517,6 +566,8 @@ class DisclosureMarket(CrossSectionMarket):
         self.publication_history = np.zeros((decisions, firms), dtype=np.int64)
         self.verified_goodness_history = np.zeros((decisions, firms))
         self.action_due_history = np.full((decisions, firms), -1, dtype=np.int64)
+        self.audit_probability_history = np.zeros((decisions, firms)) if self.audit_targeting else None
+        self.audit_flag_history = np.zeros((decisions, firms), dtype=bool) if self.audit_targeting else None
         self.applied_resource_cost_history = None
         self.applied_fine_history = None
         self.applied_subsidy_history = None
@@ -678,7 +729,17 @@ class DisclosureMarket(CrossSectionMarket):
         state = self.attributes
         k = self.cost_of_capital()
         self.slope_history[day] = pricing_slope(k, self.signal_z(day))
-        selected = self.audit_rng.random(state.inflation.size) < regime.audit_probability
+        draws = self.audit_rng.random(state.inflation.size)
+        flagged = probability = None
+        if self.audit_targeting:
+            if regime.audit_allocation == "jump" and self.report_after_audit is not None:
+                flagged = self._claimed_report() - self.report_after_audit > regime.audit_jump_threshold
+                self.audit_flag_history[period] = flagged
+            probability = audit_probabilities(regime, self.prices, flagged)
+            self.audit_probability_history[period] = probability
+            selected = draws < probability
+        else:
+            selected = draws < regime.audit_probability
         caught = selected & (state.inflation > 0)
         # One detected case: the proportional fine on its size plus one fixed
         # fine, or one fixed fine per inflated report in it.
@@ -690,6 +751,8 @@ class DisclosureMarket(CrossSectionMarket):
         state.inflation[caught] = 0.0
         if state.false_reports is not None:
             state.false_reports[caught] = 0
+        if self.audit_targeting:
+            self.report_after_audit = self._claimed_report()
         self.report_cache[selected] = state.observed(regime.transparency)[selected] + self.disclosure_error_history[day, selected]
         published = selected & regime.publish_audit_results
         self.audit_selected_history[period] = selected
@@ -708,6 +771,12 @@ class DisclosureMarket(CrossSectionMarket):
         real_due = day + max(1, self.domain.implementation_delay_days)
         disclosure_delay = self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
         wash_due = day + max(1, disclosure_delay)
+        # Audit probabilities firms plan with: their own ones if the targeting rule is public.
+        planned = first_planned = flag_room = None
+        if regime.audit_allocation == "value" and regime.audit_rule_public:
+            planned = probability
+        elif regime.audit_allocation == "jump" and regime.audit_rule_public:
+            planned, first_planned, flag_room = self._jump_plan(day, regime, flagged)
         new_case_fine = None
         if regime.fixed_fine and regime.fixed_fine_basis == "report":
             # Every new inflated report carries its own fine whatever the stock it joins.
@@ -715,7 +784,8 @@ class DisclosureMarket(CrossSectionMarket):
         elif regime.fixed_fine:
             new_case_fine = regime.fixed_fine / self.prices * new_case_probability(
                 state.inflation, state.pending, decision_day=day, wash_due=wash_due,
-                period_days=self.config.firm_decision_interval, audit_probability=regime.audit_probability,
+                period_days=self.config.firm_decision_interval,
+                audit_probability=regime.audit_probability if planned is None else planned,
             )
         if self.config.firm_policy == "npv":
             choices = npv_choices(
@@ -734,6 +804,9 @@ class DisclosureMarket(CrossSectionMarket):
                 new_case_fine=new_case_fine,
                 wash_cost_ratio=state.wash_cost_ratio,
                 real_persistence=self.real_persistence,
+                audit_probability=planned,
+                first_audit_probability=first_planned,
+                flag_room=flag_room,
             )
         else:
             choices = self._discrete_decision(day, period, regime, published, penalty,
@@ -762,6 +835,31 @@ class DisclosureMarket(CrossSectionMarket):
         self.cost_history[period] = choices.cost_fraction
         self.penalty_history[period] = penalty
         self.subsidy_history[period] = choices.subsidy_fraction
+
+    def _claimed_report(self) -> FloatArray:
+        """Each firm's report as a regulator reads it: true value plus inflation, at most the report bound."""
+        return np.minimum(self.attributes.goodness + self.attributes.inflation, self.report_bound)
+
+    def _jump_plan(
+        self, day: int, regime: PolicyRegime, flagged: NDArray[np.bool_] | None,
+    ) -> tuple[float, float, FloatArray]:
+        """Next audit's probabilities for an unflagged and a flagged firm, and each firm's room under the flag.
+
+        Firms take this audit's number of flagged firms, at least one, as the next audit's and apply
+        the regulator's rule. The room is the threshold less actions landing before the next audit,
+        plus one period of natural decay; report bounds are ignored.
+        """
+        size, period = self.config.n_firms, self.config.firm_decision_interval
+        forecast = np.zeros(size, dtype=bool)
+        forecast[:max(1, 0 if flagged is None else int(flagged.sum()))] = True
+        expected = audit_probabilities(regime, self.prices, forecast)
+        landing = np.zeros(size)
+        for due_day, _, firms, amounts in self.attributes.pending:
+            if day < due_day <= day + period:
+                np.add.at(landing, firms, amounts)
+        decay = self.domain.natural_decay * period / TRADING_DAYS_PER_YEAR
+        unflagged = expected[0] if forecast.all() else expected[-1]
+        return float(unflagged), float(expected[0]), regime.audit_jump_threshold - landing + decay
 
     def _discrete_decision(
         self, day: int, period: int, regime: PolicyRegime, published: NDArray[np.bool_],
@@ -930,6 +1028,8 @@ class DisclosureMarket(CrossSectionMarket):
                 ("coverage_forced", self.coverage_forced_history),
                 ("learning_update", self.learning_update_history),
                 ("wash_cost_ratio", self.attributes.wash_cost_ratio),
+                ("audit_probability", self.audit_probability_history),
+                ("audit_flags", self.audit_flag_history),
             )},
         )
 
