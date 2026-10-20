@@ -96,3 +96,9 @@ reports/disclosure_targeted_audits_20261020/audits_v1/
 reports/disclosure_targeted_audits_20261020/check_v1/
 reports/disclosure_targeted_audits_20261020/work_check/
 reports/disclosure_targeted_audits_20261020/work_*.log
+
+# Local Claude Code state and worktrees
+.claude/
+
+# SSRN form notes (submission aid, not part of the archive)
+paper/ssrn_submission.md
