@@ -11,7 +11,10 @@ abstract: >-
   natural-decay range, with magnitudes reported as that range; and a static browser sandbox whose firm
   decision rule is cross-checked against the Python model. Results are conditional on the model.
 authors:
-  - alias: kanzaler
+  - given-names: Ellis
+    family-names: Lin
+    alias: kanzaler
+    affiliation: Fudan University
 repository-code: "https://github.com/kanzaler123/financial-ABM"
 license: MIT
 version: "0.2.0"
