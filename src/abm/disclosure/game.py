@@ -190,6 +190,63 @@ class AttributeState:
             self.false_reports[self.inflation <= 0] = 0
 
 
+ASSURANCE_ARRAYS = ("assurer_assignment", "assurance_checked_inflated", "assurance_corrections",
+                    "assurer_quality", "assurer_inflation_share", "assurer_liability_events")
+# An assurance year: providers set their quality and firms pick providers once every this many decision periods.
+ASSURANCE_YEAR_PERIODS = 4
+
+
+@dataclass(slots=True)
+class AssuranceState:
+    """Assurance providers, their clients and the current assurance year.
+
+    ``signed_by`` is the provider whose check last passed a firm's report while it carried
+    inflation (-1 once the report is clean); an audit that finds that inflation charges it.
+    """
+
+    rng: np.random.Generator
+    count: int
+    client_of: IntArray
+    quality: FloatArray
+    share: FloatArray
+    signed_by: IntArray
+    year_checks: IntArray
+    year_inflated: IntArray
+    history: dict[str, NDArray]
+    origin: int | None = None
+
+    @classmethod
+    def create(cls, seed: int, count: int, n_firms: int, decisions: int) -> "AssuranceState":
+        return cls(
+            rng=np.random.default_rng(np.random.SeedSequence([seed, 2])), count=count,
+            client_of=np.full(n_firms, -1, dtype=np.int64), quality=np.zeros(count), share=np.zeros(count),
+            signed_by=np.full(n_firms, -1, dtype=np.int64), year_checks=np.zeros(count, dtype=np.int64),
+            year_inflated=np.zeros(count, dtype=np.int64),
+            history={
+                "assurer_assignment": np.full((decisions, n_firms), -1, dtype=np.int64),
+                "assurance_checked_inflated": np.zeros((decisions, n_firms), dtype=bool),
+                "assurance_corrections": np.zeros((decisions, n_firms), dtype=bool),
+                "assurer_quality": np.zeros((decisions, count)),
+                "assurer_inflation_share": np.zeros((decisions, count)),
+                "assurer_liability_events": np.zeros((decisions, count), dtype=np.int64),
+            },
+        )
+
+    def firm_quality(self) -> FloatArray:
+        """Each firm's chance that a check finds its inflation: its provider's quality, or 0."""
+        return np.where(self.client_of >= 0, self.quality[np.maximum(self.client_of, 0)], 0.0)
+
+    def client_share(self, inflation: FloatArray) -> FloatArray:
+        """Share of each provider's clients whose report carries inflation (0 without clients)."""
+        clients = np.bincount(self.client_of[self.client_of >= 0], minlength=self.count)
+        inflated = np.bincount(self.client_of[(self.client_of >= 0) & (inflation > 0)], minlength=self.count)
+        return np.divide(inflated, clients, out=np.zeros(self.count), where=clients > 0)
+
+    def check_share(self) -> FloatArray:
+        """Share of each provider's checks in the past year whose report carried inflation (0 without checks)."""
+        return np.divide(self.year_inflated, self.year_checks, out=np.zeros(self.count), where=self.year_checks > 0)
+
+
 def real_persistence(domain: DomainSpec, n_firms: int, horizon_days: int) -> FloatArray | None:
     """Share of a firm's real change left d days after it lands, or None without reversion.
 
@@ -252,6 +309,7 @@ def npv_choices(
     audit_probability: float | FloatArray | None = None,
     first_audit_probability: float | None = None,
     flag_room: FloatArray | None = None,
+    assurance_probability: FloatArray | None = None,
 ) -> FirmChoices:
     """Choose using annual financing savings per initial SD / current cap.
 
@@ -267,6 +325,10 @@ def npv_choices(
     ``first_audit_probability``; the firm then inflates either as much as
     stays within the room or the best amount beyond it, whichever is worth
     more. Effects of a flag on older undetected inflation are not counted.
+
+    ``assurance_probability`` is each firm's chance that the check before
+    every disclosure finds and corrects its inflation; firms at zero keep
+    the unassured factors exactly.
     """
     disclosure_delay = domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
     planned = regime.audit_probability if audit_probability is None else audit_probability
@@ -280,6 +342,20 @@ def npv_choices(
         reporting_interval_days=regime.reporting_interval_days,
         real_persistence=real_persistence,
     )
+    if assurance_probability is not None and np.any(assurance_probability > 0):
+        if flag_room is not None:
+            raise ValueError("assurance checks are not modelled with a known jump rule")
+        assured = financing_signal_factors(
+            cost_of_capital, decision_day=decision_day, horizon_days=horizon_days,
+            repricing_interval=repricing_interval, period_days=period_days,
+            implementation_delay=domain.implementation_delay_days,
+            disclosure_delay=disclosure_delay, audit_probability=planned,
+            transparency=regime.transparency, assurance_probability=assurance_probability,
+        )
+        checked = np.asarray(assurance_probability) > 0
+        real_annuity, displaced_annuity, wash_annuity, detection = (
+            np.where(checked, new, old) for new, old in
+            zip(assured, (real_annuity, displaced_annuity, wash_annuity, detection)))
     improve_benefit = benefit * real_annuity
     improve_gain = improve_benefit + regime.subsidy
     inflate_gain = (
@@ -424,6 +500,16 @@ class DisclosureResult:
     # Per decision period and firm, recorded only when the schedule targets audits.
     audit_probability: FloatArray | None = None
     audit_flags: NDArray[np.bool_] | None = None
+    # Recorded only when the schedule has assurance. Per decision period and firm: the provider
+    # checking the period's disclosure (-1: none), whether its report carried inflation at the
+    # check and whether the check corrected it. Per decision period and provider: the quality in
+    # force, the share of checks with inflation that set it, and audits charged to the provider.
+    assurer_assignment: IntArray | None = None
+    assurance_checked_inflated: NDArray[np.bool_] | None = None
+    assurance_corrections: NDArray[np.bool_] | None = None
+    assurer_quality: FloatArray | None = None
+    assurer_inflation_share: FloatArray | None = None
+    assurer_liability_events: IntArray | None = None
 
     def fingerprint(self) -> str:
         digest = hashlib.sha256(self.market.fingerprint().encode("ascii"))
@@ -439,6 +525,8 @@ class DisclosureResult:
             self.learning_rewards, self.learning_transition, self.unvisited_state,
             self.learning_choices, self.coverage_forced, self.learning_update, self.wash_cost_ratio,
             self.audit_probability, self.audit_flags,
+            self.assurer_assignment, self.assurance_checked_inflated, self.assurance_corrections,
+            self.assurer_quality, self.assurer_inflation_share, self.assurer_liability_events,
         ):
             if array is None:
                 continue
@@ -525,6 +613,17 @@ class DisclosureMarket(CrossSectionMarket):
         )):
             raise ValueError("targeted audits are modelled only with NPV firms, daily reports, unpublished audits "
                              "and non-reverting true values")
+        assured = policy.intervention is not None and policy.intervention.assurance_scope != "none"
+        if policy.baseline.assurance_scope != "none":
+            raise ValueError("assurance is modelled only as a policy switch")
+        if assured:
+            delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
+                     else policy.intervention.disclosure_delay_days)
+            if (config.firm_policy != "npv" or domain.natural_reversion or self.audit_targeting
+                    or any(regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes)
+                    or not 0 < delay < config.firm_decision_interval):
+                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits, "
+                                 "non-reverting true values and a disclosure delay shorter than a decision period")
         # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
         self.report_after_audit: FloatArray | None = None
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
@@ -568,6 +667,9 @@ class DisclosureMarket(CrossSectionMarket):
         self.action_due_history = np.full((decisions, firms), -1, dtype=np.int64)
         self.audit_probability_history = np.zeros((decisions, firms)) if self.audit_targeting else None
         self.audit_flag_history = np.zeros((decisions, firms), dtype=bool) if self.audit_targeting else None
+        # Created only with assurance, so its random stream leaves every other run unchanged.
+        self.assurance = (AssuranceState.create(config.seed, policy.intervention.assurer_count, firms, decisions)
+                          if assured else None)
         self.applied_resource_cost_history = None
         self.applied_fine_history = None
         self.applied_subsidy_history = None
@@ -694,6 +796,8 @@ class DisclosureMarket(CrossSectionMarket):
         self.pending_value_change = np.zeros(self.config.n_firms)
         if np.any(self.firms.intrinsic_value <= 0) or not np.isfinite(self.firms.intrinsic_value).all():
             raise ValueError(f"firm expenditure exhausts the value anchor on day {day}")
+        if self.assurance is not None:
+            self._assurance_checks(day)
         if self.applied_resource_cost_history is not None:
             self.applied_resource_cost_history[day] = self.pending_resource_cost
             self.applied_fine_history[day] = self.pending_fine
@@ -714,6 +818,83 @@ class DisclosureMarket(CrossSectionMarket):
         self.financing_adjustment_history[day] = adjustment
         self._prepare_signals(day)
         return changes
+
+    def _assurance_checks(self, day: int) -> None:
+        """Pre-publication checks on a disclosure day, after that day's actions land.
+
+        A check belongs to the decision period of its disclosure and happens only if that
+        decision day's regime has assurance. Every firm gets one uniform draw whether or not it
+        is checked, so scenarios with the same seed share the draws. The fee is paid like
+        other expenditure, into the next day's value.
+        """
+        period_days = self.config.firm_decision_interval
+        decision_day = day - day % period_days
+        regime = self.policy.at(decision_day)
+        delay = self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
+        assurance = self.assurance
+        if (day % period_days != delay or regime.assurance_scope == "none" or assurance.origin is None
+                or decision_day < assurance.origin):
+            return
+        draws = assurance.rng.random(self.config.n_firms)
+        state = self.attributes
+        checked = assurance.client_of >= 0
+        inflated = checked & (state.inflation > 0)
+        corrected = inflated & (draws < assurance.firm_quality())
+        state.inflation[corrected] = 0.0
+        if state.false_reports is not None:
+            state.false_reports[corrected] = 0
+        assurance.signed_by[state.inflation <= 0] = -1
+        passed = inflated & ~corrected
+        assurance.signed_by[passed] = assurance.client_of[passed]
+        np.add.at(assurance.year_checks, assurance.client_of[checked], 1)
+        np.add.at(assurance.year_inflated, assurance.client_of[inflated], 1)
+        period = decision_day // period_days
+        assurance.history["assurance_checked_inflated"][period] = inflated
+        assurance.history["assurance_corrections"][period] = corrected
+        self.pending_value_change[checked] -= regime.assurance_fee
+
+    def _assurance_year(self, day: int, regime: PolicyRegime, values) -> None:
+        """At the start of an assurance year: clients, then each provider's quality, then firms' picks.
+
+        In the first year mandated firms are assigned at random, evenly, and each provider's share
+        is that of its clients whose report carries inflation now; later shares come from the past
+        year's checks. Quality is min(1, lambda * share). Mandated firms that pick their provider,
+        and firms deciding whether to buy assurance, compare ``values(a)``, the value of their best
+        action this period if their checks find inflation with probability ``a``.
+        """
+        assurance, size = self.assurance, self.config.n_firms
+        first = assurance.origin is None
+        if first:
+            assurance.origin = day
+        elif (day - assurance.origin) % (ASSURANCE_YEAR_PERIODS * self.config.firm_decision_interval):
+            return
+        scope = regime.assurance_scope
+        mandated = (np.ones(size, dtype=bool) if scope == "all" else self.firms.size_class == 0 if scope == "large"
+                    else np.zeros(size, dtype=bool))
+        if first:
+            members = np.flatnonzero(mandated)
+            order = assurance.rng.permutation(members.size)
+            assurance.client_of[members[order]] = np.arange(members.size) % assurance.count
+            share = assurance.client_share(self.attributes.inflation)
+        else:
+            share = assurance.check_share()
+        assurance.year_checks[:] = 0
+        assurance.year_inflated[:] = 0
+        assurance.share = share
+        assurance.quality = np.minimum(1.0, regime.assurer_slope * share)
+        if scope == "voluntary":
+            options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
+            best = np.argmax(options, axis=1)
+            fees = ASSURANCE_YEAR_PERIODS * regime.assurance_fee / self.prices
+            buy = options[np.arange(size), best] - fees > values(np.zeros(size))
+            assurance.client_of[:] = np.where(buy, best, -1)
+        elif regime.assurer_selection == "firm":
+            options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
+            best = np.argmax(options, axis=1)
+            current = np.maximum(assurance.client_of, 0)
+            rows = np.arange(size)
+            switch = mandated & (options[rows, best] > options[rows, current])
+            assurance.client_of[switch] = best[switch]
 
     def _post_trade(self, day: int) -> None:
         cfg = self.config
@@ -741,6 +922,12 @@ class DisclosureMarket(CrossSectionMarket):
         else:
             selected = draws < regime.audit_probability
         caught = selected & (state.inflation > 0)
+        if self.assurance is not None:
+            # The provider that passed the inflated report pays its liability.
+            signed = self.assurance.signed_by
+            liable = caught & (signed >= 0)
+            np.add.at(self.assurance.history["assurer_liability_events"][period], signed[liable], 1)
+            signed[caught] = -1
         # One detected case: the proportional fine on its size plus one fixed
         # fine, or one fixed fine per inflated report in it.
         if regime.fixed_fine_basis == "report":
@@ -788,26 +975,40 @@ class DisclosureMarket(CrossSectionMarket):
                 audit_probability=regime.audit_probability if planned is None else planned,
             )
         if self.config.firm_policy == "npv":
-            choices = npv_choices(
-                benefit=self.marginal_financing_saving(),
-                cost_of_capital=np.full(self.config.n_firms, self.config.firm_discount_rate),
-                marginal_cost=state.marginal_cost(self.domain),
-                regime=regime,
-                domain=self.domain,
-                period_days=self.config.firm_decision_interval,
-                improve_capacity=improve_capacity,
-                inflate_capacity=inflate_capacity,
-                horizon_days=self.config.financing_horizon_days,
-                repricing_interval=self.config.financing_repricing_interval,
-                decision_day=day,
-                published_now=published,
-                new_case_fine=new_case_fine,
-                wash_cost_ratio=state.wash_cost_ratio,
-                real_persistence=self.real_persistence,
-                audit_probability=planned,
-                first_audit_probability=first_planned,
-                flag_room=flag_room,
-            )
+            benefit = self.marginal_financing_saving()
+
+            def decide(assurance_probability: FloatArray | None = None) -> FirmChoices:
+                return npv_choices(
+                    benefit=benefit,
+                    cost_of_capital=np.full(self.config.n_firms, self.config.firm_discount_rate),
+                    marginal_cost=state.marginal_cost(self.domain),
+                    regime=regime,
+                    domain=self.domain,
+                    period_days=self.config.firm_decision_interval,
+                    improve_capacity=improve_capacity,
+                    inflate_capacity=inflate_capacity,
+                    horizon_days=self.config.financing_horizon_days,
+                    repricing_interval=self.config.financing_repricing_interval,
+                    decision_day=day,
+                    published_now=published,
+                    new_case_fine=new_case_fine,
+                    wash_cost_ratio=state.wash_cost_ratio,
+                    real_persistence=self.real_persistence,
+                    audit_probability=planned,
+                    first_audit_probability=first_planned,
+                    flag_room=flag_room,
+                    assurance_probability=assurance_probability,
+                )
+
+            if self.assurance is not None and regime.assurance_scope != "none":
+                self._assurance_year(day, regime, lambda a: decide(a).npv)
+                history = self.assurance.history
+                history["assurer_assignment"][period] = self.assurance.client_of
+                history["assurer_quality"][period] = self.assurance.quality
+                history["assurer_inflation_share"][period] = self.assurance.share
+                choices = decide(self.assurance.firm_quality())
+            else:
+                choices = decide()
         else:
             choices = self._discrete_decision(day, period, regime, published, penalty,
                                               improve_capacity, inflate_capacity, new_case_fine)
@@ -1030,6 +1231,8 @@ class DisclosureMarket(CrossSectionMarket):
                 ("wash_cost_ratio", self.attributes.wash_cost_ratio),
                 ("audit_probability", self.audit_probability_history),
                 ("audit_flags", self.audit_flag_history),
+                *((name, None if self.assurance is None else self.assurance.history[name])
+                  for name in ASSURANCE_ARRAYS),
             )},
         )
 

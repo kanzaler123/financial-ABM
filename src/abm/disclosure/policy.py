@@ -22,6 +22,17 @@ Instruments act through distinct channels:
   value, or half at random and half among firms whose report rose by more
   than ``audit_jump_threshold`` since the previous audit. Firms plan with
   their own probabilities only if ``audit_rule_public``;
+* ``assurance_scope`` – which firms have their report checked by one of
+  ``assurer_count`` assurance providers before every disclosure: none, all,
+  only the large size class, or those that choose to buy it
+  (``"voluntary"``). A check finds the inflation in the report with the
+  provider's quality as probability and has it corrected before publication,
+  without a fine. Providers set their quality once a year as a best response
+  to ``assurer_liability`` (paid when an audit finds inflation in a report
+  they checked) and to the effort cost ``assurer_effort_cost * quality**2``
+  per check; firms pay ``assurance_fee`` per check. Under
+  ``assurer_selection="firm"`` mandated firms pick their provider each year;
+  under ``"assigned"`` they are assigned at random once;
 * disclosure error and delay, and dated audit publications, affect the
   public signal separately from the audit and fine instruments.
 
@@ -47,6 +58,11 @@ from .domain import DomainSpec
 
 FIXED_FINE_BASES = ("case", "report")
 AUDIT_ALLOCATIONS = ("uniform", "value", "jump")
+ASSURANCE_SCOPES = ("none", "voluntary", "large", "all")
+ASSURER_SELECTIONS = ("assigned", "firm")
+# Assurance options and their defaults; at the defaults they are left out of a regime's identity.
+ASSURANCE_DEFAULTS = {"assurance_scope": "none", "assurer_selection": "assigned", "assurer_liability": 0.0,
+                      "assurance_fee": 0.0, "assurer_effort_cost": 0.0, "assurer_count": 4}
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,8 +84,34 @@ class PolicyRegime:
     audit_rule_public: bool = True
     # Rise of a firm's report (true value plus inflation) since the previous audit that flags it.
     audit_jump_threshold: float = 0.125
+    # "none", "voluntary", "large" (the large size class) or "all"; see the module docstring.
+    assurance_scope: str = "none"
+    # "assigned": mandated firms are assigned at random once; "firm": they pick a provider every year.
+    assurer_selection: str = "assigned"
+    # Paid by a provider when an audit finds inflation in a report it checked; model money units.
+    assurer_liability: float = 0.0
+    # Paid by a firm per check; model money units.
+    assurance_fee: float = 0.0
+    # kappa in a provider's effort cost kappa * quality**2 per check; model money units.
+    assurer_effort_cost: float = 0.0
+    assurer_count: int = 4
 
     def __post_init__(self) -> None:
+        if self.assurance_scope not in ASSURANCE_SCOPES:
+            raise ValueError(f"assurance_scope must be one of {ASSURANCE_SCOPES}")
+        if self.assurer_selection not in ASSURER_SELECTIONS:
+            raise ValueError(f"assurer_selection must be one of {ASSURER_SELECTIONS}")
+        for name in ("assurer_liability", "assurance_fee", "assurer_effort_cost"):
+            value = getattr(self, name)
+            if type(value) not in (int, float) or not isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and nonnegative")
+        if type(self.assurer_count) is not int or self.assurer_count < 1:
+            raise ValueError("assurer_count must be a positive integer")
+        if self.assurance_scope == "none":
+            if any(getattr(self, name) != value for name, value in ASSURANCE_DEFAULTS.items()):
+                raise ValueError("assurance options need an assurance_scope")
+        elif self.assurer_effort_cost <= 0:
+            raise ValueError("assurance needs a positive assurer_effort_cost")
         if self.fixed_fine_basis not in FIXED_FINE_BASES:
             raise ValueError(f"fixed_fine_basis must be one of {FIXED_FINE_BASES}")
         if self.audit_allocation not in AUDIT_ALLOCATIONS:
@@ -118,7 +160,21 @@ class PolicyRegime:
             payload.pop("audit_rule_public")
         if self.audit_allocation != "jump":
             payload.pop("audit_jump_threshold")
+        for name, value in ASSURANCE_DEFAULTS.items():
+            if payload[name] == value:
+                payload.pop(name)
         return payload
+
+    @property
+    def assurer_slope(self) -> float:
+        """lambda in a provider's best response min(1, lambda * s), s its share of checks that found inflation.
+
+        Minimizing kappa a^2 + L q s (1 - a): an unchecked inflated report is found at the next audit
+        with probability q, and the provider pays L.
+        """
+        if self.assurance_scope == "none":
+            return 0.0
+        return self.assurer_liability * self.audit_probability / (2.0 * self.assurer_effort_cost)
 
 
 def audit_probabilities(

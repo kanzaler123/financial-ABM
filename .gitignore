@@ -96,3 +96,8 @@ reports/disclosure_targeted_audits_20261020/audits_v1/
 reports/disclosure_targeted_audits_20261020/check_v1/
 reports/disclosure_targeted_audits_20261020/work_check/
 reports/disclosure_targeted_audits_20261020/work_*.log
+# Assurance providers (contract section 22): compact archives, check reruns and local work files (regenerable from the specs)
+reports/disclosure_assurance_20261021/assurance_v1/
+reports/disclosure_assurance_20261021/check_v1/
+reports/disclosure_assurance_20261021/work_check/
+reports/disclosure_assurance_20261021/work_*.log

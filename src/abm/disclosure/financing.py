@@ -88,6 +88,7 @@ def financing_signal_factors(
     publish_audit_results: bool = False, published_now: NDArray[np.bool_] | None = None,
     reporting_interval_days: int = 1, real_persistence: NDArray[np.float64] | None = None,
     first_audit_probability: float | NDArray[np.float64] | None = None,
+    assurance_probability: float | NDArray[np.float64] | None = None,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """Return low/high real-signal annuities, wash survival and the fine factor.
 
@@ -107,7 +108,24 @@ def financing_signal_factors(
     new report's first audit may have ``first_audit_probability``; the old
     stock displaced by a real action faces ``audit_probability``. Both are
     supported with daily reports and unpublished audits only.
+
+    ``assurance_probability`` is the chance, possibly per firm, that a check
+    on every disclosure day (decision day + disclosure delay + k periods)
+    finds the inflation in the report and has it corrected before
+    publication, without a fine (see ``assured_signal_factors``).
     """
+    if assurance_probability is not None:
+        if (publish_audit_results or reporting_interval_days != 1 or real_persistence is not None
+                or first_audit_probability is not None or np.ndim(audit_probability) > 0):
+            raise ValueError("assurance checks are modelled only with daily reports, unpublished audits, "
+                             "random audits and non-reverting true values")
+        return assured_signal_factors(
+            discount_rate, decision_day=decision_day, horizon_days=horizon_days,
+            repricing_interval=repricing_interval, period_days=period_days,
+            implementation_delay=implementation_delay, disclosure_delay=disclosure_delay,
+            audit_probability=float(audit_probability), transparency=transparency,
+            assurance_probability=assurance_probability,
+        )
     if real_persistence is not None and (publish_audit_results or reporting_interval_days != 1):
         raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
     firm_rates = first_audit_probability is not None or np.ndim(audit_probability) > 0
@@ -179,6 +197,57 @@ def financing_signal_factors(
     return (np.sum(real_signal * discount, axis=0) / TRADING_DAYS_PER_YEAR,
             np.sum(displaced_signal * discount, axis=0) / TRADING_DAYS_PER_YEAR,
             np.sum(wash_signal * discount, axis=0) / TRADING_DAYS_PER_YEAR, fine)
+
+
+def assured_signal_factors(
+    discount_rate: NDArray[np.float64], *, decision_day: int, horizon_days: int, repricing_interval: int,
+    period_days: int, implementation_delay: int, disclosure_delay: int, audit_probability: float,
+    transparency: float, assurance_probability: float | NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """The four factors of ``financing_signal_factors`` with pre-publication assurance checks.
+
+    Checks fall on every disclosure day, decision day + disclosure delay + k periods, after that
+    day's actions land and before trading, so a quote on a check day sees the checked report. A
+    check finds the whole inflation in the report with probability ``a``; it is corrected without a
+    fine, so the detection discount counts only audits that find a report every earlier check missed.
+    New inflation meets its first check on its own disclosure day. The old stock displaced by a real
+    action meets the same checks. Daily reports and unpublished audits only; the decision day must
+    be an audit day and the disclosure delay shorter than a period, so no check falls between the
+    decision and the disclosure.
+    """
+    if decision_day % period_days or not 0 < disclosure_delay < period_days:
+        raise ValueError("assurance checks need decisions on audit days and a disclosure delay shorter than a period")
+    rate = np.asarray(discount_rate, dtype=np.float64)
+    keep = 1.0 - np.broadcast_to(np.asarray(assurance_probability, dtype=np.float64), rate.shape)
+    if np.any(keep < 0) or np.any(keep > 1):
+        raise ValueError("assurance_probability must be in [0, 1]")
+    times = np.arange(1, horizon_days + 1)
+    quoted_day = (decision_day + times) // repricing_interval * repricing_interval - 1
+    real_due = decision_day + max(1, implementation_delay)
+    wash_due = decision_day + disclosure_delay
+    real_visible = quoted_day >= real_due
+    wash_visible = quoted_day >= wash_due
+    first_audit = ((wash_due + period_days - 1) // period_days) * period_days
+    audits = np.maximum(0, (quoted_day - 1 - first_audit) // period_days + 1)
+    old_audits = np.maximum(0, (quoted_day - 1) // period_days - decision_day // period_days)
+    # Checks on wash_due + k periods up to the quote day; the old stock meets the same ones.
+    checks = np.where(wash_visible, (quoted_day - wash_due) // period_days + 1, 0)
+    q = audit_probability
+    discount = np.exp(-times[:, None] * rate[None, :] / TRADING_DAYS_PER_YEAR)
+    checked = keep[None, :] ** checks[:, None]
+    real = real_visible @ discount / TRADING_DAYS_PER_YEAR
+    wash = np.sum((wash_visible * (1.0 - q) ** audits)[:, None] * checked * discount, axis=0) / TRADING_DAYS_PER_YEAR
+    old = (real_visible * (1.0 - q) ** old_audits)[:, None] * checked
+    displaced = real - (1.0 - transparency) * np.sum(old * discount, axis=0) / TRADING_DAYS_PER_YEAR
+    # Audit j (day first_audit + j periods) follows j audits and checks_before + j checks.
+    checks_before = (first_audit - 1 - wash_due) // period_days + 1
+    first_discount = np.exp(-rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR)
+    repeat_discount = np.exp(-rate * period_days / TRADING_DAYS_PER_YEAR)
+    if q == 0:
+        fine = np.zeros_like(rate)
+    else:
+        fine = q * keep**checks_before * first_discount / (1.0 - (1.0 - q) * keep * repeat_discount)
+    return real, displaced, wash, fine
 
 
 def _periodic_report_signals(
