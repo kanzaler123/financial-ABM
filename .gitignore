@@ -91,3 +91,8 @@ reports/disclosure_feedback_channels_main_20261017/work_check/
 reports/disclosure_robustness_20261018/robust_v1/
 reports/disclosure_robustness_20261018/check_v1/
 reports/disclosure_robustness_20261018/work_check/
+# Targeted audits (contract section 21): compact archives, check reruns and local work files (regenerable from the specs)
+reports/disclosure_targeted_audits_20261020/audits_v1/
+reports/disclosure_targeted_audits_20261020/check_v1/
+reports/disclosure_targeted_audits_20261020/work_check/
+reports/disclosure_targeted_audits_20261020/work_*.log

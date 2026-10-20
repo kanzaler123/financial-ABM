@@ -1,0 +1,27 @@
+{
+  "seed": 33001,
+  "stage_f_development_experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+  "trials": {
+    "B": {
+      "archived": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "rerun": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "identical": true
+    },
+    "I": {
+      "archived": "00a9952be1db77829241a7d8f42b7f2623e0d33682f4c74a0150366e996a7a5b",
+      "rerun": "00a9952be1db77829241a7d8f42b7f2623e0d33682f4c74a0150366e996a7a5b",
+      "identical": true
+    },
+    "F": {
+      "archived": "29ad95fc8d8c7220d52d7f234e1b366386149541f3167da06c35d31f57a11801",
+      "rerun": "29ad95fc8d8c7220d52d7f234e1b366386149541f3167da06c35d31f57a11801",
+      "identical": true
+    },
+    "decay0_B": {
+      "archived": "8b1fa36716052dafe0185e4eacb2379f1d29a676a0fda9a11cf94bee32f4b011",
+      "rerun": "8b1fa36716052dafe0185e4eacb2379f1d29a676a0fda9a11cf94bee32f4b011",
+      "identical": true
+    }
+  },
+  "all_identical": true
+}

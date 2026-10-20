@@ -57,8 +57,9 @@ def test_fixed_fine_is_validated_and_serialized_only_when_used():
     schedule = PolicySchedule.constant(ESG).with_intervention(100, transparency=.6)
     legacy = asdict(schedule)
     for regime in ("baseline", "intervention"):
-        legacy[regime].pop("fixed_fine")
-        legacy[regime].pop("fixed_fine_basis")
+        for later_option in ("fixed_fine", "fixed_fine_basis", "audit_allocation", "audit_rule_public",
+                             "audit_jump_threshold"):
+            legacy[regime].pop(later_option)
     assert schedule.to_dict() == legacy
     assert "baseline_fixed_fine" not in ESG.to_dict()
     fined = replace(ESG, baseline_fixed_fine=4.5e-5)

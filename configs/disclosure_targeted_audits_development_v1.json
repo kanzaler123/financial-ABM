@@ -1,0 +1,349 @@
+{
+  "name": "disclosure_targeted_audits_development_v1",
+  "purpose": "development",
+  "archive": "compact",
+  "_note": "Plan stage E.1, targeted audits (research contract section 21). Development and confirmatory specs differ only in name, purpose and seeds; the development run checks the pipeline and may not change the design. Primary comparisons E1-E5 are Holm-adjusted.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    34001,
+    34002,
+    34003
+  ],
+  "scenarios": [
+    {
+      "name": "B"
+    },
+    {
+      "name": "I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "A2",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_probability": 0.02
+        }
+      }
+    },
+    {
+      "name": "V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      }
+    },
+    {
+      "name": "V_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "audit_rule_public": false
+        }
+      }
+    },
+    {
+      "name": "J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      }
+    },
+    {
+      "name": "J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      }
+    },
+    {
+      "name": "VF",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "decay0_B",
+      "domain": {
+        "natural_decay": 0.0
+      }
+    },
+    {
+      "name": "decay0_I",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "decay0_V",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      }
+    },
+    {
+      "name": "decay0_J",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      }
+    },
+    {
+      "name": "decay0_J_hidden",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      }
+    },
+    {
+      "name": "decay0_VF",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "E1_V_minus_B",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "E2_J_minus_B",
+      "weights": {
+        "J": 1,
+        "B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "E3_J_minus_J_hidden",
+      "weights": {
+        "J": 1,
+        "J_hidden": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "E4_V_minus_B_size",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "primary": true,
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "E5_I_minus_VF",
+      "weights": {
+        "I": 1,
+        "VF": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "V_minus_A2",
+      "weights": {
+        "V": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "J_minus_A2",
+      "weights": {
+        "J": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "A2_minus_B",
+      "weights": {
+        "A2": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "V_minus_V_hidden",
+      "weights": {
+        "V": 1,
+        "V_hidden": -1
+      }
+    },
+    {
+      "name": "J_hidden_minus_B",
+      "weights": {
+        "J_hidden": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "VF_minus_F",
+      "weights": {
+        "VF": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "I_minus_V",
+      "weights": {
+        "I": 1,
+        "V": -1
+      }
+    },
+    {
+      "name": "I_minus_J",
+      "weights": {
+        "I": 1,
+        "J": -1
+      }
+    },
+    {
+      "name": "I_minus_B",
+      "weights": {
+        "I": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "F_minus_B",
+      "weights": {
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "I_minus_F",
+      "weights": {
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "decay0_V_minus_decay0_B",
+      "weights": {
+        "decay0_V": 1,
+        "decay0_B": -1
+      }
+    },
+    {
+      "name": "decay0_J_minus_decay0_B",
+      "weights": {
+        "decay0_J": 1,
+        "decay0_B": -1
+      }
+    },
+    {
+      "name": "decay0_J_minus_decay0_J_hidden",
+      "weights": {
+        "decay0_J": 1,
+        "decay0_J_hidden": -1
+      }
+    },
+    {
+      "name": "decay0_I_minus_decay0_VF",
+      "weights": {
+        "decay0_I": 1,
+        "decay0_VF": -1
+      }
+    },
+    {
+      "name": "decay0_I_minus_decay0_B",
+      "weights": {
+        "decay0_I": 1,
+        "decay0_B": -1
+      }
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

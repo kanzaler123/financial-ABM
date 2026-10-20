@@ -709,3 +709,14 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
     - 主指标沿用等权真实变化，市值加权作辅助。
     - J 的门槛 h = 0.125 SD，一半核查随机、一半按标记分配。
     - 保留 VF、decay0_VF 与主要问题 E5。
+14. **流水线检查与冻结（2026-10-20，确认性运行之前）。** 没有查看真实变化等效应估计；流水线检查只输出了每个核查日的核查与标记次数。
+    - **默认值：** 新源码下重跑阶段 F 开发档案中种子 33001 的 B、I、F、decay0_B，结果指纹 4/4 与档案相同（[check_defaults.json](../reports/disclosure_targeted_audits_20261020/check_defaults.json)）。
+    - **测试：** 全量测试 947 项通过，其中新增 51 项（`tests/test_disclosure_targeted_audits.py`）。另把 `tests/test_disclosure_fixed_fine.py` 中构造旧版身份的测试改为也删去三个新字段，与加入 `fixed_fine_basis` 时的改法相同。
+    - **派生核对：** [build_spec.py](../reports/disclosure_targeted_audits_20261020/build_spec.py) 生成的 15 个场景，把核查选项改回默认后都与阶段 F 冻结的对应场景逐项相同。
+    - **开发运行**（[check_v1_pipeline.json](../reports/disclosure_targeted_audits_20261020/check_v1_pipeline.json)）：
+      - 45/45 完成，指标窗口都是第 1200–3500 日，没有运行未通过核心验证。
+      - 两个市场设定内切换前的虚报、融资费率和行动逐位相同：39 对，0 对不同。
+      - 预算：9 个定向场景在每个切换后的核查日 Σ_i q_i 与 2 之差不超过 9×10⁻¹⁶；实际每个核查日核查 1.84–2.01 次，A2 为 3.96 次。
+      - 种子 34001 的完整归档重跑：V 的 q_i 与市值之比在企业之间的相对离散不超过 3×10⁻¹⁶；J 的标记由真实水平与虚报重算，0 处不符；被标记企业的核查概率都高于未被标记企业。
+    - **偏离：** 开发运行用 15 个 worker（每个场景一个），第 11 条原写 16 个。流水线检查脚本第一次读紧凑归档失败（脚本错误，与运行无关），修正后重跑。两处都不影响身份或结果。
+    - **冻结身份：** 确认性实验 `experiment_id` = `06bec14854a80b5c863b5bbea6d9df2d68daa96d26888f05f64dfb2ba5522a32`，配置 `configs/disclosure_targeted_audits_confirmatory_v1.json` 的 SHA256（LF）= `f5138e917fde4e6cd1feded88e5a1c7adde4109aeb9560ff9bbd40aa15864913`。源码摘要（各文件源码哈希的规范 JSON 的 SHA256）= `a94bed8bc5bc570cc8918c7b030fd9594c323fd02b074036ba4ccc30819c6ef0`，与开发运行相同。开发规格 `configs/disclosure_targeted_audits_development_v1.json` 只差名称、用途与种子，`experiment_id` = `ae5386ac9078571fec398a56dcfcb798271e13c19feca4b76e20fdc56ceaac18`。分析脚本 [analyze.py](../reports/disclosure_targeted_audits_20261020/analyze.py) 在确认性运行之前提交。
