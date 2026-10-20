@@ -1,0 +1,163 @@
+{
+  "_note": "Contract section 22 design numbers; main timing of contract 20.1; pre-publication assurance checks.",
+  "factors": {
+    "A_r": 3.7258,
+    "A_w_unassured": 3.8305,
+    "D_unassured": 0.455,
+    "tau_star_unassured": 0.565,
+    "by_assurance_probability": [
+      {
+        "a": 0.0,
+        "A_w": 3.8305,
+        "D": 0.455,
+        "displaced_annuity": 0.6948,
+        "tau_star": 0.565,
+        "P_star_ratio": 1.0
+      },
+      {
+        "a": 0.01,
+        "A_w": 3.4776,
+        "D": 0.3106,
+        "displaced_annuity": 1.0061,
+        "tau_star": 0.5209,
+        "P_star_ratio": 0.8856
+      },
+      {
+        "a": 0.02,
+        "A_w": 3.1648,
+        "D": 0.2346,
+        "displaced_annuity": 1.2815,
+        "tau_star": 0.4735,
+        "P_star_ratio": 0.8799
+      },
+      {
+        "a": 0.05,
+        "A_w": 2.42,
+        "D": 0.1329,
+        "displaced_annuity": 1.9337,
+        "tau_star": 0.3115,
+        "P_star_ratio": 1.3524
+      },
+      {
+        "a": 0.1,
+        "A_w": 1.6233,
+        "D": 0.0744,
+        "displaced_annuity": 2.6211,
+        "tau_star": -0.0265,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.15,
+        "A_w": 1.1508,
+        "D": 0.0499,
+        "displaced_annuity": 3.0178,
+        "tau_star": -0.4478,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.2,
+        "A_w": 0.8545,
+        "D": 0.0364,
+        "displaced_annuity": 3.257,
+        "tau_star": -0.95,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.3,
+        "A_w": 0.5192,
+        "D": 0.0219,
+        "displaced_annuity": 3.5068,
+        "tau_star": -2.2092,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.4,
+        "A_w": 0.3398,
+        "D": 0.0144,
+        "displaced_annuity": 3.6204,
+        "tau_star": -3.9038,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.5,
+        "A_w": 0.2289,
+        "D": 0.0097,
+        "displaced_annuity": 3.6765,
+        "tau_star": -6.2781,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.6,
+        "A_w": 0.1537,
+        "D": 0.0065,
+        "displaced_annuity": 3.7046,
+        "tau_star": -9.8398,
+        "P_star_ratio": null
+      },
+      {
+        "a": 0.8,
+        "A_w": 0.0582,
+        "D": 0.0025,
+        "displaced_annuity": 3.7238,
+        "tau_star": -27.6484,
+        "P_star_ratio": null
+      },
+      {
+        "a": 1.0,
+        "A_w": 0.0,
+        "D": 0.0,
+        "displaced_annuity": 3.7258,
+        "tau_star": null,
+        "P_star_ratio": null
+      }
+    ],
+    "assurance_probability_at_which_tau_star_equals": {
+      "0.1": 0.0827,
+      "0.3": 0.0519
+    },
+    "P_star_ratio_minimum": {
+      "a": 0.0155,
+      "ratio": 0.8728
+    },
+    "P_star_ratio_rises_monotonically": false,
+    "P_star_ratio_back_to_one_at": 0.0346
+  },
+  "assurer_best_response": {
+    "fee_per_engagement": 5.430346194838047e-07,
+    "fee_per_engagement_cny_10k": 11.905,
+    "kappa": 2.172138477935219e-06,
+    "kappa_cny_10k": 47.619,
+    "statutory_liability": 2.2807454018319797e-05,
+    "slope_lambda_by_dose": {
+      "0x": 0.0,
+      "1x": 0.0525,
+      "4x": 0.21,
+      "10x": 0.525,
+      "16x": 0.84,
+      "100x": 5.25
+    },
+    "_note": "a* = min(1, lambda s): s is the share of the assurer's engagements whose report carried inflation."
+  },
+  "baseline_inflation_shares_stage_f_development": {
+    "B": {
+      "share_with_inflation_at_switch_day_1200": 0.185,
+      "share_with_inflation_on_engagement_days": 0.2593,
+      "share_with_inflation_on_engagement_days_by_size": {
+        "large": 0.8243,
+        "mid": 0.4896,
+        "small": 0.0499
+      },
+      "share_of_decisions_inflating": 0.1915
+    },
+    "decay0_B": {
+      "share_with_inflation_at_switch_day_1200": 0.0967,
+      "share_with_inflation_on_engagement_days": 0.0928,
+      "share_with_inflation_on_engagement_days_by_size": {
+        "large": 0.4518,
+        "mid": 0.1441,
+        "small": 0.0073
+      },
+      "share_of_decisions_inflating": 0.0423
+    }
+  }
+}
