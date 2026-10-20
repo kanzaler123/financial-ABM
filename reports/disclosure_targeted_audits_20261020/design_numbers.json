@@ -1,0 +1,277 @@
+{
+  "_note": "Contract section 21 design numbers; main timing of contract 20.1; jump flag h = 0.125 SD.",
+  "factors": {
+    "A_r": 3.7258,
+    "A_w_random": 3.8305,
+    "D_random": 0.455,
+    "tau_star_random": 0.565,
+    "by_audit_rate": [
+      {
+        "q": 0.0,
+        "A_w": 4.1908,
+        "D": 0.0,
+        "tau_star": 0.6024
+      },
+      {
+        "q": 0.001,
+        "A_w": 4.1528,
+        "D": 0.0771,
+        "tau_star": 0.5988
+      },
+      {
+        "q": 0.003,
+        "A_w": 4.0782,
+        "D": 0.2003,
+        "tau_star": 0.5914
+      },
+      {
+        "q": 0.005,
+        "A_w": 4.0054,
+        "D": 0.2945,
+        "tau_star": 0.584
+      },
+      {
+        "q": 0.01,
+        "A_w": 3.8305,
+        "D": 0.455,
+        "tau_star": 0.565
+      },
+      {
+        "q": 0.02,
+        "A_w": 3.5097,
+        "D": 0.6255,
+        "tau_star": 0.5253
+      },
+      {
+        "q": 0.03,
+        "A_w": 3.224,
+        "D": 0.7147,
+        "tau_star": 0.4832
+      },
+      {
+        "q": 0.05,
+        "A_w": 2.7414,
+        "D": 0.8068,
+        "tau_star": 0.3922
+      },
+      {
+        "q": 0.08,
+        "A_w": 2.1914,
+        "D": 0.8698,
+        "tau_star": 0.2397
+      },
+      {
+        "q": 0.105,
+        "A_w": 1.8504,
+        "D": 0.8976,
+        "tau_star": 0.0996
+      },
+      {
+        "q": 0.2,
+        "A_w": 1.1066,
+        "D": 0.9435,
+        "tau_star": -0.5058
+      },
+      {
+        "q": 0.5,
+        "A_w": 0.4623,
+        "D": 0.9766,
+        "tau_star": -2.6039
+      },
+      {
+        "q": 1.0,
+        "A_w": 0.2339,
+        "D": 0.9882,
+        "tau_star": -6.1234
+      }
+    ],
+    "rate_at_which_tau_star_equals": {
+      "0.1": 0.1049,
+      "0.3": 0.0686,
+      "0.6": 0.0007
+    },
+    "value_rule": [
+      {
+        "point": "smallest of 200",
+        "value_over_mean": 0.054,
+        "q": 0.00054,
+        "A_w": 4.1703,
+        "D": 0.043,
+        "tau_star": 0.6005,
+        "fine_term_random": 18.569,
+        "fine_term_value_rule": 1.756
+      },
+      {
+        "point": "small-class median (30th pct)",
+        "value_over_mean": 0.407,
+        "q": 0.00407,
+        "A_w": 4.039,
+        "D": 0.2537,
+        "tau_star": 0.5875,
+        "fine_term_random": 2.456,
+        "fine_term_value_rule": 1.369
+      },
+      {
+        "point": "small/mid cut (60th pct)",
+        "value_over_mean": 0.83,
+        "q": 0.0083,
+        "A_w": 3.8889,
+        "D": 0.4092,
+        "tau_star": 0.5716,
+        "fine_term_random": 1.206,
+        "fine_term_value_rule": 1.084
+      },
+      {
+        "point": "mid/large cut (90th pct)",
+        "value_over_mean": 2.126,
+        "q": 0.02126,
+        "A_w": 3.472,
+        "D": 0.6396,
+        "tau_star": 0.5201,
+        "fine_term_random": 0.47,
+        "fine_term_value_rule": 0.661
+      },
+      {
+        "point": "large-class median (95th pct)",
+        "value_over_mean": 2.964,
+        "q": 0.02964,
+        "A_w": 3.2337,
+        "D": 0.7122,
+        "tau_star": 0.4847,
+        "fine_term_random": 0.337,
+        "fine_term_value_rule": 0.528
+      },
+      {
+        "point": "largest of 200",
+        "value_over_mean": 8.036,
+        "q": 0.08036,
+        "A_w": 2.1858,
+        "D": 0.8703,
+        "tau_star": 0.2377,
+        "fine_term_random": 0.124,
+        "fine_term_value_rule": 0.238
+      }
+    ],
+    "jump_rule": {
+      "q_unflagged": 0.005,
+      "A_w_unflagged": 4.0054,
+      "D_unflagged": 0.2945,
+      "tau_star_unflagged": 0.584,
+      "by_flagged_count": [
+        {
+          "flagged_firms": 1,
+          "q_flagged": 1.0,
+          "A_w_flagged": 0.2339,
+          "D_flagged": 0.9882,
+          "annuity_ratio_g": 0.0584,
+          "tau_star_flagged": -6.1234
+        },
+        {
+          "flagged_firms": 2,
+          "q_flagged": 0.505,
+          "A_w_flagged": 2.1102,
+          "D_flagged": 0.6431,
+          "annuity_ratio_g": 0.5268,
+          "tau_star_flagged": 0.2104
+        },
+        {
+          "flagged_firms": 5,
+          "q_flagged": 0.205,
+          "A_w_flagged": 3.2473,
+          "D_flagged": 0.434,
+          "annuity_ratio_g": 0.8107,
+          "tau_star_flagged": 0.4869
+        },
+        {
+          "flagged_firms": 10,
+          "q_flagged": 0.105,
+          "A_w_flagged": 3.6263,
+          "D_flagged": 0.3642,
+          "annuity_ratio_g": 0.9054,
+          "tau_star_flagged": 0.5405
+        },
+        {
+          "flagged_firms": 20,
+          "q_flagged": 0.055,
+          "A_w_flagged": 3.8158,
+          "D_flagged": 0.3294,
+          "annuity_ratio_g": 0.9527,
+          "tau_star_flagged": 0.5633
+        },
+        {
+          "flagged_firms": 40,
+          "q_flagged": 0.03,
+          "A_w_flagged": 3.9106,
+          "D_flagged": 0.312,
+          "annuity_ratio_g": 0.9763,
+          "tau_star_flagged": 0.5739
+        }
+      ],
+      "smoothing_condition": [
+        {
+          "x": 0.25,
+          "x_h": 0.1,
+          "g_critical": 0.8
+        },
+        {
+          "x": 0.25,
+          "x_h": 0.15,
+          "g_critical": 0.9165
+        },
+        {
+          "x": 0.25,
+          "x_h": 0.17,
+          "g_critical": 0.9474
+        }
+      ]
+    },
+    "double_random": {
+      "q": 0.02,
+      "A_w": 3.5097,
+      "D": 0.6255,
+      "tau_star": 0.5253
+    }
+  },
+  "random_audit_jumps_stage_f_development": {
+    "B": {
+      "per_audit_mean": {
+        "flagged": 20.53,
+        "flagged_after_inflating": 20.19,
+        "inflated_last_period": 38.25,
+        "inflated_unflagged": 18.05,
+        "improvement_landed": 162.03,
+        "open_cases": 51.46,
+        "open_cases_large": 16.41,
+        "open_cases_mid": 29.13,
+        "open_cases_small": 5.92
+      },
+      "inflation_decisions": 4392,
+      "inflation_amount_mean": 0.162,
+      "inflation_share_at_cap": 0.401,
+      "inflation_share_above_h_plus_decay": 0.525,
+      "improvement_decisions": 18408,
+      "improvement_amount_mean": 0.0237,
+      "improvement_share_above_h": 0.0037
+    },
+    "decay0_B": {
+      "per_audit_mean": {
+        "flagged": 1.19,
+        "flagged_after_inflating": 1.19,
+        "inflated_last_period": 8.6,
+        "inflated_unflagged": 7.4,
+        "improvement_landed": 190.43,
+        "open_cases": 18.58,
+        "open_cases_large": 9.04,
+        "open_cases_mid": 8.67,
+        "open_cases_small": 0.88
+      },
+      "inflation_decisions": 954,
+      "inflation_amount_mean": 0.0639,
+      "inflation_share_at_cap": 0.051,
+      "inflation_share_above_h_plus_decay": 0.132,
+      "improvement_decisions": 21763,
+      "improvement_amount_mean": 0.0038,
+      "improvement_share_above_h": 0.0
+    }
+  }
+}
