@@ -1,6 +1,6 @@
-# Working paper (English draft)
+# Working paper
 
-`main.tex` is the English working-paper draft on the stage F experiment. It includes the three exploratory robustness supplements of contract Section 20.21 (mean reversion, a fine for every false report, firm-specific washing costs), which finished on 18 October 2026. Red bracketed text in the PDF marks the only remaining placeholder: the author line (name, affiliation and e-mail), which the author fills in before circulating.
+`main.tex` is the English working paper on the stage F experiment (contract Section 20), its exploratory supplements and the targeted-audit experiment (contract Section 21). The version of 20 October 2026 is the one prepared for SSRN. Red bracketed text in the PDF marks placeholders; none remain.
 
 Build from this directory:
 
@@ -9,4 +9,6 @@ python make_figures.py
 latexmk -pdf main.tex
 ```
 
-`make_figures.py` reads only committed analysis files under `reports/`. Every entry in `references.bib` was checked on 20 October 2026 against the publisher page, its DOI record at Crossref or the official text; the commit message of that check lists the source of each entry.
+`make_figures.py` reads only committed analysis files under `reports/`. The two tables of the targeted-audit section are typed from `reports/disclosure_targeted_audits_20261020/audits_v1_tables.md` and `audits_v1_analysis.json`; the intervals for V_hidden − B and J_hidden − B come from the run's `summary.json`, which stays local, and match the report's README.
+
+On 20 October 2026 every entry in `references.bib` was checked: journal and book entries against Crossref, with each DOI resolved at doi.org; `zhao2024esg` against the published PDF and the journal's table of contents; the Securities Law and the SSE guideline against their official texts.

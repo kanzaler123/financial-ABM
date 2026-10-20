@@ -1,0 +1,22 @@
+{
+  "title": "Financial ABM: an auditable multi-agent artificial market for ESG disclosure and greenwashing policy experiments",
+  "upload_type": "software",
+  "description": "<p>Code, configurations, pre-registrations and evidence for the working paper <em>Information versus Enforcement against Greenwashing: Pre-Registered Experiments in a Multi-Agent Artificial Market</em> (Ellis Lin, 2026). An agent-based artificial financial market in which profit-maximising and impact investors evolve by imitation, firms choose between real improvement, greenwashing and maintenance, and a regulator sets transparency, audits and fines. The archive contains the pre-registered stage F experiment (59 scenarios x 30 paired seeds), its exploratory supplements, the pre-registered targeted-audit experiment (15 scenarios x 30 seeds) and the paper source. Vendor data without a redistribution licence are not included; collection scripts and hash manifests are. Results are conditional on the model.</p>",
+  "creators": [
+    {
+      "name": "Lin, Ellis",
+      "affiliation": "Fudan University"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "agent-based model",
+    "multi-agent simulation",
+    "ESG",
+    "greenwashing",
+    "disclosure policy",
+    "audit targeting",
+    "pre-registration",
+    "computational economics"
+  ]
+}
