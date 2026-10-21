@@ -35,6 +35,7 @@
 | [disclosure_research_contract.md](disclosure_research_contract.md) | 研究规则、指标、实验矩阵、固定设定；第 13 节是 2026-10-11 的证据快照 | 现行（开发草案） |
 | [disclosure_inspection_propositions.md](disclosure_inspection_propositions.md) | 检查博弈中企业一方的两个命题：定额罚款下的漂绿条件、透明度门槛 | 参考 |
 | [disclosure_empirical_magnitudes_20261012.md](disclosure_empirical_magnitudes_20261012.md) | 法条、执法数据、融资成本文献及换算到模型单位 | 现行 |
+| [disclosure_fine_booking_20261020.md](disclosure_fine_booking_20261020.md) | 罚款按案件还是按报告计：法条、证监会处罚实践与澳大利亚对照，对模型的含义 | 现行 |
 | [disclosure_information_design.md](disclosure_information_design.md) | 信息政策的最小机制设计与验收契约 | 参考 |
 | [disclosure_q_learning_design.md](disclosure_q_learning_design.md) | 企业 Q-learning 的可比设计与训练预算 | 参考（覆盖未达标） |
 | [disclosure_handoff_20261012.md](disclosure_handoff_20261012.md) | 2026-10-12 至 10-13 的进展记录 | 历史 |
