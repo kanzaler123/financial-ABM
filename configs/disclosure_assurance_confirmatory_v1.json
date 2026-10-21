@@ -1,0 +1,472 @@
+{
+  "name": "disclosure_assurance_confirmatory_v1",
+  "purpose": "confirmatory",
+  "archive": "compact",
+  "_note": "Plan stage E.2, assurance providers (research contract section 22). Development and confirmatory specs differ only in name, purpose and seeds; the development run checks the pipeline and may not change the design. Primary comparisons C1-C5 are Holm-adjusted.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    43001,
+    43002,
+    43003,
+    43004,
+    43005,
+    43006,
+    43007,
+    43008,
+    43009,
+    43010,
+    43011,
+    43012,
+    43013,
+    43014,
+    43015,
+    43016,
+    43017,
+    43018,
+    43019,
+    43020,
+    43021,
+    43022,
+    43023,
+    43024,
+    43025,
+    43026,
+    43027,
+    43028,
+    43029,
+    43030
+  ],
+  "scenarios": [
+    {
+      "name": "B"
+    },
+    {
+      "name": "I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "VOL16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "voluntary",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R0",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.0,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R4",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 9.122981607327919e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R10",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00022807454018319796,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_R100",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_F1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "LRG_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "LRG_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "decay0_B",
+      "domain": {
+        "natural_decay": 0.0
+      }
+    },
+    {
+      "name": "decay0_I",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "decay0_ALL_R1",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "decay0_ALL_R16",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    },
+    {
+      "name": "decay0_ALL_F16",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "C1_ALL_R16_minus_B",
+      "weights": {
+        "ALL_R16": 1,
+        "B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "C2_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "C3_ALL_R1_minus_B",
+      "weights": {
+        "ALL_R1": 1,
+        "B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "C4_LRG_R16_minus_B_size",
+      "weights": {
+        "LRG_R16": 1,
+        "B": -1
+      },
+      "primary": true,
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "C5_I_minus_ALL_R16",
+      "weights": {
+        "I": 1,
+        "ALL_R16": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "ALL_R0_minus_B",
+      "weights": {
+        "ALL_R0": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_R1_minus_B",
+      "weights": {
+        "ALL_R1": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_R4_minus_B",
+      "weights": {
+        "ALL_R4": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_R10_minus_B",
+      "weights": {
+        "ALL_R10": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_R16_minus_B",
+      "weights": {
+        "ALL_R16": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_R100_minus_B",
+      "weights": {
+        "ALL_R100": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "ALL_F1_minus_ALL_R1",
+      "weights": {
+        "ALL_F1": 1,
+        "ALL_R1": -1
+      }
+    },
+    {
+      "name": "LRG_F16_minus_LRG_R16",
+      "weights": {
+        "LRG_F16": 1,
+        "LRG_R16": -1
+      }
+    },
+    {
+      "name": "LRG_R16_minus_ALL_R16",
+      "weights": {
+        "LRG_R16": 1,
+        "ALL_R16": -1
+      }
+    },
+    {
+      "name": "VOL16_minus_B",
+      "weights": {
+        "VOL16": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "I_minus_ALL_F16",
+      "weights": {
+        "I": 1,
+        "ALL_F16": -1
+      }
+    },
+    {
+      "name": "I_minus_B",
+      "weights": {
+        "I": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "decay0_ALL_R16_minus_decay0_B",
+      "weights": {
+        "decay0_ALL_R16": 1,
+        "decay0_B": -1
+      }
+    },
+    {
+      "name": "decay0_ALL_F16_minus_decay0_ALL_R16",
+      "weights": {
+        "decay0_ALL_F16": 1,
+        "decay0_ALL_R16": -1
+      }
+    },
+    {
+      "name": "decay0_ALL_R1_minus_decay0_B",
+      "weights": {
+        "decay0_ALL_R1": 1,
+        "decay0_B": -1
+      }
+    },
+    {
+      "name": "decay0_I_minus_decay0_ALL_R16",
+      "weights": {
+        "decay0_I": 1,
+        "decay0_ALL_R16": -1
+      }
+    },
+    {
+      "name": "decay0_I_minus_decay0_B",
+      "weights": {
+        "decay0_I": 1,
+        "decay0_B": -1
+      }
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

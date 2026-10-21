@@ -1,0 +1,1320 @@
+{
+  "experiment_id": "35c4f76700f76a389caf05e5a2dd1b896ea9b52ddaebc8142763cf35ce5e339a",
+  "purpose": "confirmatory",
+  "complete_trials": 540,
+  "planned_trials": 540,
+  "trials_failing_core_validation": 29,
+  "primary": {
+    "C1_ALL_R16_minus_B": {
+      "mean": 0.272798245274026,
+      "ci_low": 0.23381568775470002,
+      "ci_high": 0.311780802793352,
+      "p_value": 1.1196541635973482e-14,
+      "holm_p_value": 4.478616654389393e-14,
+      "n": 30,
+      "metric": "true_change.equal_weight_sd",
+      "claim": "supported",
+      "core_validation_pass": false,
+      "without_core_validation_failures": {
+        "mean": 0.257338076071118,
+        "standard_error": 0.01875944527958524,
+        "ci_low": 0.21877748404632047,
+        "ci_high": 0.2958986680959156,
+        "p_value": 2.0457429773835748e-13,
+        "n": 27
+      }
+    },
+    "C2_ALL_F16_minus_ALL_R16": {
+      "mean": -0.19885279973248082,
+      "ci_low": -0.23316364402127845,
+      "ci_high": -0.1645419554436832,
+      "p_value": 1.2206874298833299e-12,
+      "holm_p_value": 3.66206228964999e-12,
+      "n": 30,
+      "metric": "true_change.equal_weight_sd",
+      "claim": "supported",
+      "core_validation_pass": false,
+      "without_core_validation_failures": {
+        "mean": -0.18601945848606363,
+        "standard_error": 0.016744230045962462,
+        "ci_low": -0.220437716272948,
+        "ci_high": -0.15160120069917926,
+        "p_value": 2.2693855377582437e-11,
+        "n": 27
+      }
+    },
+    "C3_ALL_R1_minus_B": {
+      "mean": 0.04615786249434316,
+      "ci_low": 0.03473861993926565,
+      "ci_high": 0.057577105049420665,
+      "p_value": 4.095605750347714e-09,
+      "holm_p_value": 8.191211500695427e-09,
+      "n": 30,
+      "metric": "true_change.equal_weight_sd",
+      "claim": "supported",
+      "core_validation_pass": false,
+      "without_core_validation_failures": {
+        "mean": 0.04331369690134396,
+        "standard_error": 0.005528305572034141,
+        "ci_low": 0.03197055082421631,
+        "ci_high": 0.054656842978471606,
+        "p_value": 2.0057935524668426e-08,
+        "n": 28
+      }
+    },
+    "C4_LRG_R16_minus_B_size": {
+      "mean": 0.5631238646106086,
+      "ci_low": 0.5163451967890657,
+      "ci_high": 0.6099025324321515,
+      "p_value": 5.486785550285263e-21,
+      "holm_p_value": 2.7433927751426315e-20,
+      "n": 30,
+      "metric": "size.large_minus_small_sd",
+      "claim": "supported",
+      "core_validation_pass": false,
+      "without_core_validation_failures": {
+        "mean": 0.5487426336124017,
+        "standard_error": 0.021973099020608195,
+        "ci_low": 0.5036575585002747,
+        "ci_high": 0.5938277087245287,
+        "p_value": 3.418502430868724e-20,
+        "n": 28
+      }
+    },
+    "C5_I_minus_ALL_R16": {
+      "mean": 0.027661112537200067,
+      "ci_low": 0.01781226483553621,
+      "ci_high": 0.037509960238863924,
+      "p_value": 3.2205277628028153e-06,
+      "holm_p_value": 3.2205277628028153e-06,
+      "n": 30,
+      "metric": "true_change.equal_weight_sd",
+      "claim": "supported",
+      "core_validation_pass": false,
+      "without_core_validation_failures": {
+        "mean": 0.026692405148317715,
+        "standard_error": 0.0051518710225087055,
+        "ci_low": 0.01610258259745991,
+        "ci_high": 0.037282227699175524,
+        "p_value": 2.0849689501715803e-05,
+        "n": 27
+      }
+    }
+  },
+  "secondary": {
+    "ALL_R0_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 5.69246479430093e-06,
+        "ci_low": -9.801953394775463e-06,
+        "ci_high": 2.1186882983377323e-05,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 4.6479977529786015e-07,
+        "ci_low": -6.574406406501967e-06,
+        "ci_high": 7.504005957097687e-06,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": -7.326479787976107e-06,
+        "ci_low": -3.329889879157295e-05,
+        "ci_high": 1.8645939215620738e-05,
+        "n": 30
+      }
+    },
+    "ALL_R1_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.04615786249434316,
+        "ci_low": 0.03473861993926565,
+        "ci_high": 0.057577105049420665,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.09282694848222886,
+        "ci_low": 0.07150706616402429,
+        "ci_high": 0.11414683080043343,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.1677675399564852,
+        "ci_low": 0.13471566861755663,
+        "ci_high": 0.20081941129541375,
+        "n": 30
+      }
+    },
+    "ALL_R4_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.14520899425217412,
+        "ci_low": 0.11242088613881115,
+        "ci_high": 0.1779971023655371,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.20557620717921296,
+        "ci_low": 0.16651286652411038,
+        "ci_high": 0.24463954783431555,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.20057457633633888,
+        "ci_low": 0.1752335493908089,
+        "ci_high": 0.22591560328186885,
+        "n": 30
+      }
+    },
+    "ALL_R10_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.255578154879507,
+        "ci_low": 0.21080584935535704,
+        "ci_high": 0.300350460403657,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.3816112888129274,
+        "ci_low": 0.32168777310260926,
+        "ci_high": 0.4415348045232455,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.41837984297164016,
+        "ci_low": 0.3678374063298876,
+        "ci_high": 0.4689222796133927,
+        "n": 30
+      }
+    },
+    "ALL_R16_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.272798245274026,
+        "ci_low": 0.23381568775470002,
+        "ci_high": 0.311780802793352,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.4267195645777522,
+        "ci_low": 0.3747972753305552,
+        "ci_high": 0.47864185382494917,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.5222706349162058,
+        "ci_low": 0.47129610228846086,
+        "ci_high": 0.5732451675439508,
+        "n": 30
+      }
+    },
+    "ALL_R100_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.2318249656051834,
+        "ci_low": 0.20227820787543618,
+        "ci_high": 0.2613717233349306,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.3753884285620417,
+        "ci_low": 0.3377220049415403,
+        "ci_high": 0.41305485218254306,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.4877420663543022,
+        "ci_low": 0.45385608580491493,
+        "ci_high": 0.5216280469036894,
+        "n": 30
+      }
+    },
+    "ALL_F1_minus_ALL_R1": {
+      "true_change.equal_weight_sd": {
+        "mean": -0.012061152578991544,
+        "ci_low": -0.01804034541745398,
+        "ci_high": -0.006081959740529107,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": -0.020207605969938505,
+        "ci_low": -0.031106502252086457,
+        "ci_high": -0.009308709687790554,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": -0.03644394191641816,
+        "ci_low": -0.05582540052467147,
+        "ci_high": -0.01706248330816484,
+        "n": 30
+      }
+    },
+    "LRG_F16_minus_LRG_R16": {
+      "true_change.equal_weight_sd": {
+        "mean": -0.02145722597722045,
+        "ci_low": -0.02945312007980988,
+        "ci_high": -0.013461331874631022,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": -0.07232000614121939,
+        "ci_low": -0.09885808541090348,
+        "ci_high": -0.0457819268715353,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": -0.2039076006646803,
+        "ci_low": -0.2769717545682396,
+        "ci_high": -0.13084344676112103,
+        "n": 30
+      }
+    },
+    "LRG_R16_minus_ALL_R16": {
+      "true_change.equal_weight_sd": {
+        "mean": -0.21554117704471765,
+        "ci_low": -0.2552189241007595,
+        "ci_high": -0.1758634299886758,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": -0.2351845443648108,
+        "ci_low": -0.279930132997463,
+        "ci_high": -0.19043895573215858,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.04085322969440285,
+        "ci_low": 0.0028951101086176836,
+        "ci_high": 0.07881134928018801,
+        "n": 30
+      }
+    },
+    "VOL16_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n": 30
+      }
+    },
+    "I_minus_ALL_F16": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.22651391226968087,
+        "ci_low": 0.19096751506087778,
+        "ci_high": 0.26206030947848397,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.37285860625918954,
+        "ci_low": 0.33145238639449726,
+        "ci_high": 0.4142648261238818,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.4770545137023173,
+        "ci_low": 0.4364391412653841,
+        "ci_high": 0.5176698861392505,
+        "n": 30
+      }
+    },
+    "I_minus_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.3004593578112261,
+        "ci_low": 0.2600494639616031,
+        "ci_high": 0.34086925166084914,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.5021144904371534,
+        "ci_low": 0.450701302787775,
+        "ci_high": 0.5535276780865318,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.6707345524277905,
+        "ci_low": 0.6252342099310664,
+        "ci_high": 0.7162348949245145,
+        "n": 30
+      }
+    },
+    "decay0_ALL_R16_minus_decay0_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.030001488840546764,
+        "ci_low": 0.021918157642992965,
+        "ci_high": 0.03808482003810056,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.04735650448004129,
+        "ci_low": 0.03542889449492595,
+        "ci_high": 0.059284114465156634,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.06537941510017703,
+        "ci_low": 0.05032887511390244,
+        "ci_high": 0.08042995508645162,
+        "n": 30
+      }
+    },
+    "decay0_ALL_F16_minus_decay0_ALL_R16": {
+      "true_change.equal_weight_sd": {
+        "mean": -0.009566095369526495,
+        "ci_low": -0.01286511960375647,
+        "ci_high": -0.006267071135296519,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": -0.019648095424474783,
+        "ci_low": -0.02613134851067577,
+        "ci_high": -0.013164842338273792,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": -0.03358398646175708,
+        "ci_low": -0.04433283150379547,
+        "ci_high": -0.022835141419718697,
+        "n": 30
+      }
+    },
+    "decay0_ALL_R1_minus_decay0_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.004430226353832833,
+        "ci_low": 0.002700922322251138,
+        "ci_high": 0.006159530385414527,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.0051327069313765366,
+        "ci_low": 0.0032248921796998774,
+        "ci_high": 0.007040521683053196,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.005203428886848551,
+        "ci_low": 0.0022955584104926608,
+        "ci_high": 0.008111299363204441,
+        "n": 30
+      }
+    },
+    "decay0_I_minus_decay0_ALL_R16": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.00928625029634698,
+        "ci_low": 0.007200955951071302,
+        "ci_high": 0.011371544641622657,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.026812355851092907,
+        "ci_low": 0.021717181969094498,
+        "ci_high": 0.03190752973309132,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.06109947132337633,
+        "ci_low": 0.05001880887861882,
+        "ci_high": 0.07218013376813384,
+        "n": 30
+      }
+    },
+    "decay0_I_minus_decay0_B": {
+      "true_change.equal_weight_sd": {
+        "mean": 0.03928773913689374,
+        "ci_low": 0.031101838237889513,
+        "ci_high": 0.04747364003589797,
+        "n": 30
+      },
+      "true_change.fixed_start_cap_weight_sd": {
+        "mean": 0.0741688603311342,
+        "ci_low": 0.06096591110630058,
+        "ci_high": 0.08737180955596784,
+        "n": 30
+      },
+      "size.large_minus_small_sd": {
+        "mean": 0.12647888642355334,
+        "ci_low": 0.10565197306419134,
+        "ci_high": 0.14730579978291536,
+        "n": 30
+      }
+    }
+  },
+  "predictions": {
+    "T1": {
+      "seeds": 30,
+      "verdict": "成立"
+    },
+    "T2": {
+      "buyer_firm_periods": 0,
+      "seeds_equal_to_B": 30,
+      "verdict": "成立"
+    },
+    "T3": {
+      "stop_quality": 0.0827,
+      "wash_decisions": 431388,
+      "wash_decisions_at_or_above": 0,
+      "at_or_above_with_amount_at_period_cap": 0,
+      "share_at_or_above": 0.0,
+      "exceptions": [],
+      "verdict": "成立"
+    },
+    "T4": {
+      "ALL_R1_minus_B": {
+        "mean": 0.009303431364328794,
+        "standard_error": 0.0012528811846663787,
+        "ci_low": 0.006741001627378777,
+        "ci_high": 0.01186586110127881,
+        "p_value": 3.4986855180620946e-08,
+        "n": 30
+      },
+      "mean_client_quality_ALL_R1": 0.013839276315789474,
+      "verdict": "成立"
+    },
+    "T5": {
+      "wash_decisions_by_clients": 47953,
+      "at_laxest_provider": 46489,
+      "share": 0.9694701061456009,
+      "verdict": "成立"
+    },
+    "T6": {
+      "seeds": 30,
+      "seeds_cycling": 28,
+      "seeds_washing_in_last_four_years": 30,
+      "yearly_mean_quality_by_seed": {
+        "43001": [
+          0.147,
+          0.1124,
+          0.0567,
+          0.1155,
+          0.1103,
+          0.0735,
+          0.0788,
+          0.0756,
+          0.084,
+          0.1029
+        ],
+        "43002": [
+          0.1092,
+          0.0934,
+          0.0682,
+          0.0808,
+          0.0735,
+          0.0966,
+          0.0766,
+          0.0956,
+          0.1018,
+          0.0567
+        ],
+        "43003": [
+          0.1554,
+          0.1218,
+          0.0546,
+          0.0788,
+          0.064,
+          0.0619,
+          0.0872,
+          0.0808,
+          0.0746,
+          0.0619
+        ],
+        "43004": [
+          0.2898,
+          0.1701,
+          0.0504,
+          0.2835,
+          0.168,
+          0.0452,
+          0.274,
+          0.2363,
+          0.0861,
+          0.3076
+        ],
+        "43005": [
+          0.1134,
+          0.0966,
+          0.0735,
+          0.0724,
+          0.1123,
+          0.0777,
+          0.0798,
+          0.1186,
+          0.1008,
+          0.0725
+        ],
+        "43006": [
+          0.2142,
+          0.1502,
+          0.0619,
+          0.1008,
+          0.2026,
+          0.1218,
+          0.1029,
+          0.1837,
+          0.1281,
+          0.0514
+        ],
+        "43007": [
+          0.2898,
+          0.1732,
+          0.0294,
+          0.3276,
+          0.1984,
+          0.0588,
+          0.2425,
+          0.1585,
+          0.043,
+          0.3444
+        ],
+        "43008": [
+          0.1218,
+          0.0977,
+          0.0588,
+          0.1155,
+          0.0861,
+          0.0525,
+          0.1365,
+          0.1481,
+          0.0892,
+          0.0798
+        ],
+        "43009": [
+          0.0882,
+          0.0788,
+          0.0683,
+          0.0777,
+          0.0998,
+          0.0966,
+          0.0788,
+          0.1396,
+          0.084,
+          0.0704
+        ],
+        "43010": [
+          0.1764,
+          0.127,
+          0.0577,
+          0.1344,
+          0.1733,
+          0.105,
+          0.0745,
+          0.1869,
+          0.1071,
+          0.0955
+        ],
+        "43011": [
+          0.2352,
+          0.148,
+          0.0725,
+          0.127,
+          0.1585,
+          0.0892,
+          0.1081,
+          0.2572,
+          0.1407,
+          0.1386
+        ],
+        "43012": [
+          0.0714,
+          0.0609,
+          0.0514,
+          0.0504,
+          0.0557,
+          0.0441,
+          0.0546,
+          0.0546,
+          0.0577,
+          0.0514
+        ],
+        "43013": [
+          0.0336,
+          0.0367,
+          0.0325,
+          0.0336,
+          0.0336,
+          0.0336,
+          0.0294,
+          0.0262,
+          0.0283,
+          0.0294
+        ],
+        "43014": [
+          0.0924,
+          0.0756,
+          0.0546,
+          0.0536,
+          0.042,
+          0.0441,
+          0.043,
+          0.042,
+          0.0462,
+          0.0504
+        ],
+        "43015": [
+          0.168,
+          0.1354,
+          0.0672,
+          0.0735,
+          0.1155,
+          0.0987,
+          0.1155,
+          0.1018,
+          0.1229,
+          0.1113
+        ],
+        "43016": [
+          0.1764,
+          0.126,
+          0.0504,
+          0.1113,
+          0.126,
+          0.0766,
+          0.1018,
+          0.1018,
+          0.0913,
+          0.1071
+        ],
+        "43017": [
+          0.126,
+          0.1123,
+          0.0703,
+          0.0777,
+          0.1585,
+          0.1018,
+          0.0683,
+          0.1974,
+          0.1134,
+          0.1533
+        ],
+        "43018": [
+          0.1764,
+          0.1355,
+          0.064,
+          0.1113,
+          0.1176,
+          0.084,
+          0.0903,
+          0.1197,
+          0.0788,
+          0.1512
+        ],
+        "43019": [
+          0.2268,
+          0.167,
+          0.0536,
+          0.2047,
+          0.1533,
+          0.0703,
+          0.1732,
+          0.148,
+          0.0851,
+          0.2929
+        ],
+        "43020": [
+          0.1092,
+          0.0914,
+          0.0588,
+          0.1134,
+          0.1176,
+          0.0819,
+          0.0987,
+          0.1103,
+          0.0871,
+          0.127
+        ],
+        "43021": [
+          0.1596,
+          0.1292,
+          0.0588,
+          0.1103,
+          0.084,
+          0.0588,
+          0.1134,
+          0.1207,
+          0.0829,
+          0.0662
+        ],
+        "43022": [
+          0.1806,
+          0.1533,
+          0.0683,
+          0.0892,
+          0.1995,
+          0.1312,
+          0.084,
+          0.1313,
+          0.127,
+          0.1291
+        ],
+        "43023": [
+          0.1722,
+          0.1291,
+          0.0725,
+          0.1081,
+          0.1082,
+          0.0809,
+          0.0955,
+          0.1029,
+          0.0672,
+          0.1638
+        ],
+        "43024": [
+          0.1554,
+          0.1218,
+          0.0819,
+          0.0871,
+          0.0703,
+          0.0672,
+          0.1008,
+          0.0872,
+          0.084,
+          0.0829
+        ],
+        "43025": [
+          0.1302,
+          0.1008,
+          0.0588,
+          0.0766,
+          0.0819,
+          0.0882,
+          0.104,
+          0.0829,
+          0.063,
+          0.1071
+        ],
+        "43026": [
+          0.1596,
+          0.1355,
+          0.0735,
+          0.1029,
+          0.1386,
+          0.0787,
+          0.147,
+          0.1869,
+          0.0892,
+          0.1596
+        ],
+        "43027": [
+          0.2394,
+          0.1575,
+          0.0525,
+          0.1733,
+          0.1858,
+          0.0914,
+          0.1323,
+          0.1627,
+          0.0903,
+          0.1585
+        ],
+        "43028": [
+          0.1722,
+          0.1344,
+          0.0651,
+          0.0725,
+          0.064,
+          0.063,
+          0.0609,
+          0.0651,
+          0.0903,
+          0.0767
+        ],
+        "43029": [
+          0.1974,
+          0.1449,
+          0.0588,
+          0.1144,
+          0.1502,
+          0.1029,
+          0.1197,
+          0.1491,
+          0.0861,
+          0.1669
+        ],
+        "43030": [
+          0.1974,
+          0.146,
+          0.0651,
+          0.1207,
+          0.1291,
+          0.0714,
+          0.1816,
+          0.2163,
+          0.0935,
+          0.2436
+        ]
+      },
+      "verdict": "成立"
+    }
+  },
+  "describe": {
+    "B": {
+      "fines_fraction_initial_cap": 4.51587589562732e-06,
+      "open_cases_per_decision_day": 49.302631578947356,
+      "wash_share": 0.189640350877193,
+      "wash_share_large": 0.6471491228070174,
+      "wash_share_large_minus_small": 0.610906432748538,
+      "wash_share_mid": 0.3439327485380117,
+      "wash_share_small": 0.036242690058479535,
+      "wash_share_without_open_case": 0.007956040700540781,
+      "true_change": -1.2177869796181442,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "I": {
+      "fines_fraction_initial_cap": 2.9953789610726678e-06,
+      "open_cases_per_decision_day": 32.103508771929825,
+      "wash_share": 0.0,
+      "wash_share_large": 0.0,
+      "wash_share_large_minus_small": 0.0,
+      "wash_share_mid": 0.0,
+      "wash_share_small": 0.0,
+      "wash_share_without_open_case": 0.0,
+      "true_change": -0.917327621806918,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "VOL16": {
+      "checked_firms": 0.0,
+      "checks_with_inflation": 0.0,
+      "corrections": 0.0,
+      "fines_fraction_initial_cap": 4.51587589562732e-06,
+      "liability_events_total": 0.0,
+      "mean_client_quality": null,
+      "mean_quality": 0.0,
+      "open_cases_per_decision_day": 49.302631578947356,
+      "switches_per_year": 0.0,
+      "wash_share": 0.189640350877193,
+      "wash_share_large": 0.6471491228070174,
+      "wash_share_large_minus_small": 0.610906432748538,
+      "wash_share_mid": 0.3439327485380117,
+      "wash_share_small": 0.036242690058479535,
+      "wash_share_without_open_case": 0.007956040700540781,
+      "true_change": -1.2177869796181442,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "ALL_R0": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 50.444736842105264,
+      "corrections": 0.0,
+      "fines_fraction_initial_cap": 4.51587589562732e-06,
+      "liability_events_total": 19.2,
+      "mean_client_quality": 0.0,
+      "mean_quality": 0.0,
+      "open_cases_per_decision_day": 49.302631578947356,
+      "switches_per_year": 0.0,
+      "wash_share": 0.18964473684210528,
+      "wash_share_large": 0.6471491228070174,
+      "wash_share_large_minus_small": 0.6108991228070175,
+      "wash_share_mid": 0.3439327485380117,
+      "wash_share_small": 0.036250000000000004,
+      "wash_share_without_open_case": 0.007956040700540781,
+      "true_change": -1.21778128715335,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "ALL_R1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 56.108771929824556,
+      "corrections": 0.95,
+      "fines_fraction_initial_cap": 4.880795159920437e-06,
+      "liability_events_total": 20.8,
+      "mean_client_quality": 0.013839276315789474,
+      "mean_quality": 0.013839276315789474,
+      "open_cases_per_decision_day": 53.76929824561403,
+      "switches_per_year": 0.0,
+      "wash_share": 0.19991666666666671,
+      "wash_share_large": 0.5946491228070175,
+      "wash_share_large_minus_small": 0.5369517543859649,
+      "wash_share_mid": 0.3527777777777778,
+      "wash_share_small": 0.057697368421052636,
+      "wash_share_without_open_case": 0.017259472064869573,
+      "true_change": -1.1716291171238007,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "ALL_R4": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 44.997368421052634,
+      "corrections": 2.232456140350877,
+      "fines_fraction_initial_cap": 3.77083239769554e-06,
+      "liability_events_total": 15.933333333333334,
+      "mean_client_quality": 0.04585598684210526,
+      "mean_quality": 0.04585598684210526,
+      "open_cases_per_decision_day": 42.09122807017544,
+      "switches_per_year": 0.0,
+      "wash_share": 0.1664736842105263,
+      "wash_share_large": 0.6006140350877192,
+      "wash_share_large_minus_small": 0.5725877192982456,
+      "wash_share_mid": 0.2986549707602339,
+      "wash_share_small": 0.02802631578947368,
+      "wash_share_without_open_case": 0.018900170869275607,
+      "true_change": -1.0725779853659698,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "ALL_R10": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 29.941228070175434,
+      "corrections": 2.549122807017544,
+      "fines_fraction_initial_cap": 2.5164224266879513e-06,
+      "liability_events_total": 10.433333333333334,
+      "mean_client_quality": 0.07992088815789475,
+      "mean_quality": 0.07992088815789473,
+      "open_cases_per_decision_day": 27.292105263157897,
+      "switches_per_year": 0.0,
+      "wash_share": 0.07950438596491229,
+      "wash_share_large": 0.34807017543859653,
+      "wash_share_large_minus_small": 0.33924707602339177,
+      "wash_share_mid": 0.1313450292397661,
+      "wash_share_small": 0.008823099415204677,
+      "wash_share_without_open_case": 0.015611395376215871,
+      "true_change": -0.9622088247386369,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43004,
+          "first_cap_day": 2662
+        },
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "ALL_R16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 25.906140350877195,
+      "corrections": 3.0096491228070175,
+      "fines_fraction_initial_cap": 2.212323039777021e-06,
+      "liability_events_total": 9.1,
+      "mean_client_quality": 0.11001236842105264,
+      "mean_quality": 0.11001236842105264,
+      "open_cases_per_decision_day": 22.77719298245614,
+      "switches_per_year": 0.0,
+      "wash_share": 0.06215350877192983,
+      "wash_share_large": 0.24114035087719296,
+      "wash_share_large_minus_small": 0.2291739766081871,
+      "wash_share_mid": 0.10286549707602341,
+      "wash_share_small": 0.011966374269005845,
+      "wash_share_without_open_case": 0.018024864032436142,
+      "true_change": -0.944988734344118,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43011,
+          "first_cap_day": 2590
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "ALL_R100": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 23.047368421052628,
+      "corrections": 5.47280701754386,
+      "fines_fraction_initial_cap": 1.6877515973556654e-06,
+      "liability_events_total": 6.8,
+      "mean_client_quality": 0.42461951754385974,
+      "mean_quality": 0.42461951754385974,
+      "open_cases_per_decision_day": 18.372807017543856,
+      "switches_per_year": 0.0,
+      "wash_share": 0.08562280701754389,
+      "wash_share_large": 0.25065789473684214,
+      "wash_share_large_minus_small": 0.22466374269005848,
+      "wash_share_mid": 0.14986842105263157,
+      "wash_share_small": 0.02599415204678362,
+      "wash_share_without_open_case": 0.026264370861301282,
+      "true_change": -0.9859620140129606,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "ALL_F1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 54.150877192982456,
+      "corrections": 0.4412280701754386,
+      "fines_fraction_initial_cap": 4.797167828519931e-06,
+      "liability_events_total": 20.433333333333334,
+      "mean_client_quality": 0.009507678631125008,
+      "mean_quality": 0.010413888135176626,
+      "open_cases_per_decision_day": 52.401754385964914,
+      "switches_per_year": 50.162962962962965,
+      "wash_share": 0.20550877192982453,
+      "wash_share_large": 0.6438157894736841,
+      "wash_share_large_minus_small": 0.5917909356725146,
+      "wash_share_mid": 0.36637426900584796,
+      "wash_share_small": 0.05202485380116959,
+      "wash_share_without_open_case": 0.012624489384875695,
+      "true_change": -1.1836902697027927,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "ALL_F16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 48.43070175438597,
+      "corrections": 1.8763157894736842,
+      "fines_fraction_initial_cap": 4.067329299933698e-06,
+      "liability_events_total": 17.233333333333334,
+      "mean_client_quality": 0.10957258787033103,
+      "mean_quality": 0.1305958164612463,
+      "open_cases_per_decision_day": 45.458771929824564,
+      "switches_per_year": 46.14444444444445,
+      "wash_share": 0.2103201754385965,
+      "wash_share_large": 0.6256140350877193,
+      "wash_share_large_minus_small": 0.5652923976608186,
+      "wash_share_mid": 0.37188596491228065,
+      "wash_share_small": 0.06032163742690058,
+      "wash_share_without_open_case": 0.020343908343599466,
+      "true_change": -1.1438415340765988,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "LRG_R16": {
+      "checked_firms": 20.0,
+      "checks_with_inflation": 7.200877192982456,
+      "corrections": 1.5280701754385964,
+      "fines_fraction_initial_cap": 4.264993901425802e-06,
+      "liability_events_total": 2.6333333333333333,
+      "mean_client_quality": 0.3092342105263158,
+      "mean_quality": 0.3092342105263158,
+      "open_cases_per_decision_day": 44.958771929824564,
+      "switches_per_year": 0.0,
+      "wash_share": 0.17684649122807017,
+      "wash_share_large": 0.24057017543859646,
+      "wash_share_large_minus_small": 0.1798611111111111,
+      "wash_share_mid": 0.3878801169590644,
+      "wash_share_small": 0.06070906432748538,
+      "wash_share_without_open_case": 0.01711057529377009,
+      "true_change": -1.1605299113888357,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "LRG_F16": {
+      "checked_firms": 20.0,
+      "checks_with_inflation": 10.00701754385965,
+      "corrections": 1.080701754385965,
+      "fines_fraction_initial_cap": 4.417043594881267e-06,
+      "liability_events_total": 3.6666666666666665,
+      "mean_client_quality": 0.2380689771266519,
+      "mean_quality": 0.29675440541208825,
+      "open_cases_per_decision_day": 47.14912280701754,
+      "switches_per_year": 6.051851851851853,
+      "wash_share": 0.1907236842105263,
+      "wash_share_large": 0.42048245614035085,
+      "wash_share_large_minus_small": 0.3646564327485379,
+      "wash_share_mid": 0.38393274853801174,
+      "wash_share_small": 0.055826023391812876,
+      "wash_share_without_open_case": 0.015368652421688405,
+      "true_change": -1.1819871373660562,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        },
+        {
+          "seed": 43026,
+          "first_cap_day": 1916
+        }
+      ]
+    },
+    "decay0_B": {
+      "fines_fraction_initial_cap": 1.8169938367928108e-06,
+      "open_cases_per_decision_day": 19.64649122807018,
+      "wash_share": 0.04854385964912281,
+      "wash_share_large": 0.28785087719298236,
+      "wash_share_large_minus_small": 0.28601608187134503,
+      "wash_share_mid": 0.062192982456140355,
+      "wash_share_small": 0.0018347953216374272,
+      "wash_share_without_open_case": 0.0005136475311882611,
+      "true_change": 0.11913423198106596,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "decay0_I": {
+      "fines_fraction_initial_cap": 1.702956566701212e-06,
+      "open_cases_per_decision_day": 17.99298245614035,
+      "wash_share": 0.0,
+      "wash_share_large": 0.0,
+      "wash_share_large_minus_small": 0.0,
+      "wash_share_mid": 0.0,
+      "wash_share_small": 0.0,
+      "wash_share_without_open_case": 0.0,
+      "true_change": 0.15842197111795966,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "decay0_ALL_R1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 19.082456140350878,
+      "corrections": 0.1280701754385965,
+      "fines_fraction_initial_cap": 1.8093913521200377e-06,
+      "liability_events_total": 7.533333333333333,
+      "mean_client_quality": 0.005152483552631579,
+      "mean_quality": 0.005152483552631579,
+      "open_cases_per_decision_day": 18.90701754385965,
+      "switches_per_year": 0.0,
+      "wash_share": 0.05225,
+      "wash_share_large": 0.30421052631578954,
+      "wash_share_large_minus_small": 0.302061403508772,
+      "wash_share_mid": 0.06846491228070176,
+      "wash_share_small": 0.0021491228070175438,
+      "wash_share_without_open_case": 0.001004237054111823,
+      "true_change": 0.12356445833489876,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "decay0_ALL_R16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 10.02543859649123,
+      "corrections": 0.6543859649122806,
+      "fines_fraction_initial_cap": 8.89490706714472e-07,
+      "liability_events_total": 3.5,
+      "mean_client_quality": 0.04831657894736842,
+      "mean_quality": 0.04831657894736842,
+      "open_cases_per_decision_day": 9.664035087719297,
+      "switches_per_year": 0.0,
+      "wash_share": 0.02821052631578947,
+      "wash_share_large": 0.18934210526315792,
+      "wash_share_large_minus_small": 0.1889546783625731,
+      "wash_share_mid": 0.030146198830409355,
+      "wash_share_small": 0.00038742690058479534,
+      "wash_share_without_open_case": 0.001921783758860953,
+      "true_change": 0.14913572082161272,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    },
+    "decay0_ALL_F16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 14.102631578947369,
+      "corrections": 0.4771929824561404,
+      "fines_fraction_initial_cap": 1.2924223943714553e-06,
+      "liability_events_total": 5.266666666666667,
+      "mean_client_quality": 0.05490403137737161,
+      "mean_quality": 0.05670057528258058,
+      "open_cases_per_decision_day": 13.763157894736844,
+      "switches_per_year": 12.751851851851852,
+      "wash_share": 0.055236842105263154,
+      "wash_share_large": 0.329780701754386,
+      "wash_share_large_minus_small": 0.32823830409356725,
+      "wash_share_mid": 0.07111111111111112,
+      "wash_share_small": 0.0015423976608187134,
+      "wash_share_without_open_case": 0.0018685766270055474,
+      "true_change": 0.1395696254520862,
+      "complete": 30,
+      "core_validation_failures": [
+        {
+          "seed": 43007,
+          "first_cap_day": 323
+        }
+      ]
+    }
+  }
+}

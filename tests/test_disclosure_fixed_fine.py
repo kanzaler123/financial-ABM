@@ -58,7 +58,8 @@ def test_fixed_fine_is_validated_and_serialized_only_when_used():
     legacy = asdict(schedule)
     for regime in ("baseline", "intervention"):
         for later_option in ("fixed_fine", "fixed_fine_basis", "audit_allocation", "audit_rule_public",
-                             "audit_jump_threshold"):
+                             "audit_jump_threshold", "assurance_scope", "assurer_selection", "assurer_liability",
+                             "assurance_fee", "assurer_effort_cost", "assurer_count"):
             legacy[regime].pop(later_option)
     assert schedule.to_dict() == legacy
     assert "baseline_fixed_fine" not in ESG.to_dict()
