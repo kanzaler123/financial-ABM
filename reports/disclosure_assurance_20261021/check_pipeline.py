@@ -17,7 +17,7 @@ From the compact development archive (default check_v1/):
   - ALL_R0: quality 0 throughout and no corrections; VOL16: no firm buys assurance, and actions and inflation equal
     those of B;
   - descriptive: checks, corrections and liability events per period, mean quality (no effect estimates).
-Writes check_v1_pipeline.json (LF).
+Writes <archive name>_pipeline.json (LF), e.g. check_v1_pipeline.json.
 """
 
 from __future__ import annotations
@@ -183,7 +183,7 @@ def main() -> None:
                      and all(row["pairs_differing_before_switch"] == 0 for row in pairing.values())
                      and all(error <= 1e-12 for error in quality.values()) and all(checks.values())
                      and out["ALL_R0_quality_zero_no_corrections"] and out["VOL16_no_buyers_and_equal_to_B"])
-    (HERE / "check_v1_pipeline.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8", newline="\n")
+    (HERE / f"{args.archive.name}_pipeline.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(out, indent=2))
 
 
