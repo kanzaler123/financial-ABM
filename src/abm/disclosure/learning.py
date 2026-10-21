@@ -120,9 +120,12 @@ def context_states(
     *, financing_exposure: FloatArray, prices: FloatArray, inflation: FloatArray,
     marginal_cost: FloatArray, real_cost_scale: float, max_change_per_period: float,
     pending_due_days: FloatArray, pending_cash_amount: FloatArray, decision_days: int,
-    own_signal: FloatArray | None = None,
+    own_signal: FloatArray | None = None, improvement_stock: FloatArray | None = None,
 ) -> IntArray:
-    """Four ternary features; ``own_signal`` replaces the exposure share by the firm's signal tercile."""
+    """Four ternary features; ``own_signal`` replaces the exposure share by the firm's signal tercile.
+
+    ``improvement_stock`` (committed real improvement in SD) replaces the cost tier, cut like inflation.
+    """
     exposure, prices, inflation, cost, due, cash = _vectors(
         financing_exposure, prices, inflation, marginal_cost, pending_due_days, pending_cash_amount,
     )
@@ -140,8 +143,14 @@ def context_states(
         # Rank share in (0, 1), ties broken by firm order, cut into thirds.
         first = (np.argsort(np.argsort(signal, kind="stable"), kind="stable") + .5) / signal.size
         cuts = (1 / 3, 2 / 3)
-    features = np.column_stack((first, inflation, np.log(cost / real_cost_scale), stage))
-    return ternary_states(features, (cuts, (1e-12, max_change_per_period), (-.5, .5), (.5, 1.5)))
+    third, third_cuts = np.log(cost / real_cost_scale), (-.5, .5)
+    if improvement_stock is not None:
+        (third,) = _vectors(improvement_stock)
+        if third.shape != exposure.shape or np.any(third < 0):
+            raise ValueError("improvement stock must be nonnegative and match the firm vector")
+        third_cuts = (1e-12, max_change_per_period)
+    features = np.column_stack((first, inflation, third, stage))
+    return ternary_states(features, (cuts, (1e-12, max_change_per_period), third_cuts, (.5, 1.5)))
 
 
 def period_discount(annual_discount_rate: float, elapsed_days: Any) -> FloatArray:

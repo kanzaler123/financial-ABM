@@ -1109,7 +1109,9 @@ class DisclosureMarket(CrossSectionMarket):
             marginal_cost=marginal_cost, real_cost_scale=domain.real_cost_scale,
             max_change_per_period=domain.max_change_per_period, pending_due_days=due,
             pending_cash_amount=known_cash, decision_days=cfg.firm_decision_interval,
-            own_signal=self.planning_signal_history[day] if cfg.firm_learning_context == "signal_tercile" else None,
+            own_signal=self.planning_signal_history[day] if cfg.firm_learning_context != "exposure" else None,
+            improvement_stock=(np.where(self.action_history[:period] == IMPROVE, self.amount_history[:period], 0.0).sum(axis=0)
+                               if cfg.firm_learning_context == "improvement_stock" else None),
         )
         epoch = int(self.policy.intervention is not None and day >= self.policy.start_day)
         groups = self.firms.size_class + 3 * epoch
