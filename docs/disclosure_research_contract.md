@@ -937,3 +937,15 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
     - 覆盖门槛用第 5 条的按决策加权形式；原门槛只作诊断。
     - V 版本也跑 B、I、F、IF 全部四个场景（而不是只跑 B 与 I）。
     - 训练协议、主要问题和其余设计按草案。
+15. **流水线检查与冻结（2026-10-21，确认性运行之前）。** 没有查看任何效应估计。开发运行只输出了流水线检查项和覆盖门槛的通过/未通过计数。
+    - **默认值：** 新源码下 5/5 结果指纹与档案相同（[check_defaults.json](../reports/disclosure_learning_redo_20261021/check_defaults.json)）：D.2 B 场景种子 31401 的冻结 Q-learning 与离散 NPV 验证运行，训练世界 31501 与 31201（输出 Q 表的指纹也相同），阶段 F 开发种子 33001 的 B。D.2 档案在当前源码上可以复现，所以不需要第 11 条的替代核对。
+    - **测试：** 全量测试 972 项通过，其中新增 10 项（`tests/test_disclosure_learning_redo.py`）。第一次全量测试中 `tests/test_disclosure_training.py` 有 14 项失败：这些测试用替身替换 `run_and_archive`，替身不接受新参数 `archive`。改为只在非默认值时传递这个参数，默认调用与原来完全相同，之后全部通过。
+    - **脚本：** [build_spec.py](../reports/disclosure_learning_redo_20261021/build_spec.py) 生成两份规格，并核对 A 版的市场配置、场景、配额目标和保留种子与 D.2 逐项相同；[run_redo.py](../reports/disclosure_learning_redo_20261021/run_redo.py) 是调度器（每个作业一个进程）与重放；[check_pipeline.py](../reports/disclosure_learning_redo_20261021/check_pipeline.py) 做第 9 条的检查；[analyze.py](../reports/disclosure_learning_redo_20261021/analyze.py) 做第 5–7 条的分析。训练入口把每张表的实验规格记为 development 用途（入口的固定字段），确认性身份以下面的规格 `experiment_id` 为准。
+    - **开发运行**（2026-10-21 18:15–18:44，16 个 worker，[dev_v1_pipeline.json](../reports/disclosure_learning_redo_20261021/dev_v1_pipeline.json)）：
+      - 68/68 个作业一次完成：20 张表、16 个 NPV 运行、32 个重放。
+      - 冻结表在评估前后不变；48 个运行的指标窗口都是第 1200–3500 日；切换前 36 对运行逐位相同。
+      - 32 个重放的结果指纹都与归档一致。A 版的状态输入不含改善存量；V 版的改善存量与由归档行动重建的一致，并决定第三个特征。
+      - 覆盖门槛可以计算。20 张开发表都未通过，这是预期的：开发预算只有 3 个政策前、2 个政策后训练世界。
+      - 16 个并行时每个世界的运行时间中位数为 216 秒，与第 12 条的估计一致。
+    - **偏离：** 无。开发运行之前，曾在一个临时小规格（30 名投资者、9 家企业、360 日）上冒烟测试调度器，只用于找脚本错误，不属于开发运行，档案已删除。
+    - **冻结身份：** 确认性实验 `experiment_id` = `b4430136e1fefc0be2e57678edd0de30e7516f4f0eee50c255642898d6a06062`，规格 `configs/disclosure_learning_redo_confirmatory_v1.json` 的 SHA256（LF）= `27782611b4a9b24c319d04f096970f2a45362c8d6caf869ed894daf9df9348b7`。源码摘要（各文件源码哈希的规范 JSON 的 SHA256）= `7a0732915ffb9ff432c54d6dd6eb60aad98c1839c7b2cbc20db2190a5c409de5`，与开发运行相同。开发规格 `configs/disclosure_learning_redo_development_v1.json` 只差名称、用途和预算，`experiment_id` = `74b6a503f618b88a32b50bd47eb2b27320018dadda9e57daa492dddff311728f`。分析脚本在确认性运行之前提交；它在开发档案上能跑通，开发估计没有查看，输出已删除。
