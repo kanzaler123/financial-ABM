@@ -327,6 +327,9 @@ def schedule(spec_path: Path, output: Path, workers: int, resume: bool) -> int:
     jobs.sort(key=lambda job: order[job["kind"]])
     running: dict[str, tuple[subprocess.Popen, dict, Path, object]] = {}
     failed: set[str] = set()
+    # Job files are read only once at start and after a job's process exits: reading a running job's summary.json
+    # while it replaces the file makes the replace fail on Windows (PermissionError, 2026-10-21 confirmatory run).
+    done = {job_name(job) for job in jobs if complete_attempt(output, job) is not None}
     log(output, f"start {experiment_id} workers={workers} resume={resume} jobs={len(jobs)}")
     while True:
         for name, (process, job, folder, handle) in list(running.items()):
@@ -335,16 +338,15 @@ def schedule(spec_path: Path, output: Path, workers: int, resume: bool) -> int:
             handle.close()
             del running[name]
             ok = attempt_complete(folder, job["kind"])
-            if not ok:
-                failed.add(name)
+            (done if ok else failed).add(name)
             log(output, f"{'done' if ok else 'FAILED'} {name} exit={process.returncode} {folder.relative_to(output).as_posix()}")
         pending = []
         for job in jobs:
             name = job_name(job)
-            if name in running or name in failed or complete_attempt(output, job) is not None:
+            if name in running or name in failed or name in done:
                 continue
             parent = dependency(job)
-            if parent is not None and (job_name(parent) in failed or complete_attempt(output, parent) is None):
+            if parent is not None and job_name(parent) not in done:
                 if job_name(parent) in failed:
                     failed.add(name)
                     log(output, f"SKIPPED {name}: dependency {job_name(parent)} failed")
