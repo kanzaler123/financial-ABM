@@ -7,8 +7,11 @@ From the compact development archive (default check_v1/):
   - within each market setting (natural decay 0.2: 13 scenarios; no decay: 5), inflation, financing rates and
     actions up to day 1200 are bit-identical across scenarios;
   - quality rule: in every assurance scenario each provider's quality equals min(1, lambda s), with s recomputed
-    from the archive (first assurance year: share of its clients with inflation after the day-1260 audit; later
-    years: share of its checks in the past year whose report carried inflation), error at most 1e-12;
+    from the archive (first assurance year: share of its initially assigned clients with inflation after the
+    day-1260 audit; later years: share of its checks in the past year whose report carried inflation), error at
+    most 1e-12. Under firm selection the archived first-year providers are those picked after the quality was
+    set, so the initial assignment is rebuilt from the first draw of the assurance stream (SeedSequence([seed, 2]));
+    with assigned providers the rebuilt assignment must equal the archived one;
   - checks: none before the first assurance year; corrections only of checked firms whose report carried
     inflation, and corrected reports are clean on the check day; only large firms checked under LRG;
   - ALL_R0: quality 0 throughout and no corrections; VOL16: no firm buys assurance, and actions and inflation equal
@@ -56,14 +59,25 @@ def compact_arrays(path: Path) -> SimpleNamespace:
         return SimpleNamespace(**{name: data[name] if name in data.files else None for name in ARRAYS})
 
 
-def quality_error(result: SimpleNamespace, slope: float) -> float:
+def initial_assignment(result: SimpleNamespace, seed: int, scope: str, count: int) -> np.ndarray:
+    """Providers before any pick: mandated firms dealt out evenly by the first draw of the assurance stream."""
+    clients = np.full(result.inflation.shape[1], -1, dtype=np.int64)
+    if scope == "voluntary":
+        return clients
+    members = np.flatnonzero(result.market_size_class == 0) if scope == "large" else np.arange(clients.size)
+    order = np.random.default_rng(np.random.SeedSequence([seed, 2])).permutation(members.size)
+    clients[members[order]] = np.arange(members.size) % count
+    return clients
+
+
+def quality_error(result: SimpleNamespace, slope: float, initial: np.ndarray) -> float:
     """Largest gap between the archived quality and min(1, lambda s) with s recomputed from the archive."""
     assignment, inflated = result.assurer_assignment, result.assurance_checked_inflated
     count = result.assurer_quality.shape[1]
     worst = 0.
     for start in range(SWITCH_PERIOD, assignment.shape[0], YEAR):
         if start == SWITCH_PERIOD:
-            clients = assignment[start]
+            clients = initial
             present = result.inflation[FIRST_DAY] > 0
             share = np.array([present[clients == k].mean() if (clients == k).any() else 0. for k in range(count)])
         else:
@@ -124,8 +138,13 @@ def main() -> None:
             continue
         slope = intervention.get("assurer_liability", 0.) * intervention["audit_probability"] / (
             2. * intervention["assurer_effort_cost"])
-        quality[name] = max(quality_error(results[(name, seed)], slope) for seed in seeds)
+        count = intervention.get("assurer_count", 4)
+        initial = {seed: initial_assignment(results[(name, seed)], seed, scope, count) for seed in seeds}
+        quality[name] = max(quality_error(results[(name, seed)], slope, initial[seed]) for seed in seeds)
         ok = True
+        if scope != "voluntary" and intervention.get("assurer_selection", "assigned") == "assigned":
+            ok &= all(np.array_equal(results[(name, seed)].assurer_assignment[SWITCH_PERIOD], initial[seed])
+                      for seed in seeds)
         rows_described = []
         for seed in seeds:
             r = results[(name, seed)]

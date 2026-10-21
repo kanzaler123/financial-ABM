@@ -1,0 +1,158 @@
+{
+  "experiment_id": "3a98d1f16abd4b63ef0bd562288428f587fe9fd6035eab9c5576dd9fdc7a4a84",
+  "planned": 54,
+  "complete": 54,
+  "missing_or_failed": [],
+  "metric_windows": [
+    [
+      1200,
+      3500
+    ]
+  ],
+  "failing_core_validation": 0,
+  "pre_switch_pairing": {
+    "decay 0.2": {
+      "pairs_compared": 36,
+      "pairs_differing_before_switch": 0
+    },
+    "no decay": {
+      "pairs_compared": 12,
+      "pairs_differing_before_switch": 0
+    }
+  },
+  "quality_rule_max_abs_error": {
+    "VOL16": 0.0,
+    "ALL_R0": 0.0,
+    "ALL_R1": 0.0,
+    "ALL_R4": 0.0,
+    "ALL_R10": 0.0,
+    "ALL_R16": 0.0,
+    "ALL_R100": 0.0,
+    "ALL_F1": 0.0,
+    "ALL_F16": 0.0,
+    "LRG_R16": 0.0,
+    "LRG_F16": 0.0,
+    "decay0_ALL_R1": 0.0,
+    "decay0_ALL_R16": 0.0,
+    "decay0_ALL_F16": 0.0
+  },
+  "checks_follow_the_rule": {
+    "VOL16": true,
+    "ALL_R0": true,
+    "ALL_R1": true,
+    "ALL_R4": true,
+    "ALL_R10": true,
+    "ALL_R16": true,
+    "ALL_R100": true,
+    "ALL_F1": true,
+    "ALL_F16": true,
+    "LRG_R16": true,
+    "LRG_F16": true,
+    "decay0_ALL_R1": true,
+    "decay0_ALL_R16": true,
+    "decay0_ALL_F16": true
+  },
+  "per_period_after_switch_descriptive": {
+    "VOL16": {
+      "checked_firms": 0.0,
+      "checks_with_inflation": 0.0,
+      "corrections": 0.0,
+      "liability_events": 0.0,
+      "mean_quality": 0.0
+    },
+    "ALL_R0": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 52.1404,
+      "corrections": 0.0,
+      "liability_events": 0.5789,
+      "mean_quality": 0.0
+    },
+    "ALL_R1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 57.6842,
+      "corrections": 0.9825,
+      "liability_events": 0.5965,
+      "mean_quality": 0.0143
+    },
+    "ALL_R4": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 46.5088,
+      "corrections": 2.2105,
+      "liability_events": 0.4649,
+      "mean_quality": 0.0478
+    },
+    "ALL_R10": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 32.1842,
+      "corrections": 2.7982,
+      "liability_events": 0.3246,
+      "mean_quality": 0.0857
+    },
+    "ALL_R16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 26.1667,
+      "corrections": 2.8246,
+      "liability_events": 0.2632,
+      "mean_quality": 0.1141
+    },
+    "ALL_R100": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 20.9386,
+      "corrections": 5.0088,
+      "liability_events": 0.1228,
+      "mean_quality": 0.428
+    },
+    "ALL_F1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 56.4211,
+      "corrections": 0.3684,
+      "liability_events": 0.5965,
+      "mean_quality": 0.0108
+    },
+    "ALL_F16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 48.9649,
+      "corrections": 1.7895,
+      "liability_events": 0.5263,
+      "mean_quality": 0.137
+    },
+    "LRG_R16": {
+      "checked_firms": 20.0,
+      "checks_with_inflation": 7.3509,
+      "corrections": 1.5789,
+      "liability_events": 0.0526,
+      "mean_quality": 0.3126
+    },
+    "LRG_F16": {
+      "checked_firms": 20.0,
+      "checks_with_inflation": 10.6842,
+      "corrections": 1.0877,
+      "liability_events": 0.0702,
+      "mean_quality": 0.2965
+    },
+    "decay0_ALL_R1": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 18.7982,
+      "corrections": 0.1053,
+      "liability_events": 0.2544,
+      "mean_quality": 0.0051
+    },
+    "decay0_ALL_R16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 10.4737,
+      "corrections": 0.6228,
+      "liability_events": 0.1316,
+      "mean_quality": 0.0501
+    },
+    "decay0_ALL_F16": {
+      "checked_firms": 200.0,
+      "checks_with_inflation": 12.7368,
+      "corrections": 0.5088,
+      "liability_events": 0.1667,
+      "mean_quality": 0.0529
+    }
+  },
+  "ALL_R0_quality_zero_no_corrections": true,
+  "VOL16_no_buyers_and_equal_to_B": true,
+  "all_ok": true
+}
