@@ -1,0 +1,601 @@
+{
+  "timing": {
+    "d2_alone_baseline_training": {
+      "runs": 96,
+      "median_seconds": 44.3,
+      "min_seconds": 42.5,
+      "max_seconds": 46.9
+    },
+    "d2_four_parallel_B_training": {
+      "runs": 64,
+      "median_seconds": 67.3,
+      "min_seconds": 62.4,
+      "max_seconds": 86.4
+    },
+    "e1_targeted_audits_16_workers": {
+      "runs": 495,
+      "median_seconds": 218.7,
+      "min_seconds": 70.5,
+      "max_seconds": 1160.7
+    },
+    "e2_assurance_16_workers": {
+      "runs": 540,
+      "median_seconds": 219.6,
+      "min_seconds": 148.6,
+      "max_seconds": 242.7
+    },
+    "e1_wall_clock_runs_per_minute": 3.88,
+    "sixteen_worker_runs_per_minute": 4.37
+  },
+  "features": {
+    "baseline": {
+      "decisions": 22800,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.1046,
+          0.0017,
+          0.8937
+        ],
+        "cost_tier": [
+          0.8836,
+          0.0782,
+          0.0382
+        ],
+        "stage": [
+          0.7418,
+          0.2582,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0903,
+        0.8689,
+        0.0407
+      ],
+      "improvement_stock_median_sd": 0.1,
+      "improvement_stock_p90_sd": 0.21
+    },
+    "B": {
+      "decisions": 76000,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.1765,
+          0.1591,
+          0.6643
+        ],
+        "cost_tier": [
+          0.8805,
+          0.0828,
+          0.0367
+        ],
+        "stage": [
+          0.5533,
+          0.4467,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.047,
+        0.7772,
+        0.1759
+      ],
+      "improvement_stock_median_sd": 0.13,
+      "improvement_stock_p90_sd": 0.291
+    },
+    "I": {
+      "decisions": 76000,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.0528,
+          0.2872,
+          0.66
+        ],
+        "cost_tier": [
+          0.8841,
+          0.0793,
+          0.0366
+        ],
+        "stage": [
+          0.4672,
+          0.5328,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0652,
+        0.519,
+        0.4158
+      ],
+      "improvement_stock_median_sd": 0.18,
+      "improvement_stock_p90_sd": 0.79
+    },
+    "F": {
+      "decisions": 76000,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.0212,
+          0.3025,
+          0.6763
+        ],
+        "cost_tier": [
+          0.8797,
+          0.0838,
+          0.0365
+        ],
+        "stage": [
+          0.6988,
+          0.3012,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0422,
+        0.9163,
+        0.0414
+      ],
+      "improvement_stock_median_sd": 0.11,
+      "improvement_stock_p90_sd": 0.21
+    },
+    "IF": {
+      "decisions": 76000,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.0882,
+          0.2484,
+          0.6634
+        ],
+        "cost_tier": [
+          0.8827,
+          0.0808,
+          0.0365
+        ],
+        "stage": [
+          0.3845,
+          0.6155,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0934,
+        0.5069,
+        0.3997
+      ],
+      "improvement_stock_median_sd": 0.19,
+      "improvement_stock_p90_sd": 0.65
+    },
+    "baseline_training_first5": {
+      "decisions": 38000,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.024,
+          0.0569,
+          0.9191
+        ],
+        "cost_tier": [
+          0.5089,
+          0.2463,
+          0.2449
+        ],
+        "stage": [
+          0.6492,
+          0.3508,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0,
+        0.024,
+        0.976
+      ],
+      "improvement_stock_median_sd": 1.23,
+      "improvement_stock_p90_sd": 2.15
+    },
+    "baseline_training_last7": {
+      "decisions": 53200,
+      "feature_bin_shares": {
+        "signal_tercile": [
+          0.335,
+          0.33,
+          0.335
+        ],
+        "inflation": [
+          0.051,
+          0.0377,
+          0.9113
+        ],
+        "cost_tier": [
+          0.8461,
+          0.1059,
+          0.048
+        ],
+        "stage": [
+          0.7395,
+          0.2605,
+          0.0
+        ]
+      },
+      "improvement_stock_bin_shares": [
+        0.0333,
+        0.5422,
+        0.4245
+      ],
+      "improvement_stock_median_sd": 0.19,
+      "improvement_stock_p90_sd": 0.52
+    }
+  },
+  "coverage": {
+    "baseline": {
+      "undercovered_decision_share_pooled": {
+        "0": 0.0032,
+        "1": 0.0058,
+        "2": 0.0
+      },
+      "undercovered_decision_share_worst_world": {
+        "0": 0.0034,
+        "1": 0.0135,
+        "2": 0.0
+      },
+      "unseen_state_share_pooled": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0
+      },
+      "unseen_state_share_worst_world": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0
+      },
+      "proposed_gate": "PASS",
+      "old_gate": "FAIL"
+    },
+    "B": {
+      "undercovered_decision_share_pooled": {
+        "0": 0.0077,
+        "1": 0.0033,
+        "2": 0.0,
+        "3": 0.0299,
+        "4": 0.0072,
+        "5": 0.0152
+      },
+      "undercovered_decision_share_worst_world": {
+        "0": 0.0125,
+        "1": 0.0142,
+        "2": 0.0,
+        "3": 0.0711,
+        "4": 0.0211,
+        "5": 0.0351
+      },
+      "unseen_state_share_pooled": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0042
+      },
+      "unseen_state_share_worst_world": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0154
+      },
+      "proposed_gate": "PASS",
+      "old_gate": "FAIL"
+    },
+    "I": {
+      "undercovered_decision_share_pooled": {
+        "0": 0.0077,
+        "1": 0.0033,
+        "2": 0.0,
+        "3": 0.035,
+        "4": 0.0028,
+        "5": 0.0011
+      },
+      "undercovered_decision_share_worst_world": {
+        "0": 0.0125,
+        "1": 0.0142,
+        "2": 0.0,
+        "3": 0.0711,
+        "4": 0.0123,
+        "5": 0.0031
+      },
+      "unseen_state_share_pooled": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "unseen_state_share_worst_world": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "proposed_gate": "PASS",
+      "old_gate": "FAIL"
+    },
+    "F": {
+      "undercovered_decision_share_pooled": {
+        "0": 0.0077,
+        "1": 0.0033,
+        "2": 0.0,
+        "3": 0.0259,
+        "4": 0.0031,
+        "5": 0.0118
+      },
+      "undercovered_decision_share_worst_world": {
+        "0": 0.0125,
+        "1": 0.0142,
+        "2": 0.0,
+        "3": 0.0684,
+        "4": 0.0075,
+        "5": 0.0279
+      },
+      "unseen_state_share_pooled": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "unseen_state_share_worst_world": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "proposed_gate": "PASS",
+      "old_gate": "FAIL"
+    },
+    "IF": {
+      "undercovered_decision_share_pooled": {
+        "0": 0.0077,
+        "1": 0.0033,
+        "2": 0.0,
+        "3": 0.0117,
+        "4": 0.0031,
+        "5": 0.0011
+      },
+      "undercovered_decision_share_worst_world": {
+        "0": 0.0125,
+        "1": 0.0142,
+        "2": 0.0,
+        "3": 0.0289,
+        "4": 0.0101,
+        "5": 0.0031
+      },
+      "unseen_state_share_pooled": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "unseen_state_share_worst_world": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0,
+        "5": 0.0
+      },
+      "proposed_gate": "PASS",
+      "old_gate": "FAIL"
+    }
+  },
+  "outcomes": {
+    "baseline/q_learning": {
+      "seeds": 3,
+      "true_change_mean": -1.7288,
+      "true_change_seed_sd": 0.0002,
+      "wash_share_mean": 0.6865,
+      "wash_share_seed_sd": 0.01
+    },
+    "baseline/npv_discrete": {
+      "seeds": 3,
+      "true_change_mean": -1.3003,
+      "true_change_seed_sd": 0.0956,
+      "wash_share_mean": 0.1717,
+      "wash_share_seed_sd": 0.0171
+    },
+    "baseline/npv": {
+      "seeds": 3,
+      "true_change_mean": -1.2849,
+      "true_change_seed_sd": 0.0936,
+      "wash_share_mean": 0.1993,
+      "wash_share_seed_sd": 0.0347
+    },
+    "B/q_learning": {
+      "seeds": 10,
+      "true_change_mean": -1.6416,
+      "true_change_seed_sd": 0.0039,
+      "wash_share_mean": 0.1532,
+      "wash_share_seed_sd": 0.0094
+    },
+    "B/npv_discrete": {
+      "seeds": 10,
+      "true_change_mean": -1.2343,
+      "true_change_seed_sd": 0.1102,
+      "wash_share_mean": 0.1866,
+      "wash_share_seed_sd": 0.0536
+    },
+    "B/npv": {
+      "seeds": 10,
+      "true_change_mean": -1.2104,
+      "true_change_seed_sd": 0.1111,
+      "wash_share_mean": 0.2025,
+      "wash_share_seed_sd": 0.0507
+    },
+    "I/q_learning": {
+      "seeds": 10,
+      "true_change_mean": -1.3531,
+      "true_change_seed_sd": 0.0244,
+      "wash_share_mean": 0.1152,
+      "wash_share_seed_sd": 0.0115
+    },
+    "I/npv_discrete": {
+      "seeds": 10,
+      "true_change_mean": -0.9617,
+      "true_change_seed_sd": 0.185,
+      "wash_share_mean": 0.0233,
+      "wash_share_seed_sd": 0.0042
+    },
+    "I/npv": {
+      "seeds": 10,
+      "true_change_mean": -0.9052,
+      "true_change_seed_sd": 0.1896,
+      "wash_share_mean": 0.0,
+      "wash_share_seed_sd": 0.0
+    },
+    "F/q_learning": {
+      "seeds": 10,
+      "true_change_mean": -1.7136,
+      "true_change_seed_sd": 0.0026,
+      "wash_share_mean": 0.211,
+      "wash_share_seed_sd": 0.0112
+    },
+    "F/npv_discrete": {
+      "seeds": 10,
+      "true_change_mean": -1.0798,
+      "true_change_seed_sd": 0.1621,
+      "wash_share_mean": 0.0853,
+      "wash_share_seed_sd": 0.0195
+    },
+    "F/npv": {
+      "seeds": 10,
+      "true_change_mean": -1.0712,
+      "true_change_seed_sd": 0.1574,
+      "wash_share_mean": 0.1008,
+      "wash_share_seed_sd": 0.0261
+    },
+    "IF/q_learning": {
+      "seeds": 10,
+      "true_change_mean": -1.4355,
+      "true_change_seed_sd": 0.0282,
+      "wash_share_mean": 0.093,
+      "wash_share_seed_sd": 0.0087
+    },
+    "IF/npv_discrete": {
+      "seeds": 10,
+      "true_change_mean": -0.9613,
+      "true_change_seed_sd": 0.1849,
+      "wash_share_mean": 0.0229,
+      "wash_share_seed_sd": 0.004
+    },
+    "IF/npv": {
+      "seeds": 10,
+      "true_change_mean": -0.9052,
+      "true_change_seed_sd": 0.1896,
+      "wash_share_mean": 0.0,
+      "wash_share_seed_sd": 0.0
+    },
+    "two_tables_same_regime": {
+      "note": "Pre-policy common table (check seeds, constant baseline) vs scenario B post-policy table (validation seeds).",
+      "true_change_difference": -0.0872,
+      "wash_share_difference": 0.5333
+    }
+  },
+  "lineage": {
+    "json_files": 17648,
+    "distinct_seed_values": 3262,
+    "overlap": [],
+    "unique_within_design": true,
+    "blocks": {
+      "confirmatory_prepolicy_training": [
+        47001,
+        47996,
+        960
+      ],
+      "confirmatory_postpolicy_training": [
+        45001,
+        45964,
+        640
+      ],
+      "confirmatory_prepolicy_check": [
+        46001,
+        46003,
+        3
+      ],
+      "confirmatory_validation": [
+        46101,
+        46105,
+        5
+      ],
+      "development_prepolicy_training": [
+        37001,
+        37103,
+        6
+      ],
+      "development_postpolicy_training": [
+        37201,
+        37302,
+        4
+      ],
+      "development_prepolicy_check": [
+        37401,
+        37401,
+        1
+      ],
+      "development_validation": [
+        37501,
+        37502,
+        2
+      ]
+    }
+  },
+  "budget": {
+    "worlds_per_replicate_and_version": 375,
+    "learning_worlds": 7500,
+    "npv_worlds": 40,
+    "replay_worlds": 400,
+    "development_worlds": 128,
+    "total_worlds": 8068,
+    "hours_at_16_workers": [
+      30.8,
+      34.7
+    ],
+    "longest_chain_worlds": 168,
+    "compact_archive_gb": 7.9,
+    "full_archive_gb": 220.6
+  }
+}
