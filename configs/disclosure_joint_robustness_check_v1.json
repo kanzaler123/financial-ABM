@@ -1,0 +1,614 @@
+{
+  "name": "disclosure_joint_robustness_check_v1",
+  "purpose": "development",
+  "archive": "compact",
+  "_note": "Joint robustness test (research contract section 24): mean reversion x one fixed fine per inflated report, and with firm-level wash cost ratios, plus reference blocks on the same seeds. Development and confirmatory specs differ only in name, purpose and seeds; the development run checks the pipeline and may not change the design.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    33001,
+    33002
+  ],
+  "scenarios": [
+    {
+      "name": "B"
+    },
+    {
+      "name": "I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rep_B",
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        }
+      }
+    },
+    {
+      "name": "rep_I",
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rep_F",
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rev0p32_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      }
+    },
+    {
+      "name": "rev0p32_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rev0p32_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rr0p32_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        }
+      }
+    },
+    {
+      "name": "rr0p32_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rr0p32_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rrw0p32_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        }
+      }
+    },
+    {
+      "name": "rrw0p32_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rrw0p32_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.32,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rev0p5_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      }
+    },
+    {
+      "name": "rev0p5_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rev0p5_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rr0p5_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        }
+      }
+    },
+    {
+      "name": "rr0p5_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rr0p5_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "rrw0p5_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        }
+      }
+    },
+    {
+      "name": "rrw0p5_I",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "rrw0p5_F",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.5,
+        "wash_cost_log_sd": 0.6931471805599453
+      },
+      "policy": {
+        "baseline": {
+          "fixed_fine_basis": "report"
+        },
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "J_rr0p32_I_minus_F",
+      "weights": {
+        "rr0p32_I": 1,
+        "rr0p32_F": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rr0p32_F_minus_B",
+      "weights": {
+        "rr0p32_F": 1,
+        "rr0p32_B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rr0p5_I_minus_F",
+      "weights": {
+        "rr0p5_I": 1,
+        "rr0p5_F": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rr0p5_F_minus_B",
+      "weights": {
+        "rr0p5_F": 1,
+        "rr0p5_B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rrw0p32_I_minus_F",
+      "weights": {
+        "rrw0p32_I": 1,
+        "rrw0p32_F": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rrw0p32_F_minus_B",
+      "weights": {
+        "rrw0p32_F": 1,
+        "rrw0p32_B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rrw0p5_I_minus_F",
+      "weights": {
+        "rrw0p5_I": 1,
+        "rrw0p5_F": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "J_rrw0p5_F_minus_B",
+      "weights": {
+        "rrw0p5_F": 1,
+        "rrw0p5_B": -1
+      },
+      "primary": true
+    },
+    {
+      "name": "I_minus_B",
+      "weights": {
+        "I": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "I_minus_F",
+      "weights": {
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "F_minus_B",
+      "weights": {
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "rep_I_minus_B",
+      "weights": {
+        "rep_I": 1,
+        "rep_B": -1
+      }
+    },
+    {
+      "name": "rep_I_minus_F",
+      "weights": {
+        "rep_I": 1,
+        "rep_F": -1
+      }
+    },
+    {
+      "name": "rep_F_minus_B",
+      "weights": {
+        "rep_F": 1,
+        "rep_B": -1
+      }
+    },
+    {
+      "name": "rev0p32_I_minus_B",
+      "weights": {
+        "rev0p32_I": 1,
+        "rev0p32_B": -1
+      }
+    },
+    {
+      "name": "rev0p32_I_minus_F",
+      "weights": {
+        "rev0p32_I": 1,
+        "rev0p32_F": -1
+      }
+    },
+    {
+      "name": "rev0p32_F_minus_B",
+      "weights": {
+        "rev0p32_F": 1,
+        "rev0p32_B": -1
+      }
+    },
+    {
+      "name": "rr0p32_I_minus_B",
+      "weights": {
+        "rr0p32_I": 1,
+        "rr0p32_B": -1
+      }
+    },
+    {
+      "name": "rrw0p32_I_minus_B",
+      "weights": {
+        "rrw0p32_I": 1,
+        "rrw0p32_B": -1
+      }
+    },
+    {
+      "name": "rev0p5_I_minus_B",
+      "weights": {
+        "rev0p5_I": 1,
+        "rev0p5_B": -1
+      }
+    },
+    {
+      "name": "rev0p5_I_minus_F",
+      "weights": {
+        "rev0p5_I": 1,
+        "rev0p5_F": -1
+      }
+    },
+    {
+      "name": "rev0p5_F_minus_B",
+      "weights": {
+        "rev0p5_F": 1,
+        "rev0p5_B": -1
+      }
+    },
+    {
+      "name": "rr0p5_I_minus_B",
+      "weights": {
+        "rr0p5_I": 1,
+        "rr0p5_B": -1
+      }
+    },
+    {
+      "name": "rrw0p5_I_minus_B",
+      "weights": {
+        "rrw0p5_I": 1,
+        "rrw0p5_B": -1
+      }
+    },
+    {
+      "name": "interaction_0p32_I_minus_F",
+      "weights": {
+        "rr0p32_I": 1,
+        "rr0p32_F": -1,
+        "rev0p32_I": -1,
+        "rev0p32_F": 1,
+        "rep_I": -1,
+        "rep_F": 1,
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "wash_cost_spread_0p32_I_minus_F",
+      "weights": {
+        "rrw0p32_I": 1,
+        "rrw0p32_F": -1,
+        "rr0p32_I": -1,
+        "rr0p32_F": 1
+      }
+    },
+    {
+      "name": "interaction_0p32_F_minus_B",
+      "weights": {
+        "rr0p32_F": 1,
+        "rr0p32_B": -1,
+        "rev0p32_F": -1,
+        "rev0p32_B": 1,
+        "rep_F": -1,
+        "rep_B": 1,
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "wash_cost_spread_0p32_F_minus_B",
+      "weights": {
+        "rrw0p32_F": 1,
+        "rrw0p32_B": -1,
+        "rr0p32_F": -1,
+        "rr0p32_B": 1
+      }
+    },
+    {
+      "name": "interaction_0p5_I_minus_F",
+      "weights": {
+        "rr0p5_I": 1,
+        "rr0p5_F": -1,
+        "rev0p5_I": -1,
+        "rev0p5_F": 1,
+        "rep_I": -1,
+        "rep_F": 1,
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "wash_cost_spread_0p5_I_minus_F",
+      "weights": {
+        "rrw0p5_I": 1,
+        "rrw0p5_F": -1,
+        "rr0p5_I": -1,
+        "rr0p5_F": 1
+      }
+    },
+    {
+      "name": "interaction_0p5_F_minus_B",
+      "weights": {
+        "rr0p5_F": 1,
+        "rr0p5_B": -1,
+        "rev0p5_F": -1,
+        "rev0p5_B": 1,
+        "rep_F": -1,
+        "rep_B": 1,
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "wash_cost_spread_0p5_F_minus_B",
+      "weights": {
+        "rrw0p5_F": 1,
+        "rrw0p5_B": -1,
+        "rr0p5_F": -1,
+        "rr0p5_B": 1
+      }
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}
