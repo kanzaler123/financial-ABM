@@ -38,6 +38,9 @@ data/raw/disclosure_market_public_20261011/
 data/processed/disclosure_public_20261011/
 data/processed/disclosure_public_20261012/
 data/processed/disclosure_market_public_20261011/
+# CSI 300 domain files derived from the Huazheng ratings and market data (stage F and later read the
+# _fixed_fine_saturated one; its SHA-256 is recorded in configs/disclosure_learning_redo_*_v1.json)
+configs/domains/csi300_*.json
 reports/disclosure_public_data_20261011/**
 !reports/disclosure_public_data_20261011/**/
 !reports/disclosure_public_data_20261011/**/*.py
@@ -107,3 +110,7 @@ reports/disclosure_learning_redo_20261021/redo_v1/
 reports/disclosure_learning_redo_20261021/work_*
 reports/disclosure_learning_redo_20261021/*.err
 reports/disclosure_learning_redo_20261021/*.out
+# Joint robustness (contract section 24): compact archives, check reruns and local work files (regenerable from the specs)
+reports/disclosure_joint_robustness_20261023/joint_v1/
+reports/disclosure_joint_robustness_20261023/check_v1/
+reports/disclosure_joint_robustness_20261023/work_*

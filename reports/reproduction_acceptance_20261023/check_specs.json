@@ -1,0 +1,323 @@
+{
+  "environment": {
+    "python": "3.12.9",
+    "numpy": "2.5.1",
+    "scipy": "1.18.1",
+    "platform": "win32"
+  },
+  "domain_file": {
+    "path": "configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+    "present": false,
+    "recorded_sha256": "c3dd482401afcab2633d57fd58c3945e956435d4daf44ad1e2bfcccb441ef907",
+    "sha256": null
+  },
+  "source_digest": {
+    "checked_out": "c4423d931db22fff87a6013b9f6f47c4dd4f01fba9107d7eeaa89d4c06927246",
+    "files": 52,
+    "recorded": {
+      "21 targeted audits": {
+        "digest": "a94bed8bc5bc570cc8918c7b030fd9594c323fd02b074036ba4ccc30819c6ef0",
+        "matches_checked_out": false
+      },
+      "22 assurance": {
+        "digest": "99966d0cf9ab5942aaf08eefa9b47e9d514f8c2d1a2589409ff484f579c89e81",
+        "matches_checked_out": false
+      },
+      "23 learning redo": {
+        "digest": "7a0732915ffb9ff432c54d6dd6eb60aad98c1839c7b2cbc20db2190a5c409de5",
+        "matches_checked_out": false
+      }
+    },
+    "history": [
+      {
+        "commit": "3d82afe",
+        "date": "2026-10-21",
+        "files": 52,
+        "digest": "c4423d931db22fff87a6013b9f6f47c4dd4f01fba9107d7eeaa89d4c06927246",
+        "matches": []
+      },
+      {
+        "commit": "e6854a0",
+        "date": "2026-10-20",
+        "files": 52,
+        "digest": "e815252e032b5def0cf4fd5f2e0f11c60970f0f62b479dec0562ce25dbfc3d5b",
+        "matches": []
+      },
+      {
+        "commit": "3fced38",
+        "date": "2026-10-20",
+        "files": 52,
+        "digest": "6562c1ab446c37196c18e5166d302b6ef12f8c756506b780f313bad5f3aec3b2",
+        "matches": []
+      },
+      {
+        "commit": "0943714",
+        "date": "2026-10-18",
+        "files": 52,
+        "digest": "9da5c69261445222bc9eb7a37e704f0830d5cefcf739b164f2a2f15bd5e0e2ec",
+        "matches": []
+      },
+      {
+        "commit": "2b08f65",
+        "date": "2026-10-14",
+        "files": 52,
+        "digest": "d695b2ca8577302e30ddfb39f42b31eef90d35b989fdc5f3312b0dcf30b7046f",
+        "matches": []
+      },
+      {
+        "commit": "af261b6",
+        "date": "2026-10-14",
+        "files": 52,
+        "digest": "80638a8d7d780fa74e15735ca665ef09b9958119f6ebfc93ce3aa70f87a82f63",
+        "matches": []
+      },
+      {
+        "commit": "92ff504",
+        "date": "2026-10-13",
+        "files": 52,
+        "digest": "edfd065123373706992839c4d28cc2e63f6fd7342b31c088ed2e8e25f7cf9f70",
+        "matches": []
+      },
+      {
+        "commit": "5636206",
+        "date": "2026-10-11",
+        "files": 30,
+        "digest": "f37b0a804e43d181904672a6340338dd7a0aebea5f570e09de2a0f9caf885c59",
+        "matches": []
+      },
+      {
+        "commit": "884d856",
+        "date": "2026-10-11",
+        "files": 29,
+        "digest": "501896768f10fc699de5fef908bbe66fa51f1d9ccebe9f348c6da2608a6a4237",
+        "matches": []
+      },
+      {
+        "commit": "f2b2c09",
+        "date": "2026-10-11",
+        "files": 29,
+        "digest": "d124c8fb80b424b5d02b56c6329fc7b655e20d7c230e0f0490e90ce253f64f3e",
+        "matches": []
+      },
+      {
+        "commit": "8052801",
+        "date": "2026-09-29",
+        "files": 26,
+        "digest": "5bbdd29d847152d7a343fe65d88952c3c9d01a05940555e7219337caf9f9dda5",
+        "matches": []
+      },
+      {
+        "commit": "d549789",
+        "date": "2026-09-29",
+        "files": 26,
+        "digest": "537e1faba3ce5de6b229467b6a62208ad754889e7775127605b1b3ad97641816",
+        "matches": []
+      },
+      {
+        "commit": "d525620",
+        "date": "2026-09-16",
+        "files": 21,
+        "digest": "3bb97e73b2a5e7d4faf56f71e7084194d455ddf52ed84c815d4611e0998e63b7",
+        "matches": []
+      },
+      {
+        "commit": "4099960",
+        "date": "2026-08-14",
+        "files": 21,
+        "digest": "c91bda28e50fc66c009f71997f0a729462f46f80e05f794f50d3342294d06847",
+        "matches": []
+      },
+      {
+        "commit": "3708226",
+        "date": "2026-08-13",
+        "files": 21,
+        "digest": "5c585f5b083ba03eff72e50b90718a00dd7bfa8b4d9f1a2045fadaec13cfbc2b",
+        "matches": []
+      },
+      {
+        "commit": "68f2df1",
+        "date": "2026-08-13",
+        "files": 21,
+        "digest": "e0b53baf6433e661793fa8f1ebe9058f06342e1d0af0853563e1e34e1a0bc15d",
+        "matches": []
+      },
+      {
+        "commit": "193689b",
+        "date": "2026-07-30",
+        "files": 17,
+        "digest": "184f43892bd5e25dab65123a288eab2fe1f235f6a80581953393744c659027ae",
+        "matches": []
+      }
+    ]
+  },
+  "specs": [
+    {
+      "spec": "configs/disclosure_stage_f_confirmatory_v1.json",
+      "contract_line": 376,
+      "file_sha256_lf": "4c16e210745c91c446172ade8c06efff5d427b5b981635c25de3b244752ab01f",
+      "file_sha256_crlf": "86b6bc771603cfa076e61cf27d37e957ded828eb9ac6fe6bf981f5579fe78832",
+      "recorded_sha256": "86b6bc771603cfa076e61cf27d37e957ded828eb9ac6fe6bf981f5579fe78832",
+      "sha256_matches": "crlf",
+      "recorded_experiment_id": "90ee860663d4e081d9de4c73bcec40de9083902166c6e470d8f430e562d85d57",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_stage_f_development_v1.json",
+      "contract_line": null,
+      "file_sha256_lf": "16b8d224502156a2181aa7e7b6d654bc6f7bb3bd01e7af580a558f5cc50043e7",
+      "file_sha256_crlf": "e97eb7fde54014694140e33adfa4019d767ade5a8a7eec14b522e8a73303df2d",
+      "recorded_sha256": null,
+      "sha256_matches": null,
+      "recorded_experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_decay_grid_v1.json",
+      "contract_line": 396,
+      "file_sha256_lf": "abe331e21dacacf3f29ddf705c41e951fc737120b454b4fbb4d7509089ef96be",
+      "file_sha256_crlf": "a4df942bbf093823e4732b1c1c2d0f22f58f2e361e10c9cc7a8e0d2588954e6e",
+      "recorded_sha256": "abe331e21dacacf3f29ddf705c41e951fc737120b454b4fbb4d7509089ef96be",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "193858150c88741272a03ba3bc947c461781c12a7c63dad6fcad333b6f5d7740",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_feedback_strong_v1.json",
+      "contract_line": 436,
+      "file_sha256_lf": "a54d422a52048c1d4ca8259afea1ea0c24e985e4fc46497d2147932780b0e16d",
+      "file_sha256_crlf": "0255a14fe84fafba77398c5ee9b672c780a128834e724f0aa99d5bb9f42d32b9",
+      "recorded_sha256": "a54d422a52048c1d4ca8259afea1ea0c24e985e4fc46497d2147932780b0e16d",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "17b7394fec7624476ee622a836c320b5af97aea8db65b9ca411b0b477e2372aa",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_robustness_v1.json",
+      "contract_line": 603,
+      "file_sha256_lf": "b3faa48c86fd0747517d586bf522fc46f383c8a101057074bbd90e2d540dd536",
+      "file_sha256_crlf": "6ffa4d04df792e83385880d2aa3b9376b67e64cbf738bc6ccfd2f56a69a8dc75",
+      "recorded_sha256": "b3faa48c86fd0747517d586bf522fc46f383c8a101057074bbd90e2d540dd536",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "949c2eb4cdc25ac0032672cbe75e7bd240f49e93f998f1de1bd542671e044022",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_robustness_check_v1.json",
+      "contract_line": 603,
+      "file_sha256_lf": "bb359f15bb967368f4cd8c0724c6210ee3fff8b080722bd3c303366530389219",
+      "file_sha256_crlf": "9bfd85b0f62ecb8aa5a6d8e1209ef8f50b14f480d56b47d8fe92c18330bf53f2",
+      "recorded_sha256": null,
+      "sha256_matches": null,
+      "recorded_experiment_id": "db909d3c1ca870994a10d3b36ce6a59a19ecd0e1e2b433da9b17bf6bd441988a",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_targeted_audits_confirmatory_v1.json",
+      "contract_line": 722,
+      "file_sha256_lf": "f5138e917fde4e6cd1feded88e5a1c7adde4109aeb9560ff9bbd40aa15864913",
+      "file_sha256_crlf": "7a45f2d65fe83f92fd3f0341fe89d5d26859be82deac319b8616f2391ea8fa54",
+      "recorded_sha256": "f5138e917fde4e6cd1feded88e5a1c7adde4109aeb9560ff9bbd40aa15864913",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "06bec14854a80b5c863b5bbea6d9df2d68daa96d26888f05f64dfb2ba5522a32",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_targeted_audits_development_v1.json",
+      "contract_line": 722,
+      "file_sha256_lf": "105ad7a75934326a75b2bab05b24d6841a7a0775544787f0b81817e397f6b0b9",
+      "file_sha256_crlf": "53d88f2fe82771a761c47f66a0bb18ae219a1e60557ec552bd8aa5e318498d81",
+      "recorded_sha256": null,
+      "sha256_matches": null,
+      "recorded_experiment_id": "ae5386ac9078571fec398a56dcfcb798271e13c19feca4b76e20fdc56ceaac18",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_assurance_confirmatory_v1.json",
+      "contract_line": 842,
+      "file_sha256_lf": "61a9959a21f4a3ab59d0462bd65c40dcf20de269af9039fa234a623e5b320a35",
+      "file_sha256_crlf": "6ed1a62b3b5e998ede52040e344799e76a3367e67876756600a4a5737961c3d0",
+      "recorded_sha256": "61a9959a21f4a3ab59d0462bd65c40dcf20de269af9039fa234a623e5b320a35",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "35c4f76700f76a389caf05e5a2dd1b896ea9b52ddaebc8142763cf35ce5e339a",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_assurance_development_v1.json",
+      "contract_line": 842,
+      "file_sha256_lf": "bd0a1a6c83b57213e72ce94ae36b21276108a81f2cfda4d1fb96b9e903beea82",
+      "file_sha256_crlf": "b4f59728ce1b6631613a7cdeab14452357d26ee8fbf2f224e0bf8e5ee6c24d49",
+      "recorded_sha256": null,
+      "sha256_matches": null,
+      "recorded_experiment_id": "3a98d1f16abd4b63ef0bd562288428f587fe9fd6035eab9c5576dd9fdc7a4a84",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_learning_redo_confirmatory_v1.json",
+      "contract_line": 951,
+      "file_sha256_lf": "27782611b4a9b24c319d04f096970f2a45362c8d6caf869ed894daf9df9348b7",
+      "file_sha256_crlf": "c47ec8019356fdfcb0884da6035b44612db1c6bcd581404efdeecbacfab52fd4",
+      "recorded_sha256": "27782611b4a9b24c319d04f096970f2a45362c8d6caf869ed894daf9df9348b7",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "b4430136e1fefc0be2e57678edd0de30e7516f4f0eee50c255642898d6a06062",
+      "experiment_id": "b4430136e1fefc0be2e57678edd0de30e7516f4f0eee50c255642898d6a06062",
+      "experiment_id_status": "computed from the public spec",
+      "experiment_id_matches": true
+    },
+    {
+      "spec": "configs/disclosure_learning_redo_development_v1.json",
+      "contract_line": 951,
+      "file_sha256_lf": "c6fe6bd7d67bad3ac86dafd115e5943168eb748f3077580a8b7143a50b77b405",
+      "file_sha256_crlf": "1928082db0eca3e3df8803611e401349b2e13ec374fda86dc3c70176a039d53c",
+      "recorded_sha256": null,
+      "sha256_matches": null,
+      "recorded_experiment_id": "74b6a503f618b88a32b50bd47eb2b27320018dadda9e57daa492dddff311728f",
+      "experiment_id": "74b6a503f618b88a32b50bd47eb2b27320018dadda9e57daa492dddff311728f",
+      "experiment_id_status": "computed from the public spec",
+      "experiment_id_matches": true
+    },
+    {
+      "spec": "configs/disclosure_joint_robustness_v1.json",
+      "contract_line": 1028,
+      "file_sha256_lf": "52b0906f137a063b046c9368054ef305cbce7f32aeccca00e946d83a6e96d4ad",
+      "file_sha256_crlf": "a197acf359f12318e25d4f1b570c8703a17d3f7a6653c0a068e30dee8c519a75",
+      "recorded_sha256": "52b0906f137a063b046c9368054ef305cbce7f32aeccca00e946d83a6e96d4ad",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "c856a0cd3732aa8243420f1e8bc50af2b0adf46a6f20cdeb35941956169b6765",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    },
+    {
+      "spec": "configs/disclosure_joint_robustness_check_v1.json",
+      "contract_line": 1028,
+      "file_sha256_lf": "53464bf4054a5726318ada212d7a8b34acc49ffe360a1b6dba949de0f7623eff",
+      "file_sha256_crlf": "ef1ef0e98c64ae3d36e3d939f96e64a6ce0a40ca3ba995a54b0295b6ae62a51d",
+      "recorded_sha256": "53464bf4054a5726318ada212d7a8b34acc49ffe360a1b6dba949de0f7623eff",
+      "sha256_matches": "lf",
+      "recorded_experiment_id": "f29cf7364f2a6d0906564773598bf1deb4e5b9fdf703ac7b58b48f1a5049eeb4",
+      "experiment_id": null,
+      "experiment_id_status": "blocked: freeze_spec embeds the vendor-derived domain file, which is not in git",
+      "experiment_id_matches": null
+    }
+  ]
+}
