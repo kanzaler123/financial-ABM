@@ -34,119 +34,159 @@
         "date": "2026-10-21",
         "files": 52,
         "digest": "c4423d931db22fff87a6013b9f6f47c4dd4f01fba9107d7eeaa89d4c06927246",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "7a0732915ffb9ff432c54d6dd6eb60aad98c1839c7b2cbc20db2190a5c409de5",
+        "matches_with_crlf_file": [
+          "23 learning redo"
+        ]
       },
       {
         "commit": "e6854a0",
         "date": "2026-10-20",
         "files": 52,
         "digest": "e815252e032b5def0cf4fd5f2e0f11c60970f0f62b479dec0562ce25dbfc3d5b",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "99966d0cf9ab5942aaf08eefa9b47e9d514f8c2d1a2589409ff484f579c89e81",
+        "matches_with_crlf_file": [
+          "22 assurance"
+        ]
       },
       {
         "commit": "3fced38",
         "date": "2026-10-20",
         "files": 52,
         "digest": "6562c1ab446c37196c18e5166d302b6ef12f8c756506b780f313bad5f3aec3b2",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "a94bed8bc5bc570cc8918c7b030fd9594c323fd02b074036ba4ccc30819c6ef0",
+        "matches_with_crlf_file": [
+          "21 targeted audits"
+        ]
       },
       {
         "commit": "0943714",
         "date": "2026-10-18",
         "files": 52,
         "digest": "9da5c69261445222bc9eb7a37e704f0830d5cefcf739b164f2a2f15bd5e0e2ec",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "b627639c474928d1dbc06f1be0bd0267ff5bdcd9b68f3473fbbfca1aeab60d2a",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "2b08f65",
         "date": "2026-10-14",
         "files": 52,
         "digest": "d695b2ca8577302e30ddfb39f42b31eef90d35b989fdc5f3312b0dcf30b7046f",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "de41ac10087db318475a1aff252974f74e5a2468dad0e43298b3edcc56453cbf",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "af261b6",
         "date": "2026-10-14",
         "files": 52,
         "digest": "80638a8d7d780fa74e15735ca665ef09b9958119f6ebfc93ce3aa70f87a82f63",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "322ebb4dc56f20c8d6ce37d4ffdd8ddc82b0e35dd57f15621ac43a93bc511acb",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "92ff504",
         "date": "2026-10-13",
         "files": 52,
         "digest": "edfd065123373706992839c4d28cc2e63f6fd7342b31c088ed2e8e25f7cf9f70",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "08e0c7e42f90a8fdf6263af7be21a3de3984f28039b14138086510a4cef95dab",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "5636206",
         "date": "2026-10-11",
         "files": 30,
         "digest": "f37b0a804e43d181904672a6340338dd7a0aebea5f570e09de2a0f9caf885c59",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "664d5336dbf15482f9ed1883f1c8b8a67aa6a088ff7324546182bfb2e6f7b3f4",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "884d856",
         "date": "2026-10-11",
         "files": 29,
         "digest": "501896768f10fc699de5fef908bbe66fa51f1d9ccebe9f348c6da2608a6a4237",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "d52b10f87266abd09b962506881716e93f2062a5a83e8fcf1c5c108bb2ae5472",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "f2b2c09",
         "date": "2026-10-11",
         "files": 29,
         "digest": "d124c8fb80b424b5d02b56c6329fc7b655e20d7c230e0f0490e90ce253f64f3e",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "c7e63a6ab2d04eff0a6df10758d078aac0bd50a043c8edb55987731b665485a8",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "8052801",
         "date": "2026-09-29",
         "files": 26,
         "digest": "5bbdd29d847152d7a343fe65d88952c3c9d01a05940555e7219337caf9f9dda5",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "e9e0f681ab5408784c12c02fa70072896f544fc7e4a0a14ef0318a3589935297",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "d549789",
         "date": "2026-09-29",
         "files": 26,
         "digest": "537e1faba3ce5de6b229467b6a62208ad754889e7775127605b1b3ad97641816",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "c58e2fe2d0e2c66406bb0d100eb3586e0738c5909df7c019c5366df2686013a7",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "d525620",
         "date": "2026-09-16",
         "files": 21,
         "digest": "3bb97e73b2a5e7d4faf56f71e7084194d455ddf52ed84c815d4611e0998e63b7",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "e21a9c556b7247b6485e68527be70cfa58c72c71c5e2d500295115c3f6555119",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "4099960",
         "date": "2026-08-14",
         "files": 21,
         "digest": "c91bda28e50fc66c009f71997f0a729462f46f80e05f794f50d3342294d06847",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "1f50e9d359dad427cb500c26d0cd17bf39d6dceb4cef25faa98a18193d9370d6",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "3708226",
         "date": "2026-08-13",
         "files": 21,
         "digest": "5c585f5b083ba03eff72e50b90718a00dd7bfa8b4d9f1a2045fadaec13cfbc2b",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "966981848a3d6d21f68b1caeedf4809dfddf3467014231684bf69f8448db37bc",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "68f2df1",
         "date": "2026-08-13",
         "files": 21,
         "digest": "e0b53baf6433e661793fa8f1ebe9058f06342e1d0af0853563e1e34e1a0bc15d",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "722bcdf8caafdc597df2070c49cac2a32c476bf02eb823675a648b26d6d63b78",
+        "matches_with_crlf_file": []
       },
       {
         "commit": "193689b",
         "date": "2026-07-30",
         "files": 17,
         "digest": "184f43892bd5e25dab65123a288eab2fe1f235f6a80581953393744c659027ae",
-        "matches": []
+        "matches": [],
+        "digest_with_crlf_file": "3764e2a28c20fac52eb1ba5e73a9b8ee719641d0ec4564167cab128648c17d4a",
+        "matches_with_crlf_file": []
       }
     ]
   },

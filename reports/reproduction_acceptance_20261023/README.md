@@ -1,12 +1,12 @@
 # 复现验收：只用公开仓库从零重建（2026-10-23）
 
-**性质：复现验收，不是新实验。** 在一个全新目录里克隆 GitHub 上 `kanzaler123/financial-ABM` 的 master（`8afc3fc`），按锁定依赖建新虚拟环境，只用已提交的文件逐项重建测试、论文图表、论文 PDF、各报告表格和实验规格，并核对契约里记录的哈希与 `experiment_id`。没有读取原作者工作副本和其中的本地档案，也没有跑任何契约规模的仿真；除测试中的小规模运行外，唯一跑的模型是阶段 G 的简化沙盒（240 次，12 个进程）。所有步骤都在同一台 Windows 机器上完成，Linux 与 macOS 没有实测，下文凡涉及其他平台的说法都是从代码推断的。
+**性质：复现验收，不是新实验。** 在一个全新目录里克隆 GitHub 上 `kanzaler123/financial-ABM` 的 master（`8afc3fc`），按锁定依赖建新虚拟环境，只用已提交的文件逐项重建测试、论文图表、论文 PDF、各报告表格和实验规格，并核对契约里记录的哈希与 `experiment_id`。重建时没有读取原作者工作副本和其中的本地档案。只有在第 5 节“用本地档案核对”中，为查明源码摘要对不上的原因，事后只读地查看了几份本地档案的 `experiment.json` 和工作副本中一个源文件的换行。也没有跑任何契约规模的仿真；除测试中的小规模运行外，唯一跑的模型是阶段 G 的简化沙盒（240 次，12 个进程）。所有步骤都在同一台 Windows 机器上完成，Linux 与 macOS 没有实测，下文凡涉及其他平台的说法都是从代码推断的。
 
 ## 结论
 
 1. **从公开文件能重建、而且逐字节一致的：** 全部 12 个由汇总文件生成的报告表格（阶段 F 两份、衰减网格、四个反馈分解、20.21 稳健性、定向核查、鉴证、学习型企业重做、联合稳健性）；阶段 G 的简化对照（`simplification_tables.md` 与 `showcase/data/simplification.json`）；论文的 4 张 PNG 图；用 matplotlib 3.11.0 时另外 4 张 PDF 图也逐字节一致；7 个规格脚本写出的 12 份配置文件（其中阶段 F 的 2 份在 Windows 上写成 CRLF，转成 LF 后一致），以及用记录的 `domain_sha256` 生成的学习型企业重做的 2 份。全量测试 974 通过、1 跳过。
 2. **能重建、但不逐字节一致的：** 用锁定的 matplotlib 3.11.1 重画的 4 张 PDF 图，绘图内容流与已提交的相同，只差字体子集与 Producer 字段（已提交的图是 3.11.0 画的）；论文 PDF 30 页的抽取文本与已提交的逐页相同，固定 `SOURCE_DATE_EPOCH` 后除日期字符串、`/ID` 和交叉引用偏移外逐字节相同。
-3. **卡在本地档案（b）：** 各实验的 `*_analysis.json` 本身（要读 `summary.json`、记录和紧凑数组）、`finalize.py` 汇总、规格脚本中对阶段 F 档案的派生核对、论文中 V_hidden − B 的区间，以及契约第 21–23 节记录的“源码摘要”。最后一项**用公开文件对不上**：按 `source_hashes()` 的定义，HEAD 和 17 个改动过 `src/abm` 的提交都算不出这三个摘要，原因只能用本地档案的 `experiment.json` 查（见问题 2）。
+3. **卡在本地档案（b）：** 各实验的 `*_analysis.json` 本身（要读 `summary.json`、记录和紧凑数组）、`finalize.py` 汇总、规格脚本中对阶段 F 档案的派生核对、论文中 V_hidden − B 的区间，以及契约第 21–23 节记录的“源码摘要”。最后一项**直接用公开文件对不上**。用本地档案的 `experiment.json` 查明了原因：冻结阶段 F 及以后各实验身份的工作副本中，`src/abm/mechanism_validation.py` 是 CRLF，git 里是 LF，内容相同。把这一个文件转成 CRLF 后，冻结前的提交就能逐字节重现记录的源码表、源码摘要和 `experiment_id`（第 5 节、问题 2）。
 4. **卡在供应商数据（c）：** 领域文件 `configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json` 不在 git 中，所以阶段 F 及以后的所有完整仿真都不能重跑，除学习型企业重做之外的 `experiment_id` 都不能重算（`freeze_spec` 把领域文件的全部内容算进 `experiment_id`），7 个规格脚本中有 6 个在写出配置后的派生核对处退出，学习型企业重做的规格脚本在写出配置前就退出。领域文件本身要从华证评级和市场数据重建，采集脚本与哈希清单在 `reports/disclosure_public_data_20261011/`，原始数据不在 git 中。
 
 ## 1. 环境
@@ -99,9 +99,21 @@ python -m pytest -p no:cacheprovider
 | 衰减网格、20.18、20.21、21、22、24 确认性与 24 开发 | 与契约记录的 LF 哈希一致 | 不能重算（c） |
 | 23 确认性与开发 | 与契约记录的 LF 哈希一致 | **重算一致**：`b4430136…6062`、`74b6a503…728f` |
 
-除学习型企业重做外，`experiment_id` 是 `freeze_spec` 对 `{spec, raw_domain, scenarios, source_hashes, python_version, numpy_version, scipy_version}` 的规范 JSON 取 SHA-256，其中 `raw_domain` 是领域文件的全部内容，所以没有供应商派生文件就算不出来。即使有了领域文件，也还需要 Python 3.12.9、numpy 2.5.1、scipy 1.18.1（已提交的档案记录的就是这几个版本），以及冻结时的 `src/abm`。阶段 F 之后 `src/abm` 又改过 4 次，所以重算阶段 F 和 20.x 各节的 `experiment_id` 要先检出当时的提交。
+除学习型企业重做外，`experiment_id` 是 `freeze_spec` 对 `{spec, raw_domain, scenarios, source_hashes, python_version, numpy_version, scipy_version}` 的规范 JSON 取 SHA-256，其中 `raw_domain` 是领域文件的全部内容，所以没有供应商派生文件就算不出来。即使有了领域文件，也还需要 Python 3.12.9、numpy 2.5.1、scipy 1.18.1（已提交的档案记录的就是这几个版本），以及冻结时的 `src/abm`。阶段 F 之后 `src/abm` 又改过 4 次，所以重算阶段 F 和 20.x 各节的 `experiment_id` 要先检出当时的提交。还要把 `src/abm/mechanism_validation.py` 转成 CRLF，见下文。
 
-**源码摘要。** 契约第 21–23 节记录了“源码摘要（各文件源码哈希的规范 JSON 的 SHA256）”：`a94bed8b…`、`99966d0c…`、`7a073291…`。按 `abm.disclosure.runner.source_hashes()` 加 `canonical_json_bytes` 的定义，当前检出的 `src/abm`（52 个文件）得 `c4423d93…7246`；从 git 历史中 17 个改动过 `src/abm` 的提交的原始字节算，没有一个提交得出这三个值中的任何一个，包括第 21、22、23 节各自“在确认性运行之前”提交的 `3fced38`、`e6854a0`、`3d82afe`。另外试过把文件转成 CRLF、换路径前缀、只取 `abm/disclosure`、换 JSON 序列化方式，在最近 25 个提交上都对不上。可见公开仓库没有给出能重现这三个摘要的定义或源码。作为参照，2026-10-11 的开发档案 `reports/disclosure_action_grid_development_20261011_v1/experiment.json` 提交了完整的 `source_hashes` 表，它与任何提交都不完全一致（最接近的 `92ff504` 也只有 37/52 个文件相同），说明那批早期开发运行用的是未单独提交的中间源码。
+**源码摘要：只用公开文件。** 契约第 21–23 节记录了“源码摘要（各文件源码哈希的规范 JSON 的 SHA256）”：`a94bed8b…`、`99966d0c…`、`7a073291…`。按 `abm.disclosure.runner.source_hashes()` 加 `canonical_json_bytes` 的定义，当前检出的 `src/abm`（52 个文件）得 `c4423d93…7246`。从 git 历史中 17 个改动过 `src/abm` 的提交的原始字节算，没有一个提交得出这三个值中的任何一个，包括第 21、22、23 节各自“在确认性运行之前”提交的 `3fced38`、`e6854a0`、`3d82afe`。把全部文件都转成 CRLF、换路径前缀、只取 `abm/disclosure`、换 JSON 序列化方式，也都对不上。
+
+**源码摘要：用本地档案核对（2026-10-23）。** 读取原作者本地的确认性档案 `audits_v1/`、`assurance_v1/`、`redo_v1/` 中的 `experiment.json`，逐文件比较其 `source_hashes` 与 git 历史：
+
+- 三份档案的源码表算出的摘要正是契约记录的三个值。也就是说，契约的记录与档案一致，定义也与 `source_hashes()` 相同。
+- 三份源码表与冻结前的提交（`3fced38`、`e6854a0`、`3d82afe`）相比，52 个文件中只有 `abm/mechanism_validation.py` 不同。档案记录的哈希 `3c70fc90…` 是原作者工作副本中该文件的字节哈希；该文件在工作副本中是 CRLF（`git ls-files --eol` 显示 `i/lf w/crlf`，最后修改于 2026-10-11），转成 LF 后就是 git 里的 blob（`514bb588…`）。`git status` 不显示差异，因为 git 比较时会先规范化换行。工作副本的 `src/` 中只有这一个文件是 CRLF。
+- 阶段 F 的开发与确认性档案、衰减网格，以及第 21、22、23、24 节的开发与确认性档案，记录的都是这个 CRLF 哈希。已提交的 `reports/disclosure_learning_protocol_checks_20261011/common_prepolicy_smoke/experiment.json` 也是，所以公开文件里也能看到这一点。
+- 只把这一个文件转成 CRLF，`git show` 出来的源码就能逐字节重现各档案的源码表：阶段 F 确认性与衰减网格为 `2b08f65`，第 21 节为 `3fced38`，第 22 节为 `e6854a0`，第 23、24 节为 `3d82afe`。`check_specs.py` 会对每个提交同时算“原样”和“该文件转 CRLF”两种摘要，后者在 `3fced38`、`e6854a0`、`3d82afe` 上分别等于第 21、22、23 节的记录。
+- 各档案的 `experiment_id` 都等于其 `experiment.json` 其余内容的规范 JSON 哈希。如果把源码表换成干净克隆的 LF 源码，阶段 F 确认性、衰减网格、第 21、22、24 节确认性的 `experiment_id` 分别变成 `d9ade0e0…`、`0777be1f…`、`b4ce98fc…`、`de9573b7…`、`6814b6ff…`，与记录的都不同。
+
+因此，这些运行用的就是已提交的代码：唯一不同的文件只差换行，而且 `src/abm/disclosure` 中没有任何模块导入它。但仅凭干净克隆，即使有领域文件，用对了提交和版本，算出的 `experiment_id` 也与契约不同；对已有档案运行 `--resume` / `finalize.py` 时，`run_experiment` 会因为 `freeze_spec` 的结果与档案的 `experiment.json` 不同而报错“cannot resume with different inputs, source, or environment”。
+
+作为参照，2026-10-11 的开发档案 `reports/disclosure_action_grid_development_20261011_v1/experiment.json` 提交了完整的 `source_hashes` 表，它与任何提交都不完全一致（最接近的 `92ff504` 也只有 37/52 个文件相同），说明那批早期开发运行用的是未单独提交的中间源码。
 
 ## 6. 分类
 
@@ -118,7 +130,7 @@ python -m pytest -p no:cacheprovider
 | 各 `*_analysis.json`、`*_pipeline.json` | (b) | 缺 `reports/<目录>/<run>/` 下的 `summary.json`、记录、紧凑数组与 `experiment.json`，例如 `disclosure_stage_f_20261014/confirmatory_v1/`、`disclosure_robustness_20261018/robust_v1/`、`disclosure_targeted_audits_20261020/audits_v1/`、`disclosure_assurance_20261021/assurance_v1/`、`disclosure_learning_redo_20261021/redo_v1/`、`disclosure_joint_robustness_20261023/joint_v1/` 与各 `check_v1/` |
 | `finalize.py` 汇总与报告渲染 | (b) | 同上；`--resume` 要求全部试次已完成 |
 | 规格脚本的派生核对（20.21、21、22、24） | (b) + (c) | 先要领域文件，再要阶段 F 确认性档案的 `experiment.json` |
-| 契约第 21–23 节的源码摘要 | (b) | 公开文件对不上（第 5 节）；要用本地档案的 `experiment.json` 中的 `source_hashes` 核对 |
+| 契约第 21–23 节的源码摘要 | (a)，需一步换行转换 | 原样对不上；把 `src/abm/mechanism_validation.py` 转成 CRLF 后，冻结前的提交重现三个记录值（第 5 节）。这个原因是用本地档案查明的 |
 | 其余各节的 `experiment_id` | (c) | 缺 `configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json`（SHA256 `c3dd4824…f907`） |
 | 阶段 F 及以后的完整仿真 | (c) | 同上；每个规格都引用这份领域文件 |
 | 领域文件本身 | (c) | 要从华证评级、账面值与市值快照重建（`reports/disclosure_public_data_20261011/collect_*.py`、`build_csi300_joint_20261012.py`，再经 fixed_fine 与 saturated 两步），原始数据与中间文件都在 `.gitignore` 中，只提交了 `summary.json` 等哈希清单 |
@@ -126,7 +138,11 @@ python -m pytest -p no:cacheprovider
 ## 7. 发现的问题
 
 1. **完整仿真离不开供应商派生的领域文件。** 这是授权限制下的设计选择，各报告 README 的“复现”一节也写了。对外的影响是：别人用公开仓库能核对表格、图和配置，但不能独立核对任何一个仿真结果或 `experiment_id`（学习型企业重做的除外）。
-2. **契约第 21–23 节的源码摘要用公开文件重现不了**（第 5 节）。这三个摘要不进入 `experiment_id` 的计算，但契约用它们说明“与开发运行相同”。可能是记录时用的定义与 `source_hashes()` 不同，也可能是运行时导入的源码与提交的不同（第 20.21 条的 README 提到过，在工作树中运行时要让 `PYTHONPATH` 指向本工作树的 `src`）。原作者可以在本地用确认性档案的 `experiment.json` 中的 `source_hashes` 逐文件对比对应提交的 `git show <提交>:src/<路径>` 来查明。本分支只记录，没有改契约。
+2. **冻结身份绑定了一个文件的本地换行**（第 5 节）。原作者工作副本中的 `src/abm/mechanism_validation.py` 是 CRLF，而 `source_hashes()` 对文件字节取哈希，所以阶段 F 以来所有记录的源码表、源码摘要和 `experiment_id` 都依赖这个本地换行，干净克隆（LF）重现不了。代码内容相同，结果不受影响。可选的处理有两种：
+   - (i) 保持现状，在契约中注明，并说明复现时把该文件转成 CRLF；
+   - (ii) 把工作副本中的该文件规范化为 LF。之后新冻结的身份就能从干净克隆重现，但对已有档案运行 `--resume` 或 `finalize.py` 会被身份检查拒绝，要先改回 CRLF。
+
+   本分支没有改契约，也没有动原作者的工作副本。
 3. **阶段 F 的两个脚本按平台换行写文件。** `build_specs.py` 与 `tables.py` 调用 `write_text` 时没有传 `newline="\n"`，在 Windows 上写出 CRLF。所以契约第 376 行记录的配置 SHA256 是 CRLF 文件的哈希，而 git 里的配置是 LF（哈希 `4c16e210…`）；在 Linux 或 macOS 上重跑这两个脚本，配置的哈希与契约记录的不同，两份表格只在换行上与已提交的不同（`rebuild_tables.json` 的 `identical_after_crlf_to_lf` 一项可用来区分）。后来的脚本都已改用 `newline="\n"`。这两个脚本在哈希绑定的报告目录里，本分支没有改动，建议在契约第 376 行注明“（CRLF）”。
 4. **已提交的论文 PDF 图不是用锁定的 matplotlib 画的。** 图是 matplotlib 3.11.0 画的，锁定文件写的是 3.11.1，两者的 PDF 后端对字体子集的处理不同。要么在锁定环境里重画图并重编论文，要么在 `paper/README.md` 写明版本。两者都会碰到 PR #26 正在修改的 `paper/main.pdf`，所以本分支没有改。
 5. **学习型企业重做的规格脚本缺领域文件就不能写出配置。** 它读领域文件只为算 `domain_sha256`，而这个值已经记在配置里。其他 6 个脚本都是先写配置、后做派生核对，所以没有领域文件也能核对配置字节，但退出码是 1，各 README 也没有说明这一点。

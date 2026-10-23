@@ -14,7 +14,10 @@ For every spec with an identity recorded in docs/disclosure_research_contract.md
   exists and is reported as blocked otherwise;
 - the source digest (SHA-256 of the canonical JSON of abm.disclosure.runner.source_hashes()) of the checked-out
   src/abm, against the digests the contract records for sections 21-23, and the same digest computed from the
-  committed blobs at every commit that changed src/abm (about a minute: it reads each blob with git show).
+  committed blobs at every commit that changed src/abm (about a minute: it reads each blob with git show), once
+  as committed and once with src/abm/mechanism_validation.py converted to CRLF. The recorded identities were
+  computed in a working copy where that one file had CRLF line endings (README section 5); with the conversion
+  the commits frozen before the runs reproduce the recorded digests.
 Nothing in the repository is written except the --out file.
 """
 
@@ -78,6 +81,7 @@ RECORDED = {
         1028, "53464bf4054a5726318ada212d7a8b34acc49ffe360a1b6dba949de0f7623eff",
         "f29cf7364f2a6d0906564773598bf1deb4e5b9fdf703ac7b58b48f1a5049eeb4", "freeze_spec"),
 }
+CRLF_FILE = "abm/mechanism_validation.py"  # CRLF in the working copy that froze every identity since stage F
 SOURCE_DIGESTS = {"21 targeted audits": "a94bed8bc5bc570cc8918c7b030fd9594c323fd02b074036ba4ccc30819c6ef0",
                   "22 assurance": "99966d0cf9ab5942aaf08eefa9b47e9d514f8c2d1a2589409ff484f579c89e81",
                   "23 learning redo": "7a0732915ffb9ff432c54d6dd6eb60aad98c1839c7b2cbc20db2190a5c409de5"}
@@ -126,10 +130,17 @@ def digest_history() -> list[dict]:
     for line in git("log", "--format=%h %ad", "--date=short", "--", "src/abm").decode().splitlines():
         commit, date = line.split()
         files = [f for f in git("ls-tree", "-r", "--name-only", commit, "src/abm").decode().split() if f.endswith(".py")]
-        hashes = {f.removeprefix("src/"): sha256(git("show", f"{commit}:{f}")) for f in sorted(files)}
+        blobs = {f.removeprefix("src/"): git("show", f"{commit}:{f}") for f in sorted(files)}
+        hashes = {name: sha256(blob) for name, blob in blobs.items()}
         digest = sha256(canonical_json_bytes(hashes))
-        rows.append({"commit": commit, "date": date, "files": len(hashes), "digest": digest,
-                     "matches": [name for name, value in SOURCE_DIGESTS.items() if value == digest]})
+        row = {"commit": commit, "date": date, "files": len(hashes), "digest": digest,
+               "matches": [name for name, value in SOURCE_DIGESTS.items() if value == digest]}
+        if CRLF_FILE in blobs:
+            variant = {**hashes, CRLF_FILE: sha256(blobs[CRLF_FILE].replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))}
+            row["digest_with_crlf_file"] = sha256(canonical_json_bytes(variant))
+            row["matches_with_crlf_file"] = [name for name, value in SOURCE_DIGESTS.items()
+                                             if value == row["digest_with_crlf_file"]]
+        rows.append(row)
     return rows
 
 
@@ -164,7 +175,10 @@ def main() -> None:
                       for k, v in report["source_digest"]["recorded"].items()))
     history = report["source_digest"]["history"]
     print(f"commits that changed src/abm: {len(history)}; reproducing a recorded digest: "
-          + (", ".join(f"{row['commit']} ({', '.join(row['matches'])})" for row in history if row["matches"]) or "none"))
+          + (", ".join(f"{row['commit']} ({', '.join(row['matches'])})" for row in history if row["matches"]) or "none")
+          + f"; with {CRLF_FILE} as CRLF: "
+          + (", ".join(f"{row['commit']} ({', '.join(row['matches_with_crlf_file'])})"
+                       for row in history if row.get("matches_with_crlf_file")) or "none"))
     args.out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {args.out}")
 
