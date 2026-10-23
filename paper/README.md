@@ -1,6 +1,6 @@
 # Working paper
 
-`main.tex` is the English working paper on the stage F experiment (contract Section 20), its exploratory supplements and the targeted-audit experiment (contract Section 21). The version of 20 October 2026 is the one prepared for SSRN. Red bracketed text in the PDF marks placeholders; none remain.
+`main.tex` is the English working paper on the stage F experiment (contract Section 20), its exploratory supplements, the targeted-audit experiment (contract Section 21) and the learning-firm redo (contract Section 23). The version of 20 October 2026 is the one prepared for SSRN; the version of 23 October 2026 adds the learning-firm redo, whose numbers come from `reports/disclosure_learning_redo_20261021/README.md` and `redo_v1_analysis.json`. Red bracketed text in the PDF marks placeholders; none remain.
 
 Build from this directory:
 

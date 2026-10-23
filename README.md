@@ -97,7 +97,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 5. **Fixed fines have diminishing marginal deterrence.** Going from no fine to CNY 10 million cuts the share of greenwashing decisions from 91% to 22%; under one fine per detected case, doubling, quadrupling and multiplying it by eight only reaches 16%, 13% and 13%, because a firm with an undetected case adds new inflation to that case and faces no new fixed fine. If every false report is fined separately, the 8× fine cuts the share to 0.8%; each doubling still adds less than the one before.
 6. **The size gap comes from greenwashing, not costs.** Under the baseline policy, 66% of large firms' decisions are greenwashing against 6% for small firms, and large firms improve 0.33 SD less: a CNY 10 million fine is negligible against a large market cap. A proportional fine removes the size gradient (large firms greenwashing more than small ones), not greenwashing itself: under a 1× proportional fine, 72% of large firms’ decisions are still greenwashing, against 88% for small firms and 84% overall. At the equal-amount reference it is far weaker overall than the fixed fine (−0.34 SD).
 
-**Limits.** Only NPV firms: the learning firms did not pass stage D. Audit intensity, targeted audits and the implementation costs of policy are not modelled. 37 runs hit the price cap; they stay in the statistics, and excluding them changes nothing. Full tables: [stage F report (Chinese)](reports/disclosure_stage_f_20261014/README.md).
+**Limits.** Only NPV firms: the learning firms did not pass stage D, in the pre-registered redo either ([below](#learning-firms-stage-d3)). Audit intensity, targeted audits and the implementation costs of policy are not modelled. 37 runs hit the price cap; they stay in the statistics, and excluding them changes nothing. Full tables: [stage F report (Chinese)](reports/disclosure_stage_f_20261014/README.md).
 
 **In-browser policy desk.** [`showcase/`](showcase/README.md) brings the firm decision layer into the browser. The home page opens in English (one click switches to Chinese) on a light policy desk: key stage F results and a live wire across the top, policy levers on the left, a firm sphere of the 200 synthetic firms in the middle, a decision ticket for one firm on the right, and below them agent cards (regulator, firm size classes, investors, the threshold τ*), a decision spectrogram and an audit trace. The desk replays panel ②, a 14-year simplified dynamic without market feedback, and is labelled as not a research result. Further down, panel ① shows how the 200 firms would choose this period under the selected policy, and panel ③ shows the stage F results above with their sources. The decision rule matches the Python model term by term (1,200 random inputs, relative error at most 10⁻¹²), and the page states how far the simplified dynamics are from the full model. An AI-washing switch shows the same mechanism in another domain. The page address carries the policy and the selected firm, so a copied link reopens the same desk. The stage 1 exhibit (`stage1/`) uses the same light style. Live: [https://kanzaler123.github.io/financial-ABM/](https://kanzaler123.github.io/financial-ABM/); to preview locally: `python showcase/build.py --output _site`, then open `_site/index.html`.
 
@@ -114,6 +114,16 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 
 </details>
 
+## Learning firms (stage D.3)
+
+> Confirmatory redo (2026-10-23), pre-registered in the [research contract, §23](docs/disclosure_research_contract.md) and committed before implementation and runs (`8bb5d9e`). Tabular Q-learning firms learn from their realised accounts: 10 independent trainings × 2 state versions (A: the stage D.2 state; V: the cost tier replaced by the firm's cumulative real improvement) × 4 scenarios (B, I, F, IF), compared with an NPV firm on the same action grid (discrete NPV). 540/540 jobs completed. Full tables: [stage D.3 report (Chinese)](reports/disclosure_learning_redo_20261021/README.md).
+
+- **Stage D is still not accepted.** 91/100 tables pass the coverage test. All 9 failures are post-policy tables, 8 of them in the large-firm group.
+- **Training randomness dominates.** Within a scenario, the greenwashing share differs 14–18 times more between independently trained tables than within one table across validation seeds, so a single table cannot answer a policy question.
+- **A greenwashing trap, not learned profit (P1 supported).** Under the information policy, learning firms greenwash in 23.7% of decisions against 3.8% for discrete NPV: +19.9 percentage points, Holm p = 0.031. The extra greenwashing loses a median of about 0.042 basis points of market value per decision against the NPV choice, far below the reward noise. The learners cannot learn their way out of it; they have not learned that greenwashing pays. The other four primary questions (P2–P5) are unresolved.
+- **Seeing improvement cuts greenwashing, not into improvement** (auxiliary, uncorrected). With the V state, pre-policy tables trained from scratch greenwash 34.7 percentage points less, but those decisions become “maintain”, and real improvement does not rise.
+- **Fragile, and outside the main conclusions.** Dropping the 5 replicates that contain a failing table leaves P1 unresolved too. Learning firms stay out of the stage F conclusions above.
+
 ## Roadmap
 
 - [x] Single-asset market foundation (Stage 1): frozen v15 formal acceptance 22/22
@@ -122,7 +132,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] Greenwashing-condition diagnosis and evidence review
 - [x] Firm game with capped lump-sum fines, plus two inspection-game propositions (stage B)
 - [x] Investor evolution: imitation rule corrected against replicator dynamics (stage C)
-- [x] Learning firms: compared; they did not pass acceptance and are excluded from the formal experiment (stage D)
+- [x] Learning firms: compared, then redone with 10 independent trainings per scenario (stage D.3, 2026-10-23); coverage 91/100 tables, so they still do not pass acceptance and are excluded from the formal experiment (stage D)
 - [ ] New agents: risk-based regulator, assurance providers, rating disagreement
 - [x] Formal experiments: information vs enforcement, phase diagrams, size divide (fresh seeds, design frozen before running; stage F)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
