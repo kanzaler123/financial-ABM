@@ -1,0 +1,33 @@
+{
+  "spec": "../../configs/disclosure_learning_redo_confirmatory_v1.json",
+  "output": "redo_v1",
+  "confirmatory": true,
+  "checks": {
+    "completion": {
+      "pass": true,
+      "missing": [],
+      "tables": 100
+    },
+    "frozen_tables": {
+      "pass": true,
+      "problems": []
+    },
+    "windows": {
+      "pass": true,
+      "runs": 440,
+      "problems": []
+    },
+    "prefix_identity": {
+      "pass": true,
+      "pairs": 330,
+      "differing": [],
+      "switch_period": 21
+    },
+    "replays": {
+      "pass": true,
+      "replays": 400,
+      "problems": []
+    }
+  },
+  "all_pass": true
+}

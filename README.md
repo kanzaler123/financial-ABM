@@ -21,14 +21,16 @@
 
 ## What we found
 
-In a pre-registered experiment on 1,770 simulated markets, conditional on the model's assumptions:
+In pre-registered experiments, conditional on the model's assumptions. The first four points come from stage F (1,770 simulated markets), the last two from stages E.1 (450) and E.2 (540):
 
 - **Clearer sight beats heavier fines.** Raising transparency moves firms toward real improvement more than raising the fixed fine, at the doses tested.
 - **Transparency has a threshold, but how sharp it is depends on costs.** If every firm faces the same cost of greenwashing, firms stop greenwashing altogether above it; if the cost differs across firms, greenwashing falls step by step as transparency rises. Heavier fines have diminishing bite.
 - **Big firms greenwash more,** because a capped fine is negligible next to a large market cap, not because improving costs them more.
 - **Nothing works without investors who care.** Without impact investors' taste for ESG, none of the policies has any effect.
+- **Targeted audits can backfire when firms know the rule.** At the same expected number of audits, both targeting rules tested lowered the equal-weighted true ESG level relative to random audits. Neither rule was optimised (stage E.1).
+- **Letting firms choose their assurance provider undoes most of the gain from assurance.** With strong provider liability and assurance mandatory for all firms, letting firms choose their provider removed most of the improvement that random assignment achieved (stage E.2).
 
-Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings) below.
+Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below.
 
 > [!NOTE]
 > **Research in progress.** The stage F confirmatory experiment is complete. Its conclusions are conditional on the model's assumptions, and policy-effect magnitudes depend on an uncalibrated natural decay, so they are reported as a range. Other items carry an evidence label.
@@ -97,7 +99,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 5. **Fixed fines have diminishing marginal deterrence.** Going from no fine to CNY 10 million cuts the share of greenwashing decisions from 91% to 22%; under one fine per detected case, doubling, quadrupling and multiplying it by eight only reaches 16%, 13% and 13%, because a firm with an undetected case adds new inflation to that case and faces no new fixed fine. If every false report is fined separately, the 8× fine cuts the share to 0.8%; each doubling still adds less than the one before.
 6. **The size gap comes from greenwashing, not costs.** Under the baseline policy, 66% of large firms' decisions are greenwashing against 6% for small firms, and large firms improve 0.33 SD less: a CNY 10 million fine is negligible against a large market cap. A proportional fine removes the size gradient (large firms greenwashing more than small ones), not greenwashing itself: under a 1× proportional fine, 72% of large firms’ decisions are still greenwashing, against 88% for small firms and 84% overall. At the equal-amount reference it is far weaker overall than the fixed fine (−0.34 SD).
 
-**Limits.** Only NPV firms: the learning firms did not pass stage D. Audit intensity, targeted audits and the implementation costs of policy are not modelled. 37 runs hit the price cap; they stay in the statistics, and excluding them changes nothing. Full tables: [stage F report (Chinese)](reports/disclosure_stage_f_20261014/README.md).
+**Limits.** Only NPV firms: the learning firms did not pass stage D, in the pre-registered redo either ([below](#learning-firms-stage-d3)). Audits are random at a fixed intensity; targeted audits and assurance providers are tested in stages [E.1](#targeted-audits-stage-e1) and [E.2](#assurance-providers-stage-e2) below. The implementation costs of policy are not modelled. 37 runs hit the price cap; they stay in the statistics, and excluding them changes nothing. Full tables: [stage F report (Chinese)](reports/disclosure_stage_f_20261014/README.md).
 
 **In-browser policy desk.** [`showcase/`](showcase/README.md) brings the firm decision layer into the browser. The home page opens in English (one click switches to Chinese) on a light policy desk: key stage F results and a live wire across the top, policy levers on the left, a firm sphere of the 200 synthetic firms in the middle, a decision ticket for one firm on the right, and below them agent cards (regulator, firm size classes, investors, the threshold τ*), a decision spectrogram and an audit trace. The desk replays panel ②, a 14-year simplified dynamic without market feedback, and is labelled as not a research result. Further down, panel ① shows how the 200 firms would choose this period under the selected policy, and panel ③ shows the stage F results above with their sources. The decision rule matches the Python model term by term (1,200 random inputs, relative error at most 10⁻¹²), and the page states how far the simplified dynamics are from the full model. An AI-washing switch shows the same mechanism in another domain. The page address carries the policy and the selected firm, so a copied link reopens the same desk. The stage 1 exhibit (`stage1/`) uses the same light style. Live: [https://kanzaler123.github.io/financial-ABM/](https://kanzaler123.github.io/financial-ABM/); to preview locally: `python showcase/build.py --output _site`, then open `_site/index.html`.
 
@@ -114,6 +116,39 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 
 </details>
 
+## Targeted audits (stage E.1)
+
+> Confirmatory experiment (2026-10-20), pre-registered in the [research contract, §21](docs/disclosure_research_contract.md) and committed before implementation and runs (`962d1ee`): 15 scenarios × 30 new paired seeds (42001–42030), 450 worlds, all completed. Every targeted rule keeps the expected number of audits equal to random audits at 1% per period. Firms use the continuous NPV rule. Full tables: [stage E.1 report (Chinese)](reports/disclosure_targeted_audits_20261020/README.md).
+
+- **Targeted audits lower the equal-weighted true level relative to random audits when firms know the rule.** Auditing in proportion to market value: −0.191 SD [−0.222, −0.159]; auditing firms whose reports jump: −0.136 SD [−0.156, −0.116]. Both rules find inflation more often than random audits (50% and 69% of audits, against 28%).
+- **Value targeting moves greenwashing from large to small firms.** Large firms' greenwashing share falls from 64% to 47% and small firms' rises from 5% to 35%. The value-weighted true level rises (+0.053 SD), but small firms are 60% of firms, so the equal-weighted level falls.
+- **The damage comes from firms knowing the rule.** With the rule hidden, neither rule differs significantly from random audits (−0.005 SD each; the intervals include 0, which does not establish equivalence). Publishing the jump rule costs 0.131 SD: firms keep new inflation below the threshold.
+- **Auditing more works where auditing differently does not.** Doubling random audits raises the true level by +0.118 SD. Information still beats value targeting combined with a 4× fine, by +0.156 SD.
+- All five of this experiment's primary questions are supported (Holm p ≤ 1.1 × 10⁻¹¹); this does not by itself validate every mechanism described above. The magnitudes are for the main setting (0.2 SD/year of decay); without decay every effect is small and keeps its sign. Only the two rules tested were compared; no rule was optimised.
+
+## Assurance providers (stage E.2)
+
+> Confirmatory experiment (2026-10-21), pre-registered in the [research contract, §22](docs/disclosure_research_contract.md) and committed before implementation and runs (`307168c`): 18 scenarios × 30 new paired seeds (43001–43030), 540 worlds, all completed. Four strategic providers inspect clients' reports before publication and correct the inflation they find; each sets its quality once a year as a best response to its liability, which it pays when the regulator later catches inflation in a report it inspected. Liability doses are multiples of a CNY 5 million benchmark, the upper limit of the band for providers with no or low business income in Securities Law Art. 213(3); the model assumes the provision applies to ESG assurance and makes no judgement on whether it does. Fees and effort costs are assumptions. Intervals are paired 95% intervals not adjusted for multiple comparisons; the Holm correction applies to the p-values of the five primary questions. Full tables: [stage E.2 report (Chinese)](reports/disclosure_assurance_20261021/README.md).
+
+- **Strong liability and assigned providers work.** With 16× liability and providers assigned at random: +0.273 SD [+0.234, +0.312] over no assurance; greenwashing decisions fall from 19.0% to 6.2%.
+- **Letting firms choose their provider undoes most of the gain from assignment.** −0.199 SD [−0.233, −0.165] against assignment; in scenario means it stays about 0.07 SD above no assurance. Greenwashing returns to 21.0% of decisions. Counted by decisions, 96.9% of assured firms' greenwashing decisions were made by clients of that year's lowest-quality provider.
+- **At the benchmark liability (1×) the effect is small.** +0.046 SD [+0.035, +0.058]. Average provider quality is only 0.014, low enough to act as insurance against fines: among firms with no undetected inflation when they decide, the share of decisions that greenwash is 0.9 percentage points higher. The true-level change nevertheless improves relative to the baseline because improvements are larger, a decomposition made after the results whose mechanism was not tested separately.
+- **Among the doses tested, 16× helps most and 100× less.** Against no assurance: 1× +0.046, 4× +0.145, 10× +0.256, 16× +0.273, 100× +0.232 SD; no dose between 16× and 100× was run. Under 16×, mean quality first rises above the level that stops greenwashing and later falls back in 28 of 30 seeds, and greenwashing persists into the last four years in all 30.
+- **Mandating only large firms narrows the size gap but pushes greenwashing to mid and small firms.** Large minus small +0.563 SD; equal-weighted only +0.057 SD.
+- **Information still beats the assurance setting with the largest gain among those tested (ALL_R16),** by a small margin: +0.028 SD [+0.018, +0.038].
+- **Nobody buys voluntary assurance,** because investors in the model see only reported scores and do not reward assurance. This follows from the model's assumptions; it is not a prediction. The model also publishes neither whether a firm is assured nor the provider's report, although the Shanghai Stock Exchange guidelines (Art. 58) require a firm that hires a provider to disclose them.
+- All five of this experiment's primary questions are supported; this does not by itself validate every mechanism described above. The magnitudes are for the main setting (0.2 SD/year of decay); without decay every effect is small and keeps its sign (+0.030, −0.010, +0.004 and +0.009 SD for the counterparts of the first, second, third and sixth points). 29 runs triggered the price guard; as pre-registered they stay in the main analysis, and excluding them leaves all five primary verdicts unchanged.
+
+## Learning firms (stage D.3)
+
+> Confirmatory redo (2026-10-23), pre-registered in the [research contract, §23](docs/disclosure_research_contract.md) and committed before implementation and runs (`8bb5d9e`). Tabular Q-learning firms learn from their realised accounts: 10 independent trainings × 2 state versions (A: the stage D.2 state; V: the cost tier replaced by the firm's cumulative real improvement) × 4 scenarios (B, I, F, IF), compared with an NPV firm on the same action grid (discrete NPV). 540/540 jobs completed. Full tables: [stage D.3 report (Chinese)](reports/disclosure_learning_redo_20261021/README.md).
+
+- **Stage D is still not accepted.** 91/100 tables pass the coverage test. All 9 failures are post-policy tables, 8 of them in the large-firm group.
+- **Training randomness dominates.** Within a scenario, the greenwashing share differs 14–18 times more between independently trained tables than within one table across validation seeds, so a single table cannot answer a policy question.
+- **A greenwashing trap, not learned profit (P1 supported).** Under the information policy, learning firms greenwash in 23.7% of decisions against 3.8% for discrete NPV: +19.9 percentage points, Holm p = 0.031. The extra greenwashing loses a median of about 0.042 basis points of market value per decision against the NPV choice, far below the reward noise. The learners cannot learn their way out of it; they have not learned that greenwashing pays. The other four primary questions (P2–P5) are unresolved.
+- **Seeing improvement cuts greenwashing, not into improvement** (auxiliary, uncorrected). With the V state, pre-policy tables trained from scratch greenwash 34.7 percentage points less, but those decisions become “maintain”, and real improvement shows no significant increase.
+- **Fragile, and outside the main conclusions.** Dropping the 5 replicates that contain a failing table leaves P1 unresolved too. Learning firms stay out of the stage F conclusions above.
+
 ## Roadmap
 
 - [x] Single-asset market foundation (Stage 1): frozen v15 formal acceptance 22/22
@@ -122,8 +157,9 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] Greenwashing-condition diagnosis and evidence review
 - [x] Firm game with capped lump-sum fines, plus two inspection-game propositions (stage B)
 - [x] Investor evolution: imitation rule corrected against replicator dynamics (stage C)
-- [x] Learning firms: compared; they did not pass acceptance and are excluded from the formal experiment (stage D)
-- [ ] New agents: risk-based regulator, assurance providers, rating disagreement
+- [x] Learning firms: compared, then redone with 10 independent trainings per scenario (stage D.3, 2026-10-23); coverage 91/100 tables, so they still do not pass acceptance and are excluded from the formal experiment (stage D)
+- [x] New agents: risk-based regulator with targeted audits (stage E.1, 2026-10-20) and strategic assurance providers (stage E.2, 2026-10-21)
+- [ ] Rating disagreement
 - [x] Formal experiments: information vs enforcement, phase diagrams, size divide (fresh seeds, design frozen before running; stage F)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
 

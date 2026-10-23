@@ -1,0 +1,242 @@
+{
+ "training_worlds": 7040,
+ "with_truncation": 212,
+ "by_seed": {
+  "seed_47006": {
+   "worlds": 2,
+   "first_day": 274
+  },
+  "seed_47009": {
+   "worlds": 2,
+   "first_day": 359
+  },
+  "seed_47039": {
+   "worlds": 2,
+   "first_day": 912
+  },
+  "seed_47040": {
+   "worlds": 1,
+   "first_day": 1508
+  },
+  "seed_47105": {
+   "worlds": 2,
+   "first_day": 1061
+  },
+  "seed_47115": {
+   "worlds": 2,
+   "first_day": 1471
+  },
+  "seed_47117": {
+   "worlds": 2,
+   "first_day": 380
+  },
+  "seed_47121": {
+   "worlds": 2,
+   "first_day": 257
+  },
+  "seed_47128": {
+   "worlds": 2,
+   "first_day": 906
+  },
+  "seed_47157": {
+   "worlds": 2,
+   "first_day": 1025
+  },
+  "seed_47159": {
+   "worlds": 2,
+   "first_day": 236
+  },
+  "seed_45103": {
+   "worlds": 8,
+   "first_day": 435
+  },
+  "seed_45138": {
+   "worlds": 6,
+   "first_day": 2888
+  },
+  "seed_47217": {
+   "worlds": 2,
+   "first_day": 1096
+  },
+  "seed_47239": {
+   "worlds": 2,
+   "first_day": 1023
+  },
+  "seed_47263": {
+   "worlds": 2,
+   "first_day": 1615
+  },
+  "seed_47282": {
+   "worlds": 2,
+   "first_day": 895
+  },
+  "seed_45239": {
+   "worlds": 8,
+   "first_day": 271
+  },
+  "seed_45263": {
+   "worlds": 8,
+   "first_day": 669
+  },
+  "seed_45324": {
+   "worlds": 8,
+   "first_day": 531
+  },
+  "seed_45338": {
+   "worlds": 8,
+   "first_day": 1498
+  },
+  "seed_47414": {
+   "worlds": 2,
+   "first_day": 770
+  },
+  "seed_47421": {
+   "worlds": 2,
+   "first_day": 329
+  },
+  "seed_47429": {
+   "worlds": 2,
+   "first_day": 1688
+  },
+  "seed_47467": {
+   "worlds": 2,
+   "first_day": 3145
+  },
+  "seed_47490": {
+   "worlds": 2,
+   "first_day": 1590
+  },
+  "seed_45459": {
+   "worlds": 8,
+   "first_day": 865
+  },
+  "seed_47450": {
+   "worlds": 1,
+   "first_day": 2898
+  },
+  "seed_47521": {
+   "worlds": 2,
+   "first_day": 3331
+  },
+  "seed_47528": {
+   "worlds": 2,
+   "first_day": 341
+  },
+  "seed_47536": {
+   "worlds": 2,
+   "first_day": 970
+  },
+  "seed_47589": {
+   "worlds": 2,
+   "first_day": 278
+  },
+  "seed_45551": {
+   "worlds": 8,
+   "first_day": 3034
+  },
+  "seed_47606": {
+   "worlds": 1,
+   "first_day": 2698
+  },
+  "seed_47607": {
+   "worlds": 2,
+   "first_day": 267
+  },
+  "seed_47622": {
+   "worlds": 2,
+   "first_day": 2537
+  },
+  "seed_47634": {
+   "worlds": 2,
+   "first_day": 1655
+  },
+  "seed_47641": {
+   "worlds": 2,
+   "first_day": 604
+  },
+  "seed_47667": {
+   "worlds": 2,
+   "first_day": 737
+  },
+  "seed_47692": {
+   "worlds": 2,
+   "first_day": 871
+  },
+  "seed_45627": {
+   "worlds": 8,
+   "first_day": 214
+  },
+  "seed_47665": {
+   "worlds": 1,
+   "first_day": 2884
+  },
+  "seed_47792": {
+   "worlds": 2,
+   "first_day": 1458
+  },
+  "seed_45710": {
+   "worlds": 7,
+   "first_day": 2726
+  },
+  "seed_45756": {
+   "worlds": 8,
+   "first_day": 383
+  },
+  "seed_47811": {
+   "worlds": 2,
+   "first_day": 388
+  },
+  "seed_47838": {
+   "worlds": 2,
+   "first_day": 548
+  },
+  "seed_47839": {
+   "worlds": 2,
+   "first_day": 1083
+  },
+  "seed_47855": {
+   "worlds": 2,
+   "first_day": 230
+  },
+  "seed_47891": {
+   "worlds": 2,
+   "first_day": 2186
+  },
+  "seed_45801": {
+   "worlds": 8,
+   "first_day": 1526
+  },
+  "seed_45806": {
+   "worlds": 8,
+   "first_day": 784
+  },
+  "seed_45815": {
+   "worlds": 8,
+   "first_day": 1109
+  },
+  "seed_45859": {
+   "worlds": 8,
+   "first_day": 813
+  },
+  "seed_47806": {
+   "worlds": 1,
+   "first_day": 1377
+  },
+  "seed_47917": {
+   "worlds": 2,
+   "first_day": 1865
+  },
+  "seed_47972": {
+   "worlds": 2,
+   "first_day": 2410
+  },
+  "seed_45913": {
+   "worlds": 8,
+   "first_day": 535
+  },
+  "seed_45963": {
+   "worlds": 8,
+   "first_day": 1726
+  }
+ }
+}

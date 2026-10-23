@@ -14,7 +14,7 @@ from typing import Any, Mapping
 
 TRADING_DAYS_PER_YEAR = 252
 IMITATION_RULES = ("type_mean", "pairwise")
-LEARNING_CONTEXTS = ("exposure", "signal_tercile")
+LEARNING_CONTEXTS = ("exposure", "signal_tercile", "improvement_stock")
 
 
 @dataclass(frozen=True, slots=True)

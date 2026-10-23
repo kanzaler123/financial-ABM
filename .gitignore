@@ -101,3 +101,9 @@ reports/disclosure_assurance_20261021/assurance_v1/
 reports/disclosure_assurance_20261021/check_v1/
 reports/disclosure_assurance_20261021/work_check/
 reports/disclosure_assurance_20261021/work_*.log
+# Learning-firm redo (contract section 23): compact archives, launcher output and local work files (regenerable from the specs)
+reports/disclosure_learning_redo_20261021/dev_v1/
+reports/disclosure_learning_redo_20261021/redo_v1/
+reports/disclosure_learning_redo_20261021/work_*
+reports/disclosure_learning_redo_20261021/*.err
+reports/disclosure_learning_redo_20261021/*.out
