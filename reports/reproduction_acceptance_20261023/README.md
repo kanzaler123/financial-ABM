@@ -138,11 +138,10 @@ python -m pytest -p no:cacheprovider
 ## 7. 发现的问题
 
 1. **完整仿真离不开供应商派生的领域文件。** 这是授权限制下的设计选择，各报告 README 的“复现”一节也写了。对外的影响是：别人用公开仓库能核对表格、图和配置，但不能独立核对任何一个仿真结果或 `experiment_id`（学习型企业重做的除外）。
-2. **冻结身份绑定了一个文件的本地换行**（第 5 节）。原作者工作副本中的 `src/abm/mechanism_validation.py` 是 CRLF，而 `source_hashes()` 对文件字节取哈希，所以阶段 F 以来所有记录的源码表、源码摘要和 `experiment_id` 都依赖这个本地换行，干净克隆（LF）重现不了。代码内容相同，结果不受影响。可选的处理有两种：
-   - (i) 保持现状，在契约中注明，并说明复现时把该文件转成 CRLF；
-   - (ii) 把工作副本中的该文件规范化为 LF。之后新冻结的身份就能从干净克隆重现，但对已有档案运行 `--resume` 或 `finalize.py` 会被身份检查拒绝，要先改回 CRLF。
-
-   本分支没有改契约，也没有动原作者的工作副本。
+2. **冻结身份绑定了一个文件的本地换行**（第 5 节）。原作者工作副本中的 `src/abm/mechanism_validation.py` 是 CRLF，而 `source_hashes()` 对文件字节取哈希，所以阶段 F 以来所有记录的源码表、源码摘要和 `experiment_id` 都依赖这个本地换行，干净克隆（LF）重现不了。代码内容相同，结果不受影响。**原作者决定分阶段处理（2026-10-23），已写入[契约第 8 节](../../docs/disclosure_research_contract.md#8-种子统计与预注册状态)：**
+   - **当前：** 工作副本保持不变；全部历史哈希与 `experiment_id` 保留原值；旧档案不改写；运行器的源码一致性检查不放宽。
+   - **旧档案的复现与续跑：** 在冻结时提交的独立副本中进行，不在日常工作副本里切换换行。工具是 [historical_source.py](historical_source.py)，见第 9 节。
+   - **新实验：** 一律用 LF。冻结前必须通过 [check_clean_source.py](check_clean_source.py)，确认源码摘要和冻结身份与干净克隆一致，见第 9 节。
 3. **阶段 F 的两个脚本按平台换行写文件。** `build_specs.py` 与 `tables.py` 调用 `write_text` 时没有传 `newline="\n"`，在 Windows 上写出 CRLF。所以契约第 376 行记录的配置 SHA256 是 CRLF 文件的哈希，而 git 里的配置是 LF（哈希 `4c16e210…`）；在 Linux 或 macOS 上重跑这两个脚本，配置的哈希与契约记录的不同，两份表格只在换行上与已提交的不同（`rebuild_tables.json` 的 `identical_after_crlf_to_lf` 一项可用来区分）。后来的脚本都已改用 `newline="\n"`。这两个脚本在哈希绑定的报告目录里，本分支没有改动，建议在契约第 376 行注明“（CRLF）”。
 4. **已提交的论文 PDF 图不是用锁定的 matplotlib 画的。** 图是 matplotlib 3.11.0 画的，锁定文件写的是 3.11.1，两者的 PDF 后端对字体子集的处理不同。要么在锁定环境里重画图并重编论文，要么在 `paper/README.md` 写明版本。两者都会碰到 PR #26 正在修改的 `paper/main.pdf`，所以本分支没有改。
 5. **学习型企业重做的规格脚本缺领域文件就不能写出配置。** 它读领域文件只为算 `domain_sha256`，而这个值已经记在配置里。其他 6 个脚本都是先写配置、后做派生核对，所以没有领域文件也能核对配置字节，但退出码是 1，各 README 也没有说明这一点。
@@ -171,3 +170,48 @@ git checkout -- configs paper showcase
 ```
 
 规格脚本中 7 个会以退出码 1 结束（第 5 节），这是预期结果。`check_specs.py` 在领域文件存在时会用 `freeze_spec` 重算其余规格的 `experiment_id`，并核对领域文件的 SHA256。两个脚本只写 `--out` 指定的文件。
+
+## 9. 换行问题的处理工具
+
+两个工具都只比较字节和完整的冻结身份，不做任何规范化或豁免；运行器自身的源码一致性检查不变。
+
+**旧档案：[historical_source.py](historical_source.py)。** 它做四件事：
+1. 用 `git archive` 把冻结时的提交导出到本工作副本之外的新目录，导出时不做换行转换；
+2. 只把 `--crlf` 列出的文件转成 CRLF，默认只有 `src/abm/mechanism_validation.py`；
+3. 在副本里用副本自己的 `source_hashes()`，与档案的源码表逐文件比较，并确认 `abm` 确实是从副本导入的；
+4. 给了 `--domain` 时，把领域文件复制进副本，在副本中运行 `freeze_spec`，与档案的 `experiment.json` 逐字段比较，这正是 `--resume` 要做的比较。学习型企业重做的档案改为核对规格哈希、`experiment_id` 和源码摘要。
+
+档案只读。2026-10-23 用原作者本地的档案和领域文件实测，结果如下：
+
+| 档案 | `--commit` | 源码表 | 冻结身份 |
+|---|---|---|---|
+| 阶段 F `confirmatory_v1/` | `2b08f65` | 52 个文件一致 | 逐字段一致，`90ee8606…5d57` |
+| 衰减网格 `grid_v1/` | `e2cec47` | 52 个文件一致 | 逐字段一致，`19385815…7740` |
+| 第 21 节 `audits_v1/` | `3fced38` | 52 个文件一致 | 逐字段一致，`06bec148…2a32` |
+| 第 22 节 `assurance_v1/` | `e6854a0` | 52 个文件一致 | 逐字段一致，`35c4f767…339a` |
+| 第 23 节 `redo_v1/` | `3d82afe` | 52 个文件一致 | 规格哈希、`experiment_id`、源码摘要一致 |
+| 第 24 节 `joint_v1/` | `be0f850` | 52 个文件一致 | 逐字段一致，`c856a0cd…6765` |
+| 第 22 节，不恢复 CRLF（`--crlf` 为空） | `e6854a0` | 1 个文件不同 | 在 `experiment_id`、`source_hashes` 上不同，退出码 1 |
+| 第 24 节，给错提交 | `3d82afe` | — | 该提交里没有这份规格，退出码 1 |
+
+`--commit` 要用首次提交该规格的提交，这时规格和源码都已经提交。上表各档案对应的提交可用 `git log --diff-filter=A -- configs/<规格>` 查到。核对通过后，从副本目录运行档案自己的脚本（如 `finalize.py --resume`），设 `PYTHONPATH=<副本>/src`，`--output` 指向原档案。
+
+```
+python reports/reproduction_acceptance_20261023/historical_source.py --archive <档案目录> --commit <冻结提交> --dest <新目录> --domain <领域文件>
+```
+
+**新实验：[check_clean_source.py](check_clean_source.py)。** 冻结前在将要运行实验的工作副本中执行 `--spec <规格>`，以下各项都满足才通过：
+- `src/abm` 下每个 `*.py` 都已跟踪，并且与 HEAD 的 blob 逐字节一致。只差换行的文件会单独标出，但同样不通过；
+- 源码摘要与干净克隆的相同；
+- 规格已提交且未改动；
+- 在工作副本和 HEAD 的干净导出中运行 `freeze_spec`，得到逐字段相同的冻结身份。
+
+实测结果：
+
+| 位置 | 结果 |
+|---|---|
+| 本次的干净克隆，`--source-only` | 通过，摘要 `c4423d93…7246` |
+| 本次的干净克隆，`--spec configs/disclosure_joint_robustness_v1.json`（临时复制领域文件，用后删除） | 通过，两边的 `experiment_id` 都是 `6814b6ff…63b0` |
+| 原作者的日常工作副本（只读），同一规格 | 不通过：`mechanism_validation.py` 的换行与 HEAD 不同；冻结身份在 `experiment_id`、`source_hashes` 上不同（`c856a0cd…` 对 `6814b6ff…`） |
+
+所以在日常工作副本中的这个文件改成 LF 之前，新实验要在干净克隆中冻结和运行。
