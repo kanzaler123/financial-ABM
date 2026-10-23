@@ -1,0 +1,109 @@
+{
+  "experiment_id": "f29cf7364f2a6d0906564773598bf1deb4e5b9fdf703ac7b58b48f1a5049eeb4",
+  "planned": 48,
+  "complete": 48,
+  "failed": [],
+  "attempts_not_complete": {},
+  "failing_core_validation": 6,
+  "core_validation_failures": [
+    {
+      "scenario": "B",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    },
+    {
+      "scenario": "F",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    },
+    {
+      "scenario": "I",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    },
+    {
+      "scenario": "rep_B",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    },
+    {
+      "scenario": "rep_F",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    },
+    {
+      "scenario": "rep_I",
+      "seed": 33002,
+      "price_cap_hits": 1,
+      "first_cap_day": 741
+    }
+  ],
+  "metric_windows": [
+    [
+      1200,
+      3500
+    ]
+  ],
+  "pre_switch_pairing": {
+    "main": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "P": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "R0.32": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "R0.5": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "RP0.32": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "RP0.5": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "RPW0.32": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "RPW0.5": {
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    }
+  },
+  "wash_cost_ratios": {
+    "33001_0.32": {
+      "identical_across_scenarios": true,
+      "mean": 0.1886280804802479,
+      "log_sd": 0.6692183079863204
+    },
+    "33001_0.5": {
+      "identical_across_scenarios": true,
+      "mean": 0.1886280804802479,
+      "log_sd": 0.6692183079863204
+    },
+    "33002_0.32": {
+      "identical_across_scenarios": true,
+      "mean": 0.20822605308494638,
+      "log_sd": 0.7136625980292082
+    },
+    "33002_0.5": {
+      "identical_across_scenarios": true,
+      "mean": 0.20822605308494638,
+      "log_sd": 0.7136625980292082
+    }
+  },
+  "wash_cost_ratio_absent_outside_triple_block": true
+}
