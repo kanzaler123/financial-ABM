@@ -1,7 +1,8 @@
 {
   "title": "Financial ABM: an auditable multi-agent artificial market for ESG disclosure and greenwashing policy experiments",
   "upload_type": "software",
-  "description": "<p>Code, configurations, pre-registrations and evidence for the working paper <em>Information versus Enforcement against Greenwashing: Pre-Registered Experiments in a Multi-Agent Artificial Market</em> (Ellis Lin, 2026). An agent-based artificial financial market in which profit-maximising and impact investors evolve by imitation, firms choose between real improvement, greenwashing and maintenance, and a regulator sets transparency, audits and fines. The archive contains the pre-registered stage F experiment (59 scenarios x 30 paired seeds), its exploratory supplements, the pre-registered targeted-audit experiment (15 scenarios x 30 seeds) and the paper source. Vendor data without a redistribution licence are not included; collection scripts and hash manifests are. Results are conditional on the model.</p>",
+  "version": "0.3.0",
+  "description": "<p>Code, configurations, pre-registrations and evidence for the working paper <em>Information versus Enforcement against Greenwashing: Pre-Registered Experiments in a Multi-Agent Artificial Market</em> (Ellis Lin, 2026). An agent-based artificial financial market in which profit-maximising and impact investors evolve by imitation, firms choose between real improvement, greenwashing and maintenance, and a regulator sets transparency, audits and fines. The archive contains the pre-registered stage F experiment (59 scenarios x 30 paired seeds) and its exploratory supplements, the pre-registered joint robustness test (24 scenarios x 30 seeds), the pre-registered experiments on targeted audits (15 scenarios x 30 seeds), assurance providers (18 scenarios x 30 seeds) and learning firms (10 independent trainings per scenario), a check of what the public repository alone can rebuild, and the paper source. Vendor data without a redistribution licence are not included; collection scripts and hash manifests are. Results are conditional on the model.</p>",
   "creators": [
     {
       "name": "Lin, Ellis",
@@ -16,6 +17,7 @@
     "greenwashing",
     "disclosure policy",
     "audit targeting",
+    "third-party assurance",
     "pre-registration",
     "computational economics"
   ]
