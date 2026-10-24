@@ -141,6 +141,21 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
 
 开发 spec 采用 name、purpose=development、相对 spec 路径的 domain、market、seeds、scenarios、comparisons、analysis。正式 purpose=confirmatory 仅在相关验收项通过并完成源码/配置/分析指纹绑定后使用。仅写出配置文件不等于预注册已冻结。
 
+**源码身份与换行（2026-10-23 追加；已记录的配置哈希、源码摘要和 `experiment_id` 一律保留原值）。** 见[复现验收报告](../reports/reproduction_acceptance_20261023/README.md)第 5 节。
+
+- **事实。** 冻结阶段 F 及以后各实验身份的工作副本中，`src/abm/mechanism_validation.py` 是 CRLF，git 中是 LF，两者文本相同。`source_hashes()` 按文件字节取哈希，所以记录的源码表都含该文件的 CRLF 哈希 `3c70fc90…`。依赖这个哈希的有：第 21–23 节的源码摘要，以及第 20–24 节由 `freeze_spec` 冻结的 `experiment_id`。
+- **已核对的档案。** 阶段 F 的开发与确认性档案、衰减网格档案、第 21–24 节的开发与确认性档案，记录的都是这个哈希。只把该文件转成 CRLF，各自冻结时的提交就能逐字节重现其源码表，对应关系是：阶段 F `2b08f65`、衰减网格 `e2cec47`、第 21 节 `3fced38`、第 22 节 `e6854a0`、第 23 节 `3d82afe`、第 24 节 `be0f850`。在这些副本中运行 `freeze_spec`，阶段 F、衰减网格、第 21、22、24 节确认性档案的冻结身份与档案逐字段相同；第 23 节的规格哈希、`experiment_id` 和源码摘要也相同。
+- **未核对的档案。** 第 20.17–20.20 条（反馈分解）的逐次记录不含源码表；第 20.21 条的 `robust_v1/` 在本地没有找到。两者都没有核对。
+- **对结果的影响。** 代码内容不变，结果不受影响。但干净克隆（LF）算出的源码摘要和 `experiment_id` 与上述记录不同。
+- **旧档案的复现与续跑。** 不在日常工作副本里切换换行。用 [historical_source.py](../reports/reproduction_acceptance_20261023/historical_source.py) 把冻结时的提交导出到独立副本，在副本中恢复该文件的 CRLF，然后与档案逐文件核对完整源码表；有领域文件时，再用 `freeze_spec` 核对完整冻结身份。核对全部通过后，才在该副本中运行档案自己的脚本：`PYTHONPATH` 指向副本的 `src`，`--output` 指向档案。档案不改写；运行器在续跑与收尾时的源码一致性检查不放宽。
+- **新实验。** 源码一律用 LF。冻结前运行 [check_clean_source.py](../reports/reproduction_acceptance_20261023/check_clean_source.py) `--spec <规格>`，必须同时满足以下条件，否则不冻结：
+  - `src/abm` 的每个文件都与 HEAD 逐字节一致；
+  - 源码摘要与干净克隆相同；
+  - 规格已提交；
+  - 工作副本与 HEAD 的干净导出用 `freeze_spec` 得到逐字段相同的冻结身份。
+
+  冻结时在本节记录源码摘要，并注明它与干净克隆一致。当前日常工作副本中该文件仍是 CRLF，检查会失败。下一次冻结之前，要么在干净克隆中冻结和运行，要么先把工作副本中的该文件规范化为 LF；规范化之后，旧档案仍按上一条在独立副本中续跑。
+
 ## 9. 按顺序的证据门槛
 
 1. 实现与指标：守恒、预算约束、延迟、容量、分段 FOC、零偏好/零 II、复现、指标手算与窗口边界测试；确认所有主场景明确覆盖 burn_in_days=1200、policy_start=1201。
