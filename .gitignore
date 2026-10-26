@@ -123,3 +123,7 @@ reports/disclosure_persistence_estimation_20261026/work_check/
 # CNRDS exports (licensed, local only)
 data/raw/cnrds_*/
 data/processed/cnrds_*/
+# Stage H3 confirmatory archives, development check and local work files (contract 25.17-25.18)
+reports/disclosure_stage_h3_20261027/h3_v1/
+reports/disclosure_stage_h3_20261027/check_v1/
+reports/disclosure_stage_h3_20261027/work_check/
