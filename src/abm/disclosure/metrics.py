@@ -126,8 +126,11 @@ def compute_metrics(
     )
     if domain.natural_reversion:
         # Reverting values: the expected no-action path from the same cross-section.
-        terminal_baseline = expected_natural_path(domain, true[0], terminal_days)
-        baseline = expected_natural_path(domain, true[start], np.array([end - start]))[0]
+        anchor = getattr(result, "reversion_anchor", None)
+        terminal_baseline = expected_natural_path(domain, true[0], terminal_days,
+                                                  anchor=None if anchor is None else anchor[0])
+        baseline = expected_natural_path(domain, true[start], np.array([end - start]),
+                                         anchor=None if anchor is None else anchor[start])[0]
     gain = true[end] - baseline
     size = {}
     for index, name in enumerate(SIZE_CLASS_NAMES):

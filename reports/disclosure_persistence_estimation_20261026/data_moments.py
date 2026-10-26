@@ -18,7 +18,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-import openpyxl
 from scipy.special import ndtri
 from scipy.stats import rankdata
 
@@ -72,6 +71,8 @@ def moments(Z, label):
 
 
 def main():
+    import openpyxl  # only to read the panel; the moment functions above do not need it
+
     rows = list(openpyxl.load_workbook(SOURCE, read_only=True, data_only=True).worksheets[0].iter_rows(values_only=True))[1:]
     firms = sorted({r[0] for r in rows})
     dates = sorted({r[1].date() for r in rows})

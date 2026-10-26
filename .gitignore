@@ -114,3 +114,9 @@ reports/disclosure_learning_redo_20261021/*.out
 reports/disclosure_joint_robustness_20261023/joint_v1/
 reports/disclosure_joint_robustness_20261023/check_v1/
 reports/disclosure_joint_robustness_20261023/work_*
+# Stage H persistence estimation archives (local only; contract 25)
+reports/disclosure_persistence_estimation_20261026/grid_v1/
+reports/disclosure_persistence_estimation_20261026/check_v1/
+reports/disclosure_persistence_estimation_20261026/final_v1/
+reports/disclosure_persistence_estimation_20261026/recovery_v1/
+reports/disclosure_persistence_estimation_20261026/work_check/
