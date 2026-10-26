@@ -120,3 +120,6 @@ reports/disclosure_persistence_estimation_20261026/check_v1/
 reports/disclosure_persistence_estimation_20261026/final_v1/
 reports/disclosure_persistence_estimation_20261026/recovery_v1/
 reports/disclosure_persistence_estimation_20261026/work_check/
+# CNRDS exports (licensed, local only)
+data/raw/cnrds_*/
+data/processed/cnrds_*/
