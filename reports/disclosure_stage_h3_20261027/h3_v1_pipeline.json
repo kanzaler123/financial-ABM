@@ -1,0 +1,173 @@
+{
+  "experiment_id": "12fe871ed3a81d1b7f3ace185fa8c01385612bd0e908b9330b792050612cd8eb",
+  "purpose": "confirmatory",
+  "planned": 720,
+  "complete": 720,
+  "attempts_by_status": {
+    "complete": 720
+  },
+  "failing_core_validation": 0,
+  "core_validation_failures": [],
+  "metric_windows": [
+    [
+      1200,
+      3500
+    ]
+  ],
+  "policy_window_decisions_per_trial": [
+    7600
+  ],
+  "pre_switch_pairing": {
+    "main": {
+      "pairs_compared": 510,
+      "pairs_differing_before_switch": 0
+    },
+    "u0p2": {
+      "pairs_compared": 60,
+      "pairs_differing_before_switch": 0
+    },
+    "perm": {
+      "pairs_compared": 60,
+      "pairs_differing_before_switch": 0
+    }
+  },
+  "policy_activity": {
+    "B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "IF": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F_2x": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F_8x": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "A2": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "V": {
+      "has_audit_probability": 30,
+      "has_audit_flags": 30,
+      "has_assurer_assignment": 0,
+      "periods_with_unequal_rates": 1140,
+      "flags_in_window": 0
+    },
+    "V_hidden": {
+      "has_audit_probability": 30,
+      "has_audit_flags": 30,
+      "has_assurer_assignment": 0,
+      "periods_with_unequal_rates": 1140,
+      "flags_in_window": 0
+    },
+    "J": {
+      "has_audit_probability": 30,
+      "has_audit_flags": 30,
+      "has_assurer_assignment": 0,
+      "periods_with_unequal_rates": 1140,
+      "flags_in_window": 84799
+    },
+    "J_hidden": {
+      "has_audit_probability": 30,
+      "has_audit_flags": 30,
+      "has_assurer_assignment": 0,
+      "periods_with_unequal_rates": 1140,
+      "flags_in_window": 84256
+    },
+    "VF": {
+      "has_audit_probability": 30,
+      "has_audit_flags": 30,
+      "has_assurer_assignment": 0,
+      "periods_with_unequal_rates": 1140,
+      "flags_in_window": 0
+    },
+    "ALL_R1": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 228000
+    },
+    "ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 228000
+    },
+    "ALL_F1": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 228000
+    },
+    "ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 228000
+    },
+    "LRG_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 22800
+    },
+    "LRG_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 30,
+      "assigned_firm_periods_in_window": 22800
+    },
+    "u0p2_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "u0p2_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "u0p2_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "perm_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "perm_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "perm_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    }
+  },
+  "activity_where_expected": true
+}
