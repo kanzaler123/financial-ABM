@@ -1,0 +1,616 @@
+{
+  "name": "disclosure_stage_h3_check_v1",
+  "purpose": "development",
+  "archive": "compact",
+  "_note": "Stage H3 (research contract section 25.8): the paper's main results rerun at the stage H point estimate of the natural dynamics (form Q, kappa_T 0.505, s_P 0.423), with a reference block under the original uniform decay 0.2 and a block where improvements do not revert. Development and confirmatory specs differ only in name, purpose and seeds; the development run checks the pipeline and may not change the design. The Holm family is the eight primary_questions, adjusted together in analyze.py; no comparison is primary for the runner.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    36001,
+    36002
+  ],
+  "scenarios": [
+    {
+      "name": "B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "IF",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6,
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "F_2x",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 9.122981607327919e-05
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "F_8x",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00036491926429311675
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "A2",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_probability": 0.02
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "V_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "VF",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "ALL_R1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "ALL_F1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "LRG_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "LRG_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "u0p2_B"
+    },
+    {
+      "name": "u0p2_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    },
+    {
+      "name": "u0p2_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      }
+    },
+    {
+      "name": "perm_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      }
+    },
+    {
+      "name": "perm_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      }
+    },
+    {
+      "name": "perm_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "P1_I_minus_F",
+      "weights": {
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "P2_F_minus_B",
+      "weights": {
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "P4_J_minus_J_hidden",
+      "weights": {
+        "J": 1,
+        "J_hidden": -1
+      }
+    },
+    {
+      "name": "P6_V_minus_B_size",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      }
+    },
+    {
+      "name": "I_minus_B",
+      "weights": {
+        "I": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "V_minus_A2",
+      "weights": {
+        "V": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "J_minus_A2",
+      "weights": {
+        "J": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "F_minus_F_2x",
+      "weights": {
+        "F": 1,
+        "F_2x": -1
+      }
+    },
+    {
+      "name": "F_8x_minus_F",
+      "weights": {
+        "F_8x": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "B_minus_u0p2_B",
+      "weights": {
+        "B": 1,
+        "u0p2_B": -1
+      }
+    },
+    {
+      "name": "I_minus_u0p2_I",
+      "weights": {
+        "I": 1,
+        "u0p2_I": -1
+      }
+    },
+    {
+      "name": "F_minus_u0p2_F",
+      "weights": {
+        "F": 1,
+        "u0p2_F": -1
+      }
+    },
+    {
+      "name": "u0p2_I_minus_u0p2_F",
+      "weights": {
+        "u0p2_I": 1,
+        "u0p2_F": -1
+      }
+    },
+    {
+      "name": "u0p2_F_minus_u0p2_B",
+      "weights": {
+        "u0p2_F": 1,
+        "u0p2_B": -1
+      }
+    },
+    {
+      "name": "u0p2_I_minus_u0p2_B",
+      "weights": {
+        "u0p2_I": 1,
+        "u0p2_B": -1
+      }
+    },
+    {
+      "name": "perm_I_minus_perm_F",
+      "weights": {
+        "perm_I": 1,
+        "perm_F": -1
+      }
+    },
+    {
+      "name": "perm_F_minus_perm_B",
+      "weights": {
+        "perm_F": 1,
+        "perm_B": -1
+      }
+    },
+    {
+      "name": "perm_I_minus_perm_B",
+      "weights": {
+        "perm_I": 1,
+        "perm_B": -1
+      }
+    }
+  ],
+  "primary_questions": [
+    {
+      "id": "P1",
+      "comparison": "P1_I_minus_F",
+      "kind": "runner_metric",
+      "weights": {
+        "I": 1,
+        "F": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": 1
+    },
+    {
+      "id": "P2",
+      "comparison": "P2_F_minus_B",
+      "kind": "runner_metric",
+      "weights": {
+        "F": 1,
+        "B": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": 1
+    },
+    {
+      "id": "P3",
+      "comparison": "P3_F_minus_B_large_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "F": 1,
+        "B": -1
+      },
+      "share": "large",
+      "direction": 1,
+      "definition": "large firms' washing decisions / all washing decisions, decision days 1260-3480"
+    },
+    {
+      "id": "P4",
+      "comparison": "P4_J_minus_J_hidden",
+      "kind": "runner_metric",
+      "weights": {
+        "J": 1,
+        "J_hidden": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": -1
+    },
+    {
+      "id": "P5",
+      "comparison": "P5_V_minus_B_small_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "share": "small",
+      "direction": 1,
+      "definition": "small firms' washing decisions / all washing decisions, decision days 1260-3480"
+    },
+    {
+      "id": "P6",
+      "comparison": "P6_V_minus_B_size",
+      "kind": "runner_metric",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "metric": "size.large_minus_small_sd",
+      "direction": 1
+    },
+    {
+      "id": "P7",
+      "comparison": "P7_ALL_F16_minus_ALL_R16",
+      "kind": "runner_metric",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": -1
+    },
+    {
+      "id": "P8",
+      "comparison": "P8_ALL_F16_minus_ALL_R16_laxest_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      },
+      "share": "laxest",
+      "direction": 1,
+      "definition": "assured firms' washing decisions made by clients of the provider with that year's lowest quality / all washing decisions of assured firms, decision days 1260-3480"
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

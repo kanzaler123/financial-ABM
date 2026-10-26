@@ -393,6 +393,7 @@ def npv_choices(
             implementation_delay=domain.implementation_delay_days,
             disclosure_delay=disclosure_delay, audit_probability=planned,
             transparency=regime.transparency, assurance_probability=assurance_probability,
+            real_persistence=real_persistence,
         )
         checked = np.asarray(assurance_probability) > 0
         real_annuity, displaced_annuity, wash_annuity, detection = (
@@ -653,22 +654,21 @@ class DisclosureMarket(CrossSectionMarket):
             raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
         regimes = [regime for regime in (policy.baseline, policy.intervention) if regime is not None]
         self.audit_targeting = any(regime.audit_allocation != "uniform" for regime in regimes)
-        if self.audit_targeting and (config.firm_policy != "npv" or domain.natural_reversion or any(
+        if self.audit_targeting and (config.firm_policy != "npv" or any(
             regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes
         )):
-            raise ValueError("targeted audits are modelled only with NPV firms, daily reports, unpublished audits "
-                             "and non-reverting true values")
+            raise ValueError("targeted audits are modelled only with NPV firms, daily reports and unpublished audits")
         assured = policy.intervention is not None and policy.intervention.assurance_scope != "none"
         if policy.baseline.assurance_scope != "none":
             raise ValueError("assurance is modelled only as a policy switch")
         if assured:
             delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
                      else policy.intervention.disclosure_delay_days)
-            if (config.firm_policy != "npv" or domain.natural_reversion or self.audit_targeting
+            if (config.firm_policy != "npv" or self.audit_targeting
                     or any(regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes)
                     or not 0 < delay < config.firm_decision_interval):
-                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits, "
-                                 "non-reverting true values and a disclosure delay shorter than a decision period")
+                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits "
+                                 "and a disclosure delay shorter than a decision period")
         # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
         self.report_after_audit: FloatArray | None = None
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
@@ -1094,7 +1094,10 @@ class DisclosureMarket(CrossSectionMarket):
 
         Firms take this audit's number of flagged firms, at least one, as the next audit's and apply
         the regulator's rule. The room is the threshold less actions landing before the next audit,
-        plus one period of natural decay; report bounds are ignored.
+        plus one period of natural decay and, under reversion, less one period of expected reversion
+        drift -(1 - r^P)(x_i - mean x), with r = exp(-reversion / year), P the decision interval and
+        x = g - anchor (x = g without an anchor). Shocks have mean zero and are left out, as are
+        report bounds and the reversion of actions landing within the period.
         """
         size, period = self.config.n_firms, self.config.firm_decision_interval
         forecast = np.zeros(size, dtype=bool)
@@ -1106,7 +1109,13 @@ class DisclosureMarket(CrossSectionMarket):
                 np.add.at(landing, firms, amounts)
         decay = self.domain.natural_decay * period / TRADING_DAYS_PER_YEAR
         unflagged = expected[0] if forecast.all() else expected[-1]
-        return float(unflagged), float(expected[0]), regime.audit_jump_threshold - landing + decay
+        room = regime.audit_jump_threshold - landing + decay
+        if self.domain.natural_reversion:
+            state = self.attributes
+            transitory = state.goodness if state.anchor is None else state.goodness - state.anchor
+            retention = np.exp(-self.domain.natural_reversion / TRADING_DAYS_PER_YEAR)
+            room = room + (1.0 - retention**period) * (transitory - transitory.mean())
+        return float(unflagged), float(expected[0]), room
 
     def _discrete_decision(
         self, day: int, period: int, regime: PolicyRegime, published: NDArray[np.bool_],
