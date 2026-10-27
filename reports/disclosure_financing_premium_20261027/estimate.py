@@ -44,9 +44,12 @@ BOND_FES = ["Bdtp", "Listplc", "ind_year"]          # bond type, trading market,
 TENORS = {"3月": 0.25, "6月": 0.5, "1年": 1.0, "2年": 2.0, "3年": 3.0, "5年": 5.0, "7年": 7.0, "10年": 10.0,
           "30年": 30.0}
 WINSOR = (0.01, 0.99)
-# Contract 26.1: the final estimates read only the panels rebuilt once with the ownership column, whose SHA-256
-# values are recorded in the contract before any estimate. Until they are filled in, --final refuses to run.
-FINAL_PANELS: dict[str, str] | None = None
+# Contract 26.1 and 26.17: the final estimates read only the panels rebuilt once with the ownership column, whose
+# SHA-256 values were recorded in the contract before any estimate.
+FINAL_PANELS: dict[str, str] | None = {
+    "firm_year.csv.gz": "a12c769709db3a88c008160c58181ec3eea3ee670b70cbe13059e082fa52fa57",
+    "bond_issues.csv.gz": "7301eedf5aae83fb06147e78c3c006009fa8ad8bdc5494d4bdaefed75fc7b759",
+}
 SMOKE_SEED = 26001
 REPS = 1000                       # self-test replications per fixed-effect design
 
@@ -172,7 +175,9 @@ def debt_specs(ownership: bool) -> list[Spec]:
         Spec("csi300", "robustness", "CSI 300 constituents of 2026-10-09 only", controls=base, sample=lambda d: d.csi300),
         Spec("grade_notches", "robustness", "score as rating notches (C = 1 ... AAA = 9), per notch", x="grade_num",
              controls=base),
-    ]
+    ] + ([Spec("reported_controller", "robustness", "drops firm-years whose actual-controller category is empty, "
+               "which the main specification codes as not state-owned (contract 26.17)", controls=base,
+               sample=lambda d: ~d.controller_missing)] if ownership else [])
 
 
 def bond_specs() -> list[Spec]:
@@ -278,7 +283,7 @@ def load_firm_year(smoke: bool) -> tuple[pd.DataFrame, bool]:
     d["ind_year"] = d.industry + "_" + d.year.astype(str)
     d["y_bp"] = d.debt_cost_w * 1e4
     d["y_nolease_bp"] = d.debt_cost_nolease_w * 1e4
-    ownership = "soe" in d.columns and d.soe.notna().any()
+    ownership = bool("soe" in d.columns and d.soe.notna().any())
     if smoke:
         rng = np.random.default_rng(SMOKE_SEED)
         perm = d.groupby("year").indices

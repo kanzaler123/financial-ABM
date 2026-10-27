@@ -3,8 +3,8 @@
     python -I -X utf8 build_panel.py
 
 Runs on the system Python (pandas, openpyxl); the project venv has neither. Inputs are local and not committed:
-the CNRDS tables converted to data/processed/cnrds_20261026/*.csv.gz (docs/data_inventory.md), the netdisk
-Huazheng quarterly panel and the CSI 300 list of 2026-10-09. Writes the panels to data/processed/
+the CNRDS tables converted to data/processed/cnrds_20261026/*.csv.gz (docs/data_inventory.md), the CNRDS
+yearly ownership export of 2026-10-27, the netdisk Huazheng quarterly panel and the CSI 300 list of 2026-10-09. Writes the panels to data/processed/
 cnrds_stage_i_20261027/ (not committed) and panel_summary.json here: input and panel hashes, the sample flow,
 coverage, missing rates and the distribution of every variable. Nothing here relates a score to an outcome.
 
@@ -34,6 +34,7 @@ ROOT = HERE.parents[1]
 CNRDS = ROOT / "data/processed/cnrds_20261026"
 HUAZHENG = ROOT / "data/raw/huazheng_panel_netdisk_20261026/huazheng_quarterly_2009_2025.xlsx"
 CSI300 = ROOT / "data/processed/disclosure_public_20261011/csi300_constituents_20261009.csv"
+OWNERSHIP = ROOT / "data/raw/cnrds_20261027/公司股权性质/公司股权性质.csv"     # CNRDS, yearly actual controller
 OUT = ROOT / "data/processed/cnrds_stage_i_20261027"
 
 YEARS = range(2009, 2025)            # score year t; the outcome year is t + 1 <= 2025
@@ -43,6 +44,14 @@ DEBT = ("STBL", "NCLDOY", "LTBL", "LTBP")          # short-term loans, current p
 LEASE = "LSOB"                                     # lease liabilities (new lease standard, 2019/2021 on)
 MIN_DEBT_TO_ASSETS = 0.01                          # see contract 26: mean interest-bearing debt >= 1% of assets
 WINSOR = (0.01, 0.99)
+# Contract 26.1 and 26.17: SOE_t = 1 when an actual controller of year t (any of them, if several are listed) is a
+# state body: an asset supervision commission or bureau, a central or local state-owned enterprise, a central organ
+# or ministry, a local government or its finance department, or a state public institution (university, research
+# institute). Otherwise 0: individuals, private and foreign firms, collectives, employee unions, other, and an empty
+# category (no reported controller). Missing when the firm-year has no record.
+STATE_CONTROLLERS = {"国资委", "地方国资委", "地方国资局", "中央国有企业", "地方国有企业", "大型国有企业", "国有独资企业",
+                     "中央国家机关", "国务院所属部委", "国务院直属特设机构", "地方政府", "地方政府财政部门", "地方所属部委",
+                     "大学", "高等院校", "科研机构"}
 
 # Finance-expense note lines (names normalised by norm_item). A: interest expense; L: lease interest shown as its
 # own line; C: interest capitalised and deducted. Sub-items ("其中:") and net lines (利息净支出) are not used.
@@ -110,6 +119,17 @@ def notes_interest() -> tuple[pd.DataFrame, dict]:
     prior["year"] -= 1                    # the prior-period column of year y's note describes year y - 1
     out = cur.reset_index().merge(prior, on=["Scode", "year"], how="outer")
     return out, {"note_lines_used": int(len(d)), "by_class": d.k.value_counts().to_dict()}
+
+
+def ownership() -> pd.DataFrame:
+    """SOE_t from the actual-controller category of year t (STATE_CONTROLLERS)."""
+    o = pd.read_csv(OWNERSHIP, dtype=str, encoding="utf-8-sig")
+    o = o[o.SCode != "股票代码"]                      # the export's second header row holds the Chinese labels
+    assert o.SCode.str.fullmatch(r"\d{6}").all() and not o.duplicated(["SCode", "Year"]).any()
+    parts = o.ACNtr.fillna("").str.split(r"[;；]")
+    state = parts.map(lambda xs: any(x.strip() in STATE_CONTROLLERS or x.strip().startswith("地方国有企业") for x in xs))
+    return pd.DataFrame({"Scode": o.SCode, "year": o.Year.astype(int), "controller_category": o.ACNtr,
+                         "controller_missing": o.ACNtr.isna(), "soe": state.astype(float)})
 
 
 def normal_scores(values: pd.Series) -> pd.Series:
@@ -208,6 +228,8 @@ def firm_year(h: pd.DataFrame, summary: dict) -> pd.DataFrame:
     p = p.merge(q.reset_index(), on=["Scode", "year"], how="left")
     csi = pd.read_csv(CSI300, dtype=str, encoding="utf-8-sig")
     p["csi300"] = p.Scode.isin(set(csi.iloc[:, 4]))
+    p = p.merge(ownership(), on=["Scode", "year"], how="left")
+    p["controller_missing"] = p.controller_missing.astype("boolean").fillna(False).astype(bool)
 
     debt_mean = (p.ibd + p.ibd_next) / 2
     nolease_mean = (p.ibd_nolease + p.ibd_nolease_next) / 2
@@ -238,7 +260,7 @@ def firm_year(h: pd.DataFrame, summary: dict) -> pd.DataFrame:
         (f"mean interest-bearing debt >= {MIN_DEBT_TO_ASSETS:.0%} of assets", p.debt_to_assets >= MIN_DEBT_TO_ASSETS),
         ("interest expense of t + 1 available", p.interest_next.notna()),
         ("Huazheng score on 31 October of t", p.ns.notna()),
-        ("controls available (size, leverage, ROA)", p[["size", "lev", "roa"]].notna().all(axis=1)),
+        ("controls available (size, leverage, ROA, state ownership)", p[["size", "lev", "roa", "soe"]].notna().all(axis=1)),
     ]
     keep, flow = pd.Series(True, index=p.index), []
     for label, cond in steps:
@@ -309,14 +331,14 @@ def bond_issues(h: pd.DataFrame, controls: pd.DataFrame, summary: dict) -> pd.Da
         "issuer_rating_at_issue": b.Issbjrt.fillna("missing").value_counts().head(12).to_dict(),
         "coupon_pct": describe(b.coupon), "maturity_years": describe(b.maturity), "amount_yuan": describe(b.amount),
         "score_regime": b.regime.value_counts().to_dict(),
-        "spread": "pending: needs the treasury yield curve (contract 26)",
+        "spread": "computed in estimate.py from the MOF treasury curve (contract 26.6, 26.15)",
     }
     return b
 
 
 def main() -> None:
     summary: dict = {"inputs": {p.relative_to(ROOT).as_posix(): sha(p) for p in
-                                sorted(CNRDS.glob("*.csv.gz")) + [HUAZHENG, CSI300]}}
+                                sorted(CNRDS.glob("*.csv.gz")) + [HUAZHENG, CSI300, OWNERSHIP]}}
     h = huazheng()
     summary["huazheng"] = {
         "rows": int(len(h)), "firms": int(h.Scode.nunique()), "dates": int(h.date.nunique()),
@@ -338,10 +360,17 @@ def main() -> None:
         "stbp_positive_share": float((m.STBP > 0).mean()), "stbp_share_of_debt_when_positive": describe(m.stbp_share[m.STBP > 0]),
         "variables": {c: describe(m[c]) for c in ["debt_cost", "debt_cost_w", "debt_cost_nolease_w", "debt_to_assets",
                                                   "ns", "z", "ns_avg", "score", "size_w", "lev_w", "roa_w", "tang_w",
-                                                  "cash_w", "growth_w", "age_w", "ibd_to_mcap"]},
+                                                  "cash_w", "growth_w", "age_w", "ibd_to_mcap", "soe"]},
         "debt_cost_by_outcome_year": {int(y) + 1: describe(g.debt_cost) for y, g in m.groupby("year")},
         "missing_extended_controls": {c: float(m[c].isna().mean()) for c in ["tang", "cash", "growth", "age", "mcap"]},
-        "ownership": "pending: no ownership field in the CNRDS export (docs/data_inventory.md)",
+        "ownership": {
+            "source": OWNERSHIP.relative_to(ROOT).as_posix(), "rule": "SOE_t = 1 if an actual controller of year t is "
+            "in STATE_CONTROLLERS, else 0 (an empty category counts as 0); missing without a record (contract 26.17)",
+            "soe_share": float(m.soe.mean()), "soe_share_by_year": m.groupby("year").soe.mean().round(4).to_dict(),
+            "empty_category_firm_years": int(m.controller_missing.sum()),
+            "firms_whose_soe_changes": int((m.groupby("Scode").soe.nunique() > 1).sum()),
+            "controller_category_counts": m.controller_category.fillna("<empty>").value_counts().to_dict(),
+        },
     }
     # Leverage of the model's reference firms: CSI 300 non-financial constituents at the end of 2025.
     bs25 = read("balance_sheet", ["Scode", "Date", *DEBT, LEASE])
