@@ -1,0 +1,107 @@
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\B\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2308"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\V\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2311"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\I\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2298"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2308"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F_2x\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2308"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\IF\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2298"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F_8x\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2308"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\A2\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2311"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3432"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\A2\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3438"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\I\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3455"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\IF\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3454"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F_8x\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3432"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\B\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3432"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\V\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\F_2x\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3432"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\V_hidden\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2310"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\J_hidden\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2309"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\VF\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2311"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\J\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2309"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_R16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2297"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\J_hidden\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3490"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_F1\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2316"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_R1\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2323"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\V_hidden\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\J\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3489"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\VF\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_F16\\seed_38101\\attempt_001", "error_type": "MarketDivergedError", "error": "prices diverged from intrinsic values on day 2303"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\LRG_R16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2327"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_F1\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3448"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_R1\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3443"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\LRG_F16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2325"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_R16\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3490"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\ALL_F16\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_I\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2294"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_B\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2307"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_F\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2307"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\LRG_R16\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\LRG_F16\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3473"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_B\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3430"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_I\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3421"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_B\\seed_38101\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\perm_F\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3430"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_B\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_I\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_F\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_I\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_F\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_J\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_J\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_J_hidden\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_J_hidden\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_ALL_R16\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_V\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_V\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_B\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2604"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_ALL_R16\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_ALL_F16\\seed_38101\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s0_ALL_F16\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_I\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2591"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_F\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2604"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_B\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_J\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2604"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_I\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_F\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_J_hidden\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2604"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_V\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2608"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_ALL_R16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2594"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_J\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_B\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2086"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_J_hidden\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_I\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2079"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_F\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2086"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_ALL_F16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2602"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_V\\seed_38102\\attempt_001"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_ALL_R16\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_J\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2086"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_B\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3151"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_I\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3183"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\slo_ALL_F16\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_J_hidden\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2086"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_V\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2087"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_F\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3151"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_ALL_R16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2073"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_ALL_F16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2075"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_J\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3228"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_B\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2306"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_J_hidden\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3228"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_V\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3244"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_ALL_R16\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3236"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_I\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2296"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\shi_ALL_F16\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3244"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_F\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2306"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_J\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2306"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_B\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3429"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_J_hidden\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2306"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_I\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3453"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_V\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2309"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_F\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3429"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_ALL_R16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2295"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_J\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3487"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_ALL_F16\\seed_38101\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 2301"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_J_hidden\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3488"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_V\\seed_38102\\attempt_001"}
+{"status": "failed", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_ALL_R16\\seed_38102\\attempt_001", "error_type": "ValueError", "error": "financing adjustment exhausts the value anchor on day 3488"}
+{"status": "complete", "path": "reports\\disclosure_stage_i_20261027\\check_v1\\s28_ALL_F16\\seed_38102\\attempt_001"}
+reports\disclosure_stage_i_20261027\check_v1\report.md

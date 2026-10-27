@@ -1,0 +1,767 @@
+{
+  "experiment_id": "e8def24e1c48509dce1c18df3eeae5de636567363509cc01596dab99e9cc957b",
+  "note": "development run of configs/disclosure_stage_i_check_v1.json (contract 26.19): completion only, no effect estimate",
+  "by_spread": {
+    "s_star": {
+      "spread": 0.6057,
+      "complete": 5,
+      "failed": 37,
+      "first_failure_days": [
+        2294,
+        2297,
+        2298,
+        2298,
+        2303,
+        2307,
+        2307,
+        2308,
+        2308,
+        2308,
+        2308,
+        2309,
+        2309,
+        2310,
+        2311,
+        2311,
+        2311,
+        2316,
+        2323,
+        2325,
+        2327,
+        3421,
+        3430,
+        3430,
+        3432,
+        3432,
+        3432,
+        3432,
+        3438,
+        3443,
+        3448,
+        3454,
+        3455,
+        3473,
+        3489,
+        3490,
+        3490
+      ],
+      "trials": [
+        {
+          "scenario": "B",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2308"
+        },
+        {
+          "scenario": "V",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2311"
+        },
+        {
+          "scenario": "I",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2298"
+        },
+        {
+          "scenario": "F",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2308"
+        },
+        {
+          "scenario": "F_2x",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2308"
+        },
+        {
+          "scenario": "IF",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2298"
+        },
+        {
+          "scenario": "F_8x",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2308"
+        },
+        {
+          "scenario": "A2",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2311"
+        },
+        {
+          "scenario": "F",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3432"
+        },
+        {
+          "scenario": "A2",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3438"
+        },
+        {
+          "scenario": "I",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3455"
+        },
+        {
+          "scenario": "IF",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3454"
+        },
+        {
+          "scenario": "F_8x",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3432"
+        },
+        {
+          "scenario": "B",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3432"
+        },
+        {
+          "scenario": "V",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "F_2x",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3432"
+        },
+        {
+          "scenario": "V_hidden",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2310"
+        },
+        {
+          "scenario": "J_hidden",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2309"
+        },
+        {
+          "scenario": "VF",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2311"
+        },
+        {
+          "scenario": "J",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2309"
+        },
+        {
+          "scenario": "ALL_R16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2297"
+        },
+        {
+          "scenario": "J_hidden",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3490"
+        },
+        {
+          "scenario": "ALL_F1",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2316"
+        },
+        {
+          "scenario": "ALL_R1",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2323"
+        },
+        {
+          "scenario": "V_hidden",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "J",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3489"
+        },
+        {
+          "scenario": "VF",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "ALL_F16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "prices diverged from intrinsic values on day 2303"
+        },
+        {
+          "scenario": "LRG_R16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2327"
+        },
+        {
+          "scenario": "ALL_F1",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3448"
+        },
+        {
+          "scenario": "ALL_R1",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3443"
+        },
+        {
+          "scenario": "LRG_F16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2325"
+        },
+        {
+          "scenario": "ALL_R16",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3490"
+        },
+        {
+          "scenario": "ALL_F16",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "perm_I",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2294"
+        },
+        {
+          "scenario": "perm_B",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2307"
+        },
+        {
+          "scenario": "perm_F",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2307"
+        },
+        {
+          "scenario": "LRG_R16",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "LRG_F16",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3473"
+        },
+        {
+          "scenario": "perm_B",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3430"
+        },
+        {
+          "scenario": "perm_I",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3421"
+        },
+        {
+          "scenario": "perm_F",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3430"
+        }
+      ]
+    },
+    "s0": {
+      "spread": 0.05,
+      "complete": 16,
+      "failed": 0,
+      "first_failure_days": [],
+      "trials": [
+        {
+          "scenario": "s0_B",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_B",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_I",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_F",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_I",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_F",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_J",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_J",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_J_hidden",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_J_hidden",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_ALL_R16",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_V",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_V",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_ALL_R16",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_ALL_F16",
+          "seed": 38101,
+          "status": "complete"
+        },
+        {
+          "scenario": "s0_ALL_F16",
+          "seed": 38102,
+          "status": "complete"
+        }
+      ]
+    },
+    "s_lo": {
+      "spread": 0.5082,
+      "complete": 8,
+      "failed": 8,
+      "first_failure_days": [
+        2591,
+        2594,
+        2602,
+        2604,
+        2604,
+        2604,
+        2604,
+        2608
+      ],
+      "trials": [
+        {
+          "scenario": "slo_B",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2604"
+        },
+        {
+          "scenario": "slo_I",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2591"
+        },
+        {
+          "scenario": "slo_F",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2604"
+        },
+        {
+          "scenario": "slo_B",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_J",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2604"
+        },
+        {
+          "scenario": "slo_I",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_F",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_J_hidden",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2604"
+        },
+        {
+          "scenario": "slo_V",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2608"
+        },
+        {
+          "scenario": "slo_ALL_R16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2594"
+        },
+        {
+          "scenario": "slo_J",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_J_hidden",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_ALL_F16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2602"
+        },
+        {
+          "scenario": "slo_V",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_ALL_R16",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "slo_ALL_F16",
+          "seed": 38102,
+          "status": "complete"
+        }
+      ]
+    },
+    "s_hi": {
+      "spread": 0.7032,
+      "complete": 0,
+      "failed": 16,
+      "first_failure_days": [
+        2073,
+        2075,
+        2079,
+        2086,
+        2086,
+        2086,
+        2086,
+        2087,
+        3151,
+        3151,
+        3183,
+        3228,
+        3228,
+        3236,
+        3244,
+        3244
+      ],
+      "trials": [
+        {
+          "scenario": "shi_B",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2086"
+        },
+        {
+          "scenario": "shi_I",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2079"
+        },
+        {
+          "scenario": "shi_F",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2086"
+        },
+        {
+          "scenario": "shi_J",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2086"
+        },
+        {
+          "scenario": "shi_B",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3151"
+        },
+        {
+          "scenario": "shi_I",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3183"
+        },
+        {
+          "scenario": "shi_J_hidden",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2086"
+        },
+        {
+          "scenario": "shi_V",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2087"
+        },
+        {
+          "scenario": "shi_F",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3151"
+        },
+        {
+          "scenario": "shi_ALL_R16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2073"
+        },
+        {
+          "scenario": "shi_ALL_F16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2075"
+        },
+        {
+          "scenario": "shi_J",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3228"
+        },
+        {
+          "scenario": "shi_J_hidden",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3228"
+        },
+        {
+          "scenario": "shi_V",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3244"
+        },
+        {
+          "scenario": "shi_ALL_R16",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3236"
+        },
+        {
+          "scenario": "shi_ALL_F16",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3244"
+        }
+      ]
+    },
+    "s_28": {
+      "spread": 0.6066,
+      "complete": 2,
+      "failed": 14,
+      "first_failure_days": [
+        2295,
+        2296,
+        2301,
+        2306,
+        2306,
+        2306,
+        2306,
+        2309,
+        3429,
+        3429,
+        3453,
+        3487,
+        3488,
+        3488
+      ],
+      "trials": [
+        {
+          "scenario": "s28_B",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2306"
+        },
+        {
+          "scenario": "s28_I",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2296"
+        },
+        {
+          "scenario": "s28_F",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2306"
+        },
+        {
+          "scenario": "s28_J",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2306"
+        },
+        {
+          "scenario": "s28_B",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3429"
+        },
+        {
+          "scenario": "s28_J_hidden",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2306"
+        },
+        {
+          "scenario": "s28_I",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3453"
+        },
+        {
+          "scenario": "s28_V",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2309"
+        },
+        {
+          "scenario": "s28_F",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3429"
+        },
+        {
+          "scenario": "s28_ALL_R16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2295"
+        },
+        {
+          "scenario": "s28_J",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3487"
+        },
+        {
+          "scenario": "s28_ALL_F16",
+          "seed": 38101,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 2301"
+        },
+        {
+          "scenario": "s28_J_hidden",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3488"
+        },
+        {
+          "scenario": "s28_V",
+          "seed": 38102,
+          "status": "complete"
+        },
+        {
+          "scenario": "s28_ALL_R16",
+          "seed": 38102,
+          "status": "failed",
+          "error": "financing adjustment exhausts the value anchor on day 3488"
+        },
+        {
+          "scenario": "s28_ALL_F16",
+          "seed": 38102,
+          "status": "complete"
+        }
+      ]
+    }
+  },
+  "failure_mechanism_B_38101_s_star": {
+    "script": "failure_diagnosis.py",
+    "error_day": 2308,
+    "worst_firm": {
+      "value_over_initial_price": -0.0001,
+      "price_over_initial": 0.0018,
+      "exposure_over_initial_price": 0.5,
+      "contract_rate": 0.5963
+    },
+    "initial_contract_rate": 0.2269,
+    "initial_contract_rate_at_s0": 0.04166666666666667
+  },
+  "stability_B_3500_days": {
+    "script": "stability_check.py",
+    "spread_seed_status": {
+      "0.1": [
+        "complete",
+        "complete"
+      ],
+      "0.15": [
+        "complete",
+        "complete"
+      ],
+      "0.2": [
+        "complete",
+        "complete"
+      ],
+      "0.3": [
+        "complete",
+        "complete"
+      ],
+      "0.4": [
+        "failed day 3023 (38101)",
+        "complete (38102)"
+      ]
+    }
+  }
+}
