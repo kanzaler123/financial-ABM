@@ -127,3 +127,8 @@ data/processed/cnrds_*/
 reports/disclosure_stage_h3_20261027/h3_v1/
 reports/disclosure_stage_h3_20261027/check_v1/
 reports/disclosure_stage_h3_20261027/work_check/
+# Treasury yield curve downloads (CCDC, reproduction needs attribution; local only, contract 26.1)
+data/raw/chinabond_*/
+# Stage I model archives, calibration and check reruns, local work files (contract 26.7-26.9)
+reports/disclosure_stage_i_20261027/*_v1/
+reports/disclosure_stage_i_20261027/work_*

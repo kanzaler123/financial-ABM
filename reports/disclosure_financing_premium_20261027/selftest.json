@@ -1,0 +1,34 @@
+{
+  "true_beta": -8.0,
+  "exact_vs_dummies": [
+    {
+      "fixed_effects": [
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 8.171241461241152e-14,
+      "max_rel_se_diff": 2.220446049250313e-16
+    },
+    {
+      "fixed_effects": [
+        "Scode",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 2.7355895326763857e-13,
+      "max_rel_se_diff": 2.7755575615628914e-15
+    }
+  ],
+  "coverage": {
+    "ind_year": {
+      "replications": 1000,
+      "ci95_coverage": 0.945,
+      "mean_estimate": -7.996881123180521,
+      "sd_estimate": 1.0810199548630075
+    },
+    "Scode+ind_year": {
+      "replications": 1000,
+      "ci95_coverage": 0.962,
+      "mean_estimate": -8.062396605804954,
+      "sd_estimate": 1.1240894341676275
+    }
+  }
+}
