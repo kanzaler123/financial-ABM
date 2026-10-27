@@ -2,7 +2,7 @@
 
     python -I -X utf8 estimate.py --selftest    the estimator on synthetic panels with a known coefficient
     python -I -X utf8 estimate.py --smoke       every specification on the real panel, the score permuted within year
-    python -I -X utf8 estimate.py               the pre-registered estimates (only after section 26 is committed)
+    python -I -X utf8 estimate.py --final       the pre-registered estimates (only after section 26 is committed)
 
 Reads the panels written by build_panel.py (data/processed/cnrds_stage_i_20261027/, not committed). OLS with
 absorbed fixed effects (alternating projections) and standard errors clustered by firm: CR1 with the factor
@@ -10,13 +10,20 @@ G/(G - 1) (N - 1)/(N - K), where K counts the regressors and the levels of absor
 clusters; 95% intervals use t with G - 1 degrees of freedom. Singletons are dropped first, repeatedly. Outcomes
 are in basis points, so the score coefficient is basis points per SD of the score and the premium is minus it.
 
-The smoke run replaces the score by a seeded permutation within each year, so it exercises the samples, fixed
-effects and clustering of every specification without estimating any relation between the score and an outcome.
+Bond spreads (contract 26.6) need the MOF treasury curve downloaded by download_curve.py: each file is checked
+against curve_manifest.json, the curve of the last trading day on or before the value date is interpolated
+linearly between standard tenors at the bond's maturity (3 months below 3 months, 30 years above 30 years), and
+the spread, coupon minus that yield in basis points, is clipped at the 1st and 99th percentiles of its issue year.
+
+The smoke run replaces the score by a seeded permutation within each year (issue year for bonds, from a separate
+random stream), so it exercises the samples, fixed effects and clustering of every specification without
+estimating any relation between the score and an outcome.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,8 +36,17 @@ from scipy import stats
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 PANEL = ROOT / "data/processed/cnrds_stage_i_20261027"
+CURVE_MANIFEST = HERE / "curve_manifest.json"
 CONTROLS = ["size_w", "lev_w", "roa_w"]
 EXTENDED = ["tang_w", "cash_w", "growth_w", "age_w"]
+BOND_CONTROLS = ["size", "lev", "roa", "soe_issuer", "ln_maturity", "ln_amount"]
+BOND_FES = ["Bdtp", "Listplc", "ind_year"]          # bond type, trading market, industry x issue year
+TENORS = {"3月": 0.25, "6月": 0.5, "1年": 1.0, "2年": 2.0, "3年": 3.0, "5年": 5.0, "7年": 7.0, "10年": 10.0,
+          "30年": 30.0}
+WINSOR = (0.01, 0.99)
+# Contract 26.1: the final estimates read only the panels rebuilt once with the ownership column, whose SHA-256
+# values are recorded in the contract before any estimate. Until they are filled in, --final refuses to run.
+FINAL_PANELS: dict[str, str] | None = None
 SMOKE_SEED = 26001
 REPS = 1000                       # self-test replications per fixed-effect design
 
@@ -159,6 +175,103 @@ def debt_specs(ownership: bool) -> list[Spec]:
     ]
 
 
+def bond_specs() -> list[Spec]:
+    """Contract 26.6: the secondary result and its three robustness checks."""
+    common = dict(y="spread_w_bp", data="bonds")
+    within_issuer = [c for c in BOND_CONTROLS if c != "soe_issuer"]   # constant within issuer, absorbed
+    return [
+        Spec("bond_main", "secondary", "issue spread over the treasury curve on the last score before the value "
+             "date; issuer size, leverage, ROA of the previous year, state-owned issuer, log maturity, log amount; "
+             "bond type, market and industry x issue year effects", controls=list(BOND_CONTROLS), fes=list(BOND_FES),
+             **common),
+        Spec("bond_issuer_fe", "secondary_robustness", "adds issuer fixed effects (the state-owned indicator is "
+             "constant within issuer and drops out)", controls=within_issuer, fes=["Scode", *BOND_FES], **common),
+        Spec("bond_rating_fe", "secondary_robustness", "adds fixed effects of the issuer rating at issue",
+             controls=list(BOND_CONTROLS), fes=[*BOND_FES, "rating"], **common),
+        Spec("bond_maturity_1y", "secondary_robustness", "bonds with a maturity of at least one year",
+             controls=list(BOND_CONTROLS), fes=list(BOND_FES), sample=lambda d: d.maturity >= 1 - 1e-9, **common),
+    ]
+
+
+def describe(s: pd.Series) -> dict:
+    s = s.dropna()
+    q = s.quantile([0, 0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99, 1]).tolist() if len(s) else []
+    return {"n": int(len(s)), "mean": float(s.mean()) if len(s) else None, "sd": float(s.std()) if len(s) > 1 else None,
+            "quantiles_0_1_5_25_50_75_95_99_100": [float(x) for x in q]}
+
+
+def read_curve() -> tuple[pd.DataFrame, dict]:
+    """The MOF treasury curve in percent: one row per trading day (ascending), one column per tenor in years.
+    Every file must match the size and SHA-256 recorded by download_curve.py."""
+    import warnings
+
+    import openpyxl
+
+    manifest = json.loads(CURVE_MANIFEST.read_text(encoding="utf-8"))
+    directory = ROOT / manifest["directory"]
+    frames = []
+    for entry in manifest["files"]:
+        path = directory / entry["file"]
+        raw = path.read_bytes()
+        if len(raw) != entry["bytes"] or hashlib.sha256(raw).hexdigest() != entry["sha256"]:
+            raise ValueError(f"{path.name} differs from curve_manifest.json")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)              # "no default style"
+            book = openpyxl.load_workbook(path, data_only=True)       # read-only mode sees one row (bad dimension tag)
+        rows = list(book.worksheets[0].iter_rows(values_only=True))
+        if rows[0] != ("日期", *TENORS):
+            raise ValueError(f"{path.name}: unexpected header {rows[0]}")
+        frames.append(pd.DataFrame(rows[1:], columns=["date", *TENORS.values()]))
+    curve = pd.concat(frames).set_index("date").astype(float).sort_index()
+    if not curve.index.is_unique or curve.isna().any().any():
+        raise ValueError("curve dates repeat or yields are missing")
+    info = {"manifest_sha256": hashlib.sha256(CURVE_MANIFEST.read_bytes()).hexdigest(), "files": len(manifest["files"]),
+            "trading_days": int(len(curve)), "first_date": str(curve.index[0]), "last_date": str(curve.index[-1])}
+    return curve, info
+
+
+def treasury_yield(curve: pd.DataFrame, value_dates: pd.Series, maturity: pd.Series) -> tuple[np.ndarray, np.ndarray]:
+    """Yield in percent of the last curve on or before each value date at the bond's maturity in years: linear
+    between standard tenors, the 3-month yield below 3 months and the 30-year yield above 30 years."""
+    dates = curve.index.to_numpy(dtype=str)
+    idx = np.searchsorted(dates, value_dates.to_numpy(dtype=str), side="right") - 1
+    if (idx < 0).any():
+        raise ValueError("a value date precedes the first curve date")
+    tenors = np.array(list(TENORS.values()))
+    rows = curve.to_numpy()[idx]
+    m = np.clip(maturity.to_numpy(float), tenors[0], tenors[-1])
+    return np.array([np.interp(mi, tenors, row) for mi, row in zip(m, rows)]), dates[idx]
+
+
+def load_bonds(smoke: bool) -> tuple[pd.DataFrame, dict]:
+    b = pd.read_csv(PANEL / "bond_issues.csv.gz", dtype={"Bdcd": str, "Scode": str, "IndcodeB": str, "industry": str})
+    curve, info = read_curve()
+    b["treasury_yield"], b["curve_date"] = treasury_yield(curve, b.Valdt, b.maturity)
+    b["spread_bp"] = (b.coupon - b.treasury_yield) * 100
+    bounds = b.groupby("issue_year").spread_bp.quantile(list(WINSOR)).unstack()
+    b["spread_w_bp"] = b.spread_bp.clip(b.issue_year.map(bounds[WINSOR[0]]), b.issue_year.map(bounds[WINSOR[1]]))
+    b["ln_maturity"], b["ln_amount"] = np.log(b.maturity), np.log(b.amount)
+    b["soe_issuer"] = b.soe_issuer.astype(float)
+    b["ind_year"] = b.industry + "_" + b.issue_year.astype(int).astype(str)
+    b["rating"] = b.Issbjrt.str.replace(r"(pi|sti)$", "", regex=True)    # qualifiers dropped: AAApi -> AAA
+    gap = (pd.to_datetime(b.Valdt) - pd.to_datetime(b.curve_date)).dt.days
+    info.update({
+        "bonds": int(len(b)), "curve_date_before_value_date": {"bonds": int((gap > 0).sum()), "max_days": int(gap.max())},
+        "maturity_below_3_months": int((b.maturity < 0.25).sum()), "maturity_above_30_years": int((b.maturity > 30).sum()),
+        "spread_bp": describe(b.spread_bp), "spread_w_bp": describe(b.spread_w_bp),
+        "winsor_bounds_by_issue_year": {int(y): [float(r[WINSOR[0]]), float(r[WINSOR[1]])] for y, r in bounds.iterrows()},
+        "market_missing": int(b.Listplc.isna().sum()), "rating_missing": int(b.rating.isna().sum()),
+        "rating_levels": b.rating.value_counts().to_dict(),
+    })
+    if smoke:
+        rng = np.random.default_rng([SMOKE_SEED, 6])   # its own stream: the firm-year permutation is unchanged
+        v = b.ns.to_numpy().copy()
+        for idx in b.groupby("issue_year").indices.values():
+            v[idx] = v[rng.permutation(idx)]
+        b["ns"] = v
+    return b, info
+
+
 def load_firm_year(smoke: bool) -> tuple[pd.DataFrame, bool]:
     d = pd.read_csv(PANEL / "firm_year.csv.gz", dtype={"Scode": str, "IndcodeB": str, "industry": str})
     d = d[d.main_sample].copy()
@@ -183,10 +296,12 @@ def run(specs: list[Spec], data: dict[str, pd.DataFrame]) -> list[dict]:
         d = data[s.data]
         if s.sample is not None:
             d = d[s.sample(d).fillna(False)]
+        missing = int(d[[s.y, s.x, *s.controls, *s.fes, s.cluster]].isna().any(axis=1).sum())
         fit = fe_ols(d, s.y, [s.x, *s.controls], s.fes, s.cluster, nested=(s.cluster,))
         r = fit.row(0)
         out.append({"name": s.name, "role": s.role, "describe": s.describe, "x": s.x, "y": s.y, "controls": s.controls,
-                    "fixed_effects": s.fes, "n": fit.n, "clusters": fit.clusters, "singletons_dropped": fit.singletons,
+                    "fixed_effects": s.fes, "n": fit.n, "clusters": fit.clusters, "missing_dropped": missing,
+                    "singletons_dropped": fit.singletons,
                     "fe_levels": fit.fe_levels, "absorbed_df": fit.absorbed, "r2_within": fit.r2_within,
                     "score_coef_bp_per_sd": r, "premium_bp_per_sd": -r["coef"],
                     "controls_coef": {c: fit.row(j + 1) for j, c in enumerate(s.controls)}})
@@ -260,6 +375,20 @@ def selftest() -> dict:
         out["coverage"]["+".join(fes)] = {"replications": REPS, "ci95_coverage": hits / REPS,
                                           "mean_estimate": float(np.mean(est)), "sd_estimate": float(np.std(est))}
         assert 0.93 <= hits / REPS <= 0.97 and abs(np.mean(est) + 8.0) < 0.2, out["coverage"]
+    # The bond designs absorb three or four sets of effects (bond type, market, industry x year, and rating or the
+    # issuer): alternating projections against explicit dummies, on a stream of their own.
+    rng = np.random.default_rng(26003)
+    for fes in (["kind", "market", "ind_year"], ["kind", "market", "ind_year", "grade"],
+                ["Scode", "kind", "market", "ind_year"]):
+        d = synthetic(rng, 150, 6, 5, -8.0, confound=True)
+        d["kind"], d["market"], d["grade"] = (rng.integers(0, k, len(d)) for k in (4, 3, 6))
+        keep = drop_singletons([codes(d[f]) for f in fes])
+        d = d[keep]
+        fit = fe_ols(d, "y", ["x", "c1"], fes, "Scode", nested=("Scode",))
+        b, se = dummy_ols(d, "y", ["x", "c1"], fes, nested=("Scode",))
+        out["exact_vs_dummies"].append({"fixed_effects": fes, "max_abs_beta_diff": float(np.abs(fit.beta - b).max()),
+                                        "max_rel_se_diff": float(np.abs(fit.se / se - 1).max())})
+        assert np.allclose(fit.beta, b, atol=1e-8) and np.allclose(fit.se, se, rtol=1e-6), (fit.beta, b, fit.se, se)
     return out
 
 
@@ -274,11 +403,22 @@ def main() -> None:
         result = selftest()
         name = "selftest.json"
     else:
+        if args.final:
+            if FINAL_PANELS is None:
+                raise SystemExit("--final needs the rebuilt panels' SHA-256 values in FINAL_PANELS (contract 26.1)")
+            for file, digest in FINAL_PANELS.items():
+                if hashlib.sha256((PANEL / file).read_bytes()).hexdigest() != digest:
+                    raise SystemExit(f"{file} is not the panel recorded in contract 26.1")
         firm_year, ownership = load_firm_year(smoke=args.smoke)
-        specs = debt_specs(ownership)
+        if args.final and not ownership:
+            raise SystemExit("the main specification needs the ownership column (contract 26.1)")
+        bonds, bond_info = load_bonds(smoke=args.smoke)
+        specs = debt_specs(ownership) + bond_specs()
         result = {"mode": "smoke: score permuted within year (seed %d); no score-outcome relation" % SMOKE_SEED
                   if args.smoke else "final", "ownership_control": ownership,
-                  "estimates": run(specs, {"firm_year": firm_year})}
+                  "estimates": run(specs, {"firm_year": firm_year, "bonds": bonds}),
+                  "bond_panel": {**({"permutation": "score permuted within issue year, stream [%d, 6]" % SMOKE_SEED}
+                                    if args.smoke else {}), **bond_info}}
         name = "smoke.json" if args.smoke else "estimates.json"
     (HERE / name).write_bytes((json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     if args.selftest:

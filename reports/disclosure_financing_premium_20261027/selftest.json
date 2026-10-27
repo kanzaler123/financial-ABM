@@ -15,6 +15,35 @@
       ],
       "max_abs_beta_diff": 2.7355895326763857e-13,
       "max_rel_se_diff": 2.7755575615628914e-15
+    },
+    {
+      "fixed_effects": [
+        "kind",
+        "market",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 6.146194664324867e-13,
+      "max_rel_se_diff": 3.774758283725532e-15
+    },
+    {
+      "fixed_effects": [
+        "kind",
+        "market",
+        "ind_year",
+        "grade"
+      ],
+      "max_abs_beta_diff": 1.4566126083082054e-13,
+      "max_rel_se_diff": 4.440892098500626e-15
+    },
+    {
+      "fixed_effects": [
+        "Scode",
+        "kind",
+        "market",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 8.064660050877137e-13,
+      "max_rel_se_diff": 9.281464485866309e-14
     }
   ],
   "coverage": {
