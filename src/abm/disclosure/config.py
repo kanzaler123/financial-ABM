@@ -147,6 +147,10 @@ class MarketConfig:
     # exploratory contract assumptions, not estimates from observed scores.
     financing_exposure_fraction: float = 0.5
     financing_spread: float = 0.05
+    # Direct response of the quoted rate to the firm's public signal relative to
+    # the cross-sectional mean, in annual rate per SD (contract 26.20). Zero
+    # leaves the rate a function of the price alone.
+    financing_rating_slope: float = 0.0
     financing_repricing_interval: int = 60
     financing_horizon_days: int = 1260
     firm_discount_rate: float = 0.05
@@ -210,7 +214,7 @@ class MarketConfig:
             "transaction_cost_rate", "noise_flow_scale", "market_maker_cash_multiple",
             "market_maker_inventory_skew", "noise_volatility_exponent",
             "taste_median", "taste_log_sd", "imitation_intensity",
-            "financing_exposure_fraction", "financing_spread", "firm_discount_rate",
+            "financing_exposure_fraction", "financing_spread", "financing_rating_slope", "firm_discount_rate",
         ):
             if getattr(self, name) < 0:
                 raise ValueError(f"{name} must be nonnegative")
@@ -236,6 +240,8 @@ class MarketConfig:
             payload.pop("firm_learning_rate_power")
         if self.firm_cost_budget_fraction == 0.0:
             payload.pop("firm_cost_budget_fraction")
+        if self.financing_rating_slope == 0.0:
+            payload.pop("financing_rating_slope")
         return payload
 
     @classmethod

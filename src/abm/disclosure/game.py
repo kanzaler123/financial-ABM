@@ -683,8 +683,6 @@ class DisclosureMarket(CrossSectionMarket):
         self.window_wealth = investors.wealth(self.prices)
         self.pending_value_change = np.zeros(config.n_firms)
         self.financing_exposure = config.financing_exposure_fraction * self.prices.copy()
-        self.contract_rate = self.quoted_financing_rate()
-        self.initial_contract_rate = self.contract_rate.copy()
 
         days, firms = config.trading_days + 1, config.n_firms
         decisions = config.trading_days // config.firm_decision_interval + 1
@@ -701,7 +699,6 @@ class DisclosureMarket(CrossSectionMarket):
         self.penalty_history = np.zeros((decisions, firms))
         self.subsidy_history = np.zeros((decisions, firms))
         self.financing_rate_history = np.empty((days, firms))
-        self.financing_rate_history[0] = self.contract_rate
         self.financing_cost_history = np.zeros((days, firms))
         self.financing_adjustment_history = np.zeros((days, firms))
         self.public_signal_history = np.empty((days, firms))
@@ -749,6 +746,10 @@ class DisclosureMarket(CrossSectionMarket):
                     self.learning_update_history = np.zeros((decisions, firms), dtype=bool)
         self.signal_day = -1
         self._prepare_signals(0)
+        # Quoted after the day-0 signal, so the initial rate carries the day-0 rating term.
+        self.contract_rate = self.quoted_financing_rate()
+        self.initial_contract_rate = self.contract_rate.copy()
+        self.financing_rate_history[0] = self.contract_rate
         self._record_attributes(0)
 
     # -- signals and pricing -------------------------------------------------
@@ -788,15 +789,27 @@ class DisclosureMarket(CrossSectionMarket):
         return self.config.cash_flow_yield * self.firms.intrinsic_value / self.prices
 
     def quoted_financing_rate(self) -> FloatArray:
-        return self.config.risk_free_rate + self.config.financing_spread * (
+        """Rate on the exposure: price term, minus the rating term on the latest public signal (contract 26.20)."""
+        rate = self.config.risk_free_rate + self.config.financing_spread * (
             self.financing_exposure / (self.financing_exposure + self.prices)
         )
+        if self.config.financing_rating_slope:
+            signal = self.public_signal_history[self.signal_day]
+            rate = rate - self.config.financing_rating_slope * (signal - signal.mean())
+        return rate
 
     def marginal_financing_saving(self) -> FloatArray:
-        """Annual fee saving per SD, normalized by current market cap."""
+        """Annual fee saving per SD, normalized by current market cap.
+
+        The rating term's own effect is the full slope: a firm takes the cross-sectional
+        mean as given (contract 26.20).
+        """
         exposure = self.financing_exposure
         rate_response = self.config.financing_spread * exposure * self.prices / (exposure + self.prices)**2
-        return exposure / self.prices * rate_response * self.marginal_signal_value()
+        if not self.config.financing_rating_slope:
+            return exposure / self.prices * rate_response * self.marginal_signal_value()
+        rate_response = rate_response * self.marginal_signal_value() + self.config.financing_rating_slope
+        return exposure / self.prices * rate_response
 
     def marginal_signal_value(self) -> FloatArray:
         """Local permanent quote response per initial SD, for one rebalance each."""

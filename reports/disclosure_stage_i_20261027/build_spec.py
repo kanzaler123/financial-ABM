@@ -1,25 +1,26 @@
-"""Stage I model runs: write the confirmatory and development specs of contract 26.9 and check their derivation.
+"""Stage I model runs, v2: write the confirmatory and development specs of contract 26.20 (f) and check their derivation.
 
-The source is the H3 spec configs/disclosure_stage_h3_v1.json (contract 25.17). Only financing_spread changes, as a
-scenario-level market override; every other setting is H3's (natural dynamics Q, policy doses, contract scale).
+The source is the H3 spec configs/disclosure_stage_h3_v1.json (contract 25.17). Only financing_rating_slope (the
+direct rating channel lambda of contract 26.20 (a)) changes, as a scenario-level market override; financing_spread
+stays 0.05 and every other setting is H3's (natural dynamics Q, policy doses, contract scale).
 
-  block          scenarios                                                spread                   names
-  confirmatory   H3 main block (18) and perm_ block (3)                   s*                       as in H3
-  sensitivity    B, I, F, J, J_hidden, V, ALL_R16, ALL_F16 (cover P1-P8)  s0, s_lo, s_hi, s_28     s0_B, slo_B, ...
+  block          scenarios                                                slope                                names
+  confirmatory   H3 main block (18) and perm_ block (3)                   lambda*                              as in H3
+  sensitivity    B, I, F, J, J_hidden, V, ALL_R16, ALL_F16 (cover P1-P8)  lambda0 = 0, lambda_lo, lambda_hi,   l0_B, llo_B,
+                                                                          lambda_FE (exploratory, 26.20 (e))   lhi_B, lfe_B
 
-The spreads come from calibration_target.json (contract 26.7). Contract 26.9: without a positive estimate, or with
-s* within 10% of 0.05, there is no confirmatory block; s_lo exists only when the lower end of the interval is
-positive, s_hi only when the upper end is. s0 = 0.05 is the base market's value, so the s0_ scenarios carry no
-override and equal H3's scenarios apart from the name. The eight primary questions P1-P8 are H3's (same scenario
-names, contrasts, measures and predicted signs), Holm-adjusted together in analyze.py; no comparison is primary for
-the runner.
+The slopes come from calibration_target_v2.json (contract 26.20 (d), (e)). lambda0 = 0 is the base market's value,
+so the l0_ scenarios carry no override and equal H3's scenarios apart from the name. The eight primary questions
+P1-P8 are H3's (same scenario names, contrasts, measures and predicted signs), Holm-adjusted together in analyze.py;
+no comparison is primary for the runner. The v1 design (financing_spread only, contract 26.7) failed at s* in
+development (contract 26.19); its specs and archives are kept and no longer used.
 
-  python build_spec.py [--target calibration_target.json] [--h3-archive <H3 confirmatory archive>]
+  python build_spec.py [--target calibration_target_v2.json] [--h3-archive <H3 confirmatory archive>]
                        [--out-dir configs]
 
-Writes configs/disclosure_stage_i_v1.json (seeds 57001-57030) and configs/disclosure_stage_i_check_v1.json
+Writes configs/disclosure_stage_i_v2.json (seeds 57001-57030) and configs/disclosure_stage_i_check_v2.json
 (development seeds 38101-38102, pipeline check only); the two differ only in name, purpose and seeds. Then checks
-that every scenario, with its spread set back to 0.05, equals H3's frozen scenario of the same base name.
+that every scenario, with its slope set back to 0, equals H3's frozen scenario of the same base name.
 """
 
 from __future__ import annotations
@@ -39,57 +40,56 @@ _spec = importlib.util.spec_from_file_location("h3_build_spec", H3_DIR / "build_
 h3 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(h3)
 
-SEEDS = {"confirmatory": list(range(57001, 57031)),   # contract 26.9 and 26.10: new, never used
-         "development": [38101, 38102]}               # contract 26.9: pipeline check only
-CURRENT = 0.05                                        # s0, the base market's financing_spread
+SEEDS = {"confirmatory": list(range(57001, 57031)),   # contract 26.10 and 26.20 (f): never used in any run
+         "development": [38101, 38102]}               # contract 26.20 (f): pipeline check only
+CURRENT = 0.0                                         # lambda0, the base market's financing_rating_slope
 CONFIRMATORY = h3.CORE + h3.TARGETED + h3.ASSURED + tuple(f"perm_{name}" for name in h3.REFERENCE)
 SENSITIVITY = ("B", "I", "F", "J", "J_hidden", "V", "ALL_R16", "ALL_F16")
-PREFIXES = {"s0": "s0_", "s_lo": "slo_", "s_hi": "shi_", "s_28": "s28_"}
-NAMES = {"confirmatory": "disclosure_stage_i_v1", "development": "disclosure_stage_i_check_v1"}
+PREFIXES = {"lambda0": "l0_", "lambda_lo": "llo_", "lambda_hi": "lhi_", "lambda_fe": "lfe_"}
+NAMES = {"confirmatory": "disclosure_stage_i_v2", "development": "disclosure_stage_i_check_v2"}
 
 
-def spreads(target: dict) -> tuple[float | None, dict[str, float]]:
-    """s* for the confirmatory block (None without one) and the sensitivity spreads, contract 26.9."""
-    rerun = target["rerun_rule_26_9"] == "confirmatory rerun at s*"
-    s_star = target["s_star_adopted"] if rerun else None
-    sensitivity = {key: target["sensitivity_spreads"][key] for key in PREFIXES if key in target["sensitivity_spreads"]}
-    assert sensitivity["s0"] == CURRENT
-    return s_star, sensitivity
+def slopes(target: dict) -> tuple[float, dict[str, float]]:
+    """lambda* for the confirmatory block and the sensitivity slopes, contract 26.20 (d), (e)."""
+    assert target["rerun_rule_26_20"] == "confirmatory rerun at lambda*"
+    values = target["financing_rating_slope"]
+    sensitivity = {"lambda0": CURRENT, **{key: values[key] for key in ("lambda_lo", "lambda_hi", "lambda_fe")}}
+    assert all(value > 0 for key, value in sensitivity.items() if key != "lambda0") and values["lambda_star"] > 0
+    return values["lambda_star"], sensitivity
 
 
-def _with(row: dict, name: str, spread: float) -> dict:
+def _with(row: dict, name: str, slope: float) -> dict:
     row = {**json.loads(json.dumps(row)), "name": name}
     assert "market" not in row
-    if spread != CURRENT:
-        row["market"] = {"financing_spread": spread}
+    if slope != CURRENT:
+        row["market"] = {"financing_rating_slope": slope}
     return row
 
 
 def scenarios(target: dict) -> list[dict]:
-    s_star, sensitivity = spreads(target)
+    star, sensitivity = slopes(target)
     source = {row["name"]: row for row in json.loads(H3_SPEC.read_text(encoding="utf-8"))["scenarios"]}
-    rows = [_with(source[name], name, s_star) for name in CONFIRMATORY] if s_star is not None else []
-    for key, spread in sensitivity.items():
-        rows += [_with(source[name], PREFIXES[key] + name, spread) for name in SENSITIVITY]
+    rows = [_with(source[name], name, star) for name in CONFIRMATORY]
+    for key, slope in sensitivity.items():
+        rows += [_with(source[name], PREFIXES[key] + name, slope) for name in SENSITIVITY]
     return rows
 
 
 def comparisons(target: dict) -> list[dict]:
-    s_star, sensitivity = spreads(target)
+    _, sensitivity = slopes(target)
     rows = []
 
     def add(name: str, weights: dict, metric: str | None = None) -> None:
         rows.append({"name": name, "weights": weights, **({"primary_metric": metric} if metric else {})})
 
-    if s_star is not None:
-        for q in h3.primary_questions():           # P1, P2, P4, P6, P7 at s*
-            if q["kind"] == "runner_metric":
-                add(q["comparison"], q["weights"], None if q["metric"] == h3.MAIN_METRIC else q["metric"])
-        for plus, minus in (("I", "B"), ("V", "A2"), ("J", "A2"), ("F", "F_2x"), ("F_8x", "F"),
-                            ("perm_I", "perm_F"), ("perm_F", "perm_B"), ("perm_I", "perm_B")):
-            add(f"{plus}_minus_{minus}", {plus: 1, minus: -1})
+    for q in h3.primary_questions():               # P1, P2, P4, P6, P7 at lambda*
+        if q["kind"] == "runner_metric":
+            add(q["comparison"], q["weights"], None if q["metric"] == h3.MAIN_METRIC else q["metric"])
+    for plus, minus in (("I", "B"), ("V", "A2"), ("J", "A2"), ("F", "F_2x"), ("F_8x", "F"),
+                        ("perm_I", "perm_F"), ("perm_F", "perm_B"), ("perm_I", "perm_B")):
+        add(f"{plus}_minus_{minus}", {plus: 1, minus: -1})
     for key, prefix in ((key, PREFIXES[key]) for key in sensitivity):
-        for q in h3.primary_questions():           # the same runner contrasts at every sensitivity spread
+        for q in h3.primary_questions():           # the same runner contrasts at every sensitivity slope
             if q["kind"] == "runner_metric":
                 add(prefix + q["comparison"], {prefix + name: weight for name, weight in q["weights"].items()},
                     None if q["metric"] == h3.MAIN_METRIC else q["metric"])
@@ -99,20 +99,22 @@ def comparisons(target: dict) -> list[dict]:
 
 def spec(purpose: str, target: dict) -> dict:
     base = json.loads(H3_SPEC.read_text(encoding="utf-8"))
-    s_star, sensitivity = spreads(target)
+    star, sensitivity = slopes(target)
     return {
         "name": NAMES[purpose], "purpose": purpose, "archive": "compact",
-        "_note": "Stage I (research contract section 26.9): the H3 design (form Q, kappa_T 0.505, s_P 0.423) with "
-                 "financing_spread set by the in-sample premium. Confirmatory block at s* (H3 main and perm_ blocks, "
-                 "H3's names), sensitivity block of eight core scenarios at s0, s_lo, s_hi and s_28 (prefixed names), "
-                 "all on the same seeds. Development and confirmatory specs differ only in name, purpose and seeds; "
-                 "the development run checks the pipeline and may not change the design. The Holm family is the "
-                 "eight primary_questions at s*, adjusted together in analyze.py; no comparison is primary for the "
-                 "runner. The sensitivity block is exploratory.",
-        "financing_spreads": {"s_star": s_star, **sensitivity},
+        "_note": "Stage I v2 (research contract section 26.20): the H3 design (form Q, kappa_T 0.505, s_P 0.423, "
+                 "financing_spread 0.05) with a direct response of the debt rate to the public rating, "
+                 "financing_rating_slope lambda, set by the in-sample premium. Confirmatory block at lambda* (H3 "
+                 "main and perm_ blocks, H3's names), sensitivity block of eight core scenarios at lambda0 = 0, "
+                 "lambda_lo, lambda_hi and lambda_FE (prefixed names; lambda_FE is an exploratory point added after "
+                 "the estimate), all on the same seeds. Development and confirmatory specs differ only in name, "
+                 "purpose and seeds; the development run checks the pipeline and may not change the design. The "
+                 "Holm family is the eight primary_questions at lambda*, adjusted together in analyze.py; no "
+                 "comparison is primary for the runner. The sensitivity block is exploratory.",
+        "financing_rating_slopes": {"lambda_star": star, **sensitivity},
         "domain": base["domain"], "market": base["market"], "seeds": SEEDS[purpose],
         "scenarios": scenarios(target), "comparisons": comparisons(target),
-        "primary_questions": h3.primary_questions() if s_star is not None else [],
+        "primary_questions": h3.primary_questions(),
         "analysis": base["analysis"],
     }
 
@@ -121,31 +123,35 @@ def check_derivation(paths: dict[str, Path], target: dict, h3_archive: Path) -> 
     sys.path.insert(0, str(ROOT / "src"))
     from abm.disclosure.experiments import freeze_spec
 
-    s_star, sensitivity = spreads(target)
+    star, sensitivity = slopes(target)
     frozen = freeze_spec(paths["confirmatory"])
     old = {row["name"]: row for row in json.loads((h3_archive / "experiment.json").read_text(encoding="utf-8"))["scenarios"]}
-    expected = {name: s_star for name in CONFIRMATORY} if s_star is not None else {}
-    for key, spread in sensitivity.items():
-        expected.update({PREFIXES[key] + name: spread for name in SENSITIVITY})
+    expected = {name: star for name in CONFIRMATORY}
+    for key, slope in sensitivity.items():
+        expected.update({PREFIXES[key] + name: slope for name in SENSITIVITY})
     new = {row["name"]: row for row in frozen["scenarios"]}
     assert list(new) == list(expected), "scenario list"
     for name, row in new.items():
         base_name = next((name[len(p):] for p in PREFIXES.values() if name.startswith(p)), name)
-        assert row["config"]["financing_spread"] == expected[name], name
+        # A zero slope is left out of the frozen config (MarketConfig.to_dict), so l0_ rows carry no key.
+        assert row["config"].get("financing_rating_slope", CURRENT) == expected[name], name
+        assert row["config"]["financing_spread"] == 0.05, name
         reset = json.loads(json.dumps(row))
-        reset["name"], reset["config"]["financing_spread"] = base_name, CURRENT
-        assert reset == old[base_name], f"{name} differs from H3 {base_name} once the spread is reset"
-    configs = {json.dumps({**row["config"], "financing_spread": None}, sort_keys=True) for row in new.values()}
+        reset["name"] = base_name
+        reset["config"].pop("financing_rating_slope", None)
+        assert reset == old[base_name], f"{name} differs from H3 {base_name} once the slope is reset"
+    configs = {json.dumps({k: v for k, v in row["config"].items() if k != "financing_rating_slope"}, sort_keys=True)
+               for row in new.values()}
     assert len(configs) == 1
     check = {row["name"]: row for row in freeze_spec(paths["development"])["scenarios"]}
     assert check == new
-    print(f"derivation check: {len(new)} scenarios equal H3's frozen scenario once financing_spread is set back to "
-          f"{CURRENT}; spreads {sorted(set(expected.values()))}; development scenarios equal the confirmatory ones")
+    print(f"derivation check: {len(new)} scenarios equal H3's frozen scenario once financing_rating_slope is set "
+          f"back to 0; slopes {sorted(set(expected.values()))}; development scenarios equal the confirmatory ones")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--target", type=Path, default=HERE / "calibration_target.json")
+    parser.add_argument("--target", type=Path, default=HERE / "calibration_target_v2.json")
     parser.add_argument("--h3-archive", type=Path, default=H3_DIR / "h3_v1", help="H3 confirmatory archive (read-only)")
     parser.add_argument("--out-dir", type=Path, default=ROOT / "configs")
     args = parser.parse_args()

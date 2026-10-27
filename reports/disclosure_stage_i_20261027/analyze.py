@@ -1,7 +1,13 @@
-"""Stage I analysis (research contract section 26.9). Read-only on the archive.
+"""Stage I analysis (research contract sections 26.9 and 26.20). Read-only on the archive.
 
-  python analyze.py stage_i_v1            # confirmatory: claim records, sensitivity curve, descriptives, tables
-  python analyze.py check_v1 --smoke      # development: runs the same code, writes and prints counts only
+  python analyze.py stage_i_v2            # confirmatory: claim records, sensitivity curve, descriptives, tables
+  python analyze.py check_v2 --smoke      # development: runs the same code, writes and prints counts only
+
+v2 (contract 26.20): the points are rating slopes lambda instead of spreads s. The confirmatory block is at
+lambda*; the sensitivity points are lambda0 = 0, lambda_lo, lambda_hi and lambda_FE. The monotonicity reading uses
+lambda0, lambda_lo, lambda* and lambda_hi (26.20 (g)); lambda_FE, an exploratory point added after the estimate, is
+shown on the curve and enters only a second, exploratory reading over all five points. Below, "spread" stands for
+whichever the spec varies (v1: s, v2: lambda).
 
 Primary questions (when the spec has a confirmatory block at s*): the eight of contract 25.8, as frozen in the H3
 spec, on the unprefixed scenarios. P1, P2, P4, P6 and P7 are paired differences of runner metrics, P3, P5 and P8
@@ -44,12 +50,22 @@ SIZES = ("large", "mid", "small")
 MAIN_METRIC = "true_change.equal_weight_sd"
 AUX_METRICS = ("true_change.equal_weight_sd", "true_change.fixed_start_cap_weight_sd", "size.large_minus_small_sd")
 PREFIXES = {"s0": "s0_", "s_lo": "slo_", "s_hi": "shi_", "s_28": "s28_"}
+STAR, POINTS_KEY, SYMBOL = "s_star", "financing_spreads", "s"
+EXPLORATORY: set[str] = set()     # points outside the pre-registered reading (v2: lambda_fe)
 CORE = ("B", "I", "F", "J", "J_hidden", "V", "ALL_R16", "ALL_F16")
 REPLICATE_TOLERANCE = 0.10    # contract 26.18: within 10% of s* (the calibration tolerance) is the same point
 QUESTIONS = json.loads(H3_SPEC.read_text(encoding="utf-8"))["primary_questions"]   # contract 25.8, frozen in H3
 
 
 # -- loading ------------------------------------------------------------------
+
+def configure(spec: dict) -> None:
+    """v2 specs vary financing_rating_slope (contract 26.20); v1 specs vary financing_spread (26.9)."""
+    global PREFIXES, STAR, POINTS_KEY, SYMBOL, EXPLORATORY
+    if "financing_rating_slopes" in spec:
+        PREFIXES = {"lambda0": "l0_", "lambda_lo": "llo_", "lambda_hi": "lhi_", "lambda_fe": "lfe_"}
+        STAR, POINTS_KEY, SYMBOL, EXPLORATORY = "lambda_star", "financing_rating_slopes", "λ", {"lambda_fe"}
+
 
 def load(run: Path) -> tuple[dict, dict, dict]:
     frozen = json.loads((run / "experiment.json").read_text(encoding="utf-8"))
@@ -210,50 +226,59 @@ def curve_points(spreads: dict, names: set[str]) -> list[tuple[str, float, str]]
     """(label, spread, prefix) of every spread whose core scenarios are in the archive, by increasing spread."""
     points = [(key, spreads[key], prefix) for key, prefix in PREFIXES.items()
               if spreads.get(key) is not None and all(prefix + n in names for n in CORE)]
-    if spreads.get("s_star") is not None and all(n in names for n in CORE):
-        points.append(("s_star", spreads["s_star"], ""))
+    if spreads.get(STAR) is not None and all(n in names for n in CORE):
+        points.append((STAR, spreads[STAR], ""))
     return sorted(points, key=lambda p: p[1])
+
+
+def read_segments(points: list[tuple[str, float, str]], values: dict, at: dict, seeds: list[int]) -> dict:
+    """Changes between adjacent points and the monotonicity reading (contract 20.16, judgment 2)."""
+    segments, signs = [], []
+    for (a, sa, _), (b, sb, _) in zip(points, points[1:]):
+        paired = [values[b][s] - values[a][s] for s in seeds if s in values[a] and s in values[b]]
+        change = (at[b].get("mean") - at[a].get("mean")) if at[a].get("mean") is not None and at[b].get("mean") is not None else None
+        signs.append(None if change is None else int(np.sign(change)))
+        segments.append({"from": a, "to": b, "from_spread": sa, "to_spread": sb, "point_estimate_change": change,
+                         "paired_change": stat(paired)})
+    known = [s for s in signs if s is not None]
+    if len(known) < len(signs) or not known:
+        reading = "undetermined"
+    elif all(s == known[0] != 0 for s in known):
+        reading = "monotone increasing" if known[0] > 0 else "monotone decreasing"
+    else:
+        reading = "not monotone"
+    breaking = [] if reading.startswith("monotone") else [
+        f"{seg['from']}->{seg['to']}" for seg, s in zip(segments, signs) if s != (known[0] if known else None)]
+    return {"segments": segments, "segment_signs": signs, "reading": reading, "segments_against_first": breaking,
+            "segments_all_distinguishable": all(
+                seg["paired_change"] is not None and
+                (seg["paired_change"]["ci_low"] > 0 or seg["paired_change"]["ci_high"] < 0)
+                for seg in segments) if segments else None}
 
 
 def sensitivity(spreads: dict, seeds: list[int]) -> dict:
     """Contract 26.9 and 26.18: a spread within REPLICATE_TOLERANCE of s* is the same calibration point; it is
-    reported against s* seed by seed and stays out of the monotonicity reading."""
+    reported against s* seed by seed and stays out of the monotonicity reading. Contract 26.20 (g): exploratory
+    points (lambda_FE) stay out of the reading too and enter a second, exploratory reading over all points."""
     every = curve_points(spreads, set(ROWS))
-    star = next((p for p in every if p[0] == "s_star"), None)
-    replicates = [p for p in every if star and p[0] != "s_star" and abs(p[1] / star[1] - 1) < REPLICATE_TOLERANCE]
-    points = [p for p in every if p not in replicates]
+    star = next((p for p in every if p[0] == STAR), None)
+    replicates = [p for p in every if star and p[0] != STAR and abs(p[1] / star[1] - 1) < REPLICATE_TOLERANCE]
+    exploratory = [p for p in every if p[0] in EXPLORATORY]
+    points = [p for p in every if p not in replicates and p not in exploratory]
     contrasts = {}
     for q in QUESTIONS:
         values = {label: per_seed(q, prefix, seeds) for label, _, prefix in every}
         at = {label: {"spread": spread, **(stat(list(values[label].values())) or {"n": len(values[label])}),
                       "seeds_left_out": [s for s in seeds if s not in values[label]]}
               for label, spread, _ in every}
-        replicate = {label: stat([values[label][s] - values["s_star"][s] for s in seeds
-                                  if s in values[label] and s in values["s_star"]]) for label, _, _ in replicates}
-        segments, signs = [], []
-        for (a, sa, _), (b, sb, _) in zip(points, points[1:]):
-            paired = [values[b][s] - values[a][s] for s in seeds if s in values[a] and s in values[b]]
-            change = (at[b].get("mean") - at[a].get("mean")) if at[a].get("mean") is not None and at[b].get("mean") is not None else None
-            signs.append(None if change is None else int(np.sign(change)))
-            segments.append({"from": a, "to": b, "from_spread": sa, "to_spread": sb, "point_estimate_change": change,
-                             "paired_change": stat(paired)})
-        known = [s for s in signs if s is not None]
-        if len(known) < len(signs) or not known:
-            reading = "undetermined"
-        elif all(s == known[0] != 0 for s in known):
-            reading = "monotone increasing" if known[0] > 0 else "monotone decreasing"
-        else:
-            reading = "not monotone"
-        breaking = [] if reading.startswith("monotone") else [
-            f"{seg['from']}->{seg['to']}" for seg, s in zip(segments, signs) if s != (known[0] if known else None)]
+        replicate = {label: stat([values[label][s] - values[STAR][s] for s in seeds
+                                  if s in values[label] and s in values[STAR]]) for label, _, _ in replicates}
         contrasts[q["id"]] = {"comparison": q["comparison"], "measure": q.get("metric", q.get("share")),
-                              "direction": q["direction"], "at": at, "segments": segments, "segment_signs": signs,
-                              "reading": reading, "segments_against_first": breaking,
-                              "replicate_minus_s_star": replicate,
-                              "segments_all_distinguishable": all(
-                                  seg["paired_change"] is not None and
-                                  (seg["paired_change"]["ci_low"] > 0 or seg["paired_change"]["ci_high"] < 0)
-                                  for seg in segments) if segments else None}
+                              "direction": q["direction"], "at": at, **read_segments(points, values, at, seeds),
+                              "replicate_minus_s_star": replicate}
+        if exploratory:
+            contrasts[q["id"]]["with_exploratory_points"] = read_segments(
+                [p for p in every if p not in replicates], values, at, seeds)
     shares = {}
     for label, spread, prefix in every:
         shares[label] = {"spread": spread, **{
@@ -262,6 +287,7 @@ def sensitivity(spreads: dict, seeds: list[int]) -> dict:
                     "wash_rate_large", "wash_rate_small")} for name in CORE}}
     return {"points": [{"label": label, "spread": spread, "prefix": prefix} for label, spread, prefix in points],
             "replicates": [{"label": label, "spread": spread, "prefix": prefix} for label, spread, prefix in replicates],
+            "exploratory": [{"label": label, "spread": spread, "prefix": prefix} for label, spread, prefix in exploratory],
             "contrasts": contrasts, "washing_shares": shares}
 
 
@@ -312,11 +338,17 @@ def pct(value: float | None) -> str:
     return "—" if value is None else f"{100 * value:.1f}%"
 
 
+def point_text(value: float) -> str:
+    return f"λ = {value * 1e4:g} bp" if SYMBOL == "λ" else f"s = {value:g}"
+
+
 def tables(result: dict) -> list[str]:
+    star = f"{SYMBOL}*"
     out = ["# 阶段 I 模型运行表格", "", f"experiment_id `{result['experiment_id']}`", "",
-           f"融资利差：{json.dumps(result['financing_spreads'], ensure_ascii=False)}", ""]
+           f"{'债务利率对评级的直接反应 λ（年利率/SD）' if SYMBOL == 'λ' else '融资利差'}："
+           f"{json.dumps(result['points'], ensure_ascii=False)}", ""]
     if result["primary"]:
-        out += ["## 主要问题（s*，政策窗口，配对 95% t 区间，八项一起 Holm 校正）", "",
+        out += [f"## 主要问题（{star}，政策窗口，配对 95% t 区间，八项一起 Holm 校正）", "",
                 "| 问题 | 对比 | 指标 | 均值 [区间] | Holm p | 判定 | 剔除的种子 | 剔除核心验证失败后 |",
                 "|---|---|---|---|---:|---|---:|---|"]
         for row in result["primary"].values():
@@ -327,30 +359,45 @@ def tables(result: dict) -> list[str]:
                        f"{interval(row['without_core_validation_failures'], digits)} |")
     sens = result["sensitivity"]
     labels = [p["label"] for p in sens["points"]]
-    shown = sorted(sens["points"] + sens["replicates"], key=lambda p: p["spread"])
+    shown = sorted(sens["points"] + sens["replicates"] + sens["exploratory"], key=lambda p: p["spread"])
     repeat = {p["label"] for p in sens["replicates"]}
-    out += ["", "## 敏感性（探索性，未校正）：各利差下的对比", "",
-            "| 问题 | " + " | ".join(f"{p['label']}{'（重复）' if p['label'] in repeat else ''} (s = {p['spread']:g})"
-                                  for p in shown) + " | 读法（不含重复点） |",
-            "|---|" + "---|" * len(shown) + "---|"]
+    extra = {p["label"] for p in sens["exploratory"]}
+    tag = lambda label: "（重复）" if label in repeat else "（探索性）" if label in extra else ""  # noqa: E731
+    out += ["", f"## 敏感性（探索性，未校正）：各{'λ' if SYMBOL == 'λ' else '利差'}下的对比", "",
+            "| 问题 | " + " | ".join(f"{p['label']}{tag(p['label'])} ({point_text(p['spread'])})" for p in shown)
+            + " | 读法（事先写明的点） |" + (" 读法（含探索性点） |" if extra else ""),
+            "|---|" + "---|" * len(shown) + "---|" + ("---|" if extra else "")]
     for key, row in sens["contrasts"].items():
         digits = 4 if row["measure"] in ("large", "small", "laxest") else 3
         reading = row["reading"] + (f"（{', '.join(row['segments_against_first'])}）" if row["segments_against_first"] else "")
-        out.append(f"| {key} | " + " | ".join(interval(row["at"][p["label"]], digits) for p in shown) + f" | {reading} |")
+        cells = f"| {key} | " + " | ".join(interval(row["at"][p["label"]], digits) for p in shown) + f" | {reading} |"
+        if extra:
+            other = row["with_exploratory_points"]
+            cells += f" {other['reading']}" + (f"（{', '.join(other['segments_against_first'])}）"
+                                               if other["segments_against_first"] else "") + " |"
+        out.append(cells)
     if repeat:
-        out += ["", "重复点与 s* 的逐种子配对差（第 26.18 条，不进入单调性判断）：", "",
-                "| 问题 | " + " | ".join(f"{label} − s*" for label in sorted(repeat)) + " |", "|---|" + "---|" * len(repeat)]
+        out += ["", f"重复点与 {star} 的逐种子配对差（第 26.18 条，不进入单调性判断）：", "",
+                "| 问题 | " + " | ".join(f"{label} − {star}" for label in sorted(repeat)) + " |", "|---|" + "---|" * len(repeat)]
         for key, row in sens["contrasts"].items():
             digits = 4 if row["measure"] in ("large", "small", "laxest") else 3
             out.append(f"| {key} | " + " | ".join(interval(row["replicate_minus_s_star"][label], digits)
                                                   for label in sorted(repeat)) + " |")
-    out += ["", "相邻两点之差（配对 95% t 区间）：", "", "| 问题 | " + " | ".join(
+    out += ["", "相邻两点之差（配对 95% t 区间，事先写明的点）：", "", "| 问题 | " + " | ".join(
         f"{a}→{b}" for a, b in zip(labels, labels[1:])) + " |", "|---|" + "---|" * max(len(labels) - 1, 0)]
     for key, row in sens["contrasts"].items():
         digits = 4 if row["measure"] in ("large", "small", "laxest") else 3
         out.append(f"| {key} | " + " | ".join(interval(seg["paired_change"], digits) for seg in row["segments"]) + " |")
+    if extra:
+        first = next(iter(sens["contrasts"].values()))["with_exploratory_points"]["segments"]
+        out += ["", "相邻两点之差（含探索性点，第 26.20 条 (g)）：", "", "| 问题 | " + " | ".join(
+            f"{seg['from']}→{seg['to']}" for seg in first) + " |", "|---|" + "---|" * len(first)]
+        for key, row in sens["contrasts"].items():
+            digits = 4 if row["measure"] in ("large", "small", "laxest") else 3
+            out.append(f"| {key} | " + " | ".join(interval(seg["paired_change"], digits)
+                                                  for seg in row["with_exploratory_points"]["segments"]) + " |")
     out += ["", "## 漂绿决策占比与按规模的份额（种子均值）", "",
-            "| 利差 | 场景 | 漂绿决策占比 | 份额 大 / 中 / 小 | 漂绿率 大 / 小 |", "|---|---|---:|---|---|"]
+            f"| {'λ' if SYMBOL == 'λ' else '利差'} | 场景 | 漂绿决策占比 | 份额 大 / 中 / 小 | 漂绿率 大 / 小 |", "|---|---|---:|---|---|"]
     for label, block in sens["washing_shares"].items():
         for name in CORE:
             row = block[name]
@@ -382,6 +429,7 @@ def counts(result: dict, frozen: dict) -> dict:
                                   for key, row in result["primary"].items()},
             "sensitivity_points": [p["label"] for p in sens["points"]],
             "sensitivity_replicates": [p["label"] for p in sens["replicates"]],
+            "sensitivity_exploratory": [p["label"] for p in sens["exploratory"]],
             "sensitivity_contrasts": {key: {"n_by_point": {label: at["n"] for label, at in row["at"].items()},
                                             "segments": len(row["segments"]),
                                             "segments_with_paired_interval": sum(seg["paired_change"] is not None
@@ -397,7 +445,7 @@ def counts(result: dict, frozen: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("run", help="archive directory name next to this script, e.g. stage_i_v1")
+    parser.add_argument("run", help="archive directory name next to this script, e.g. stage_i_v2")
     parser.add_argument("--smoke", action="store_true", help="development archive: write and print counts only")
     args = parser.parse_args()
     run = HERE / args.run
@@ -405,18 +453,19 @@ def main() -> None:
     if frozen["spec"]["purpose"] == "development" and not args.smoke:
         raise SystemExit("development archives are analyzed with --smoke only")
     spec = frozen["spec"]
+    configure(spec)
     seeds, questions = spec["seeds"], spec["primary_questions"]
     if questions and questions != QUESTIONS:
-        raise SystemExit("the spec's primary questions differ from H3's (contract 26.9)")
+        raise SystemExit("the spec's primary questions differ from H3's (contracts 26.9, 26.20)")
     arrays = Arrays(run)
     ROWS.update(rows)
     CELLS.update({name: {seed: trial(arrays.get(record)) for seed, record in by_seed.items() if complete(record)}
                   for name, by_seed in rows.items()})
     result = {"experiment_id": frozen["experiment_id"], "purpose": spec["purpose"],
-              "financing_spreads": spec["financing_spreads"],
+              "points_key": POINTS_KEY, "points": spec[POINTS_KEY],
               "complete_trials": summary["complete_trials"], "planned_trials": summary["planned_trials"],
               "trials_failing_core_validation": summary["trials_failing_core_validation"],
-              "primary": primary_questions(questions, seeds), "sensitivity": sensitivity(spec["financing_spreads"], seeds),
+              "primary": primary_questions(questions, seeds), "sensitivity": sensitivity(spec[POINTS_KEY], seeds),
               "auxiliary": auxiliary(summary, questions), "describe": describe(seeds, arrays)}
     if args.smoke:
         out = counts(result, frozen)

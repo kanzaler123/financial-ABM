@@ -22,8 +22,17 @@ Only pre-policy pricing and financing are read; firm actions, inflation and poli
       median rho on s, doubling the grid outward while a target lies outside it, then the verification of s* on the
       same seeds (median rho within 10% of PI, otherwise one re-interpolation with the new point; both recorded);
       writes calibration_target.json
+  python calibrate.py lambda --pi PI --lo LO --hi HI --fe FE [--workers 12]
+      contract 26.20 (d), (e): the direct rating channel financing_rating_slope lambda at s0 = 0.05. Each point is
+      lambda_x = target_x - median rho(s0) of calibration_grid.json, in basis points to four significant digits
+      (rho_price is shifted by a constant, so its median moves one for one). Pre-policy runs at lambda*, lambda_lo,
+      lambda_hi and lambda_FE on the same seeds; rho here is rho_total = rho_price + lambda, read from the firms'
+      benefit as above. lambda* is adopted when the median rho_total is within 10% of PI, otherwise moved once by
+      PI - median and verified again (both recorded). The other points are reported, not adjusted. Also reports
+      rho_price, the contract rate on the decision days and initially, and the cross-sectional SD of the public
+      signal (diagnostics). Writes calibration_target_v2.json
 
-Per-firm arrays go to calibration_v1/ (local, not committed).
+Per-firm arrays go to calibration_v1/ (grid, target) and calibration_v2/ (lambda), local, not committed.
 """
 
 from __future__ import annotations
@@ -61,6 +70,7 @@ BURN_IN = 600                            # metric window only; does not enter th
 TOLERANCE = 0.10                         # verification: median rho within 10% of the target
 TARGET_28 = 28.0                         # contract 15.4, basis points per SD
 ARRAYS = HERE / "calibration_v1"
+ARRAYS_V2 = HERE / "calibration_v2"
 
 
 def sha(path: Path) -> str:
@@ -73,12 +83,15 @@ def frozen_scenario() -> tuple[dict, str]:
     return rows[SCENARIO], frozen["experiment_id"]
 
 
-def setting(scenario: dict, spread: float, seed: int, full: bool = False):
-    """The scenario at the given spread: the pre-policy window, or the whole run of the main setting (full)."""
+def setting(scenario: dict, spread: float, seed: int, full: bool = False, slope: float = 0.0):
+    """The scenario at the given spread and rating slope: the pre-policy window, or the whole run (full)."""
     config, domain, policy = _inputs(scenario, seed)
     if not full:
         config = replace(config, trading_days=PRE_POLICY_DAYS, burn_in_days=BURN_IN)
-    return replace(config, financing_spread=spread), domain, policy
+    config = replace(config, financing_spread=spread)
+    if slope:
+        config = replace(config, financing_rating_slope=slope)
+    return config, domain, policy
 
 
 def ols_slope(y: np.ndarray, x: np.ndarray) -> float:
@@ -86,11 +99,13 @@ def ols_slope(y: np.ndarray, x: np.ndarray) -> float:
     return float(centered @ (y - y.mean()) / (centered @ centered))
 
 
-def run_one(scenario: dict, spread: float, seed: int) -> dict:
-    """One instrumented pre-policy run; per-firm arrays are written to ARRAYS."""
-    config, domain, policy = setting(scenario, spread, seed)
+def run_one(scenario: dict, spread: float, seed: int, slope: float = 0.0) -> dict:
+    """One instrumented pre-policy run; per-firm arrays are written to ARRAYS (ARRAYS_V2 with a rating slope)."""
+    config, domain, policy = setting(scenario, spread, seed, slope=slope)
     market = DisclosureMarket(config, domain, policy)
     days, rho, passthrough, exposure_share, yield_slope, premium_slope = [], [], [], [], [], []
+    contract_rate, signal_sd = [], []
+    initial_rate = market.initial_contract_rate.copy()
     original = market.marginal_financing_saving
 
     def wrapped():
@@ -104,6 +119,8 @@ def run_one(scenario: dict, spread: float, seed: int) -> dict:
         exposure_share.append(exposure / prices)
         yield_slope.append(pricing_slope(market.cost_of_capital(), signal))
         premium_slope.append(ols_slope(np.log(prices / market.firms.intrinsic_value), signal))
+        contract_rate.append(market.contract_rate.copy())
+        signal_sd.append(float(signal.std()))
         return benefit
 
     market.marginal_financing_saving = wrapped
@@ -111,13 +128,20 @@ def run_one(scenario: dict, spread: float, seed: int) -> dict:
     try:
         result = market.run()
     except Exception as error:  # a failed world is recorded, never dropped
-        return {"spread": spread, "seed": seed, "status": "failed", "error": f"{type(error).__name__}: {error}"}
-    ARRAYS.mkdir(exist_ok=True)
-    path = ARRAYS / f"s{spread:g}_seed{seed}.npz"
+        return {"spread": spread, "seed": seed, **({"slope": slope} if slope else {}), "status": "failed",
+                "error": f"{type(error).__name__}: {error}"}
+    extra = {}
+    if slope:
+        folder, path = ARRAYS_V2, ARRAYS_V2 / f"s{spread:g}_l{slope * 1e4:g}bp_seed{seed}.npz"
+        extra = dict(contract_rate=np.array(contract_rate), initial_rate=initial_rate, signal_sd=np.array(signal_sd))
+    else:
+        folder, path = ARRAYS, ARRAYS / f"s{spread:g}_seed{seed}.npz"
+    folder.mkdir(exist_ok=True)
     np.savez_compressed(path, days=np.array(days), rho=np.array(rho), passthrough=np.array(passthrough),
                         exposure_share=np.array(exposure_share), yield_slope=np.array(yield_slope),
-                        premium_slope=np.array(premium_slope))
-    return {"spread": spread, "seed": seed, "status": "complete", "fingerprint": result.fingerprint(),
+                        premium_slope=np.array(premium_slope), **extra)
+    return {"spread": spread, "seed": seed, **({"slope": slope} if slope else {}), "status": "complete",
+            "fingerprint": result.fingerprint(),
             "seconds": time.perf_counter() - started, "decision_days": days,
             "price_cap_hits": int(result.market.price_cap_hits.sum()), "arrays": path.relative_to(HERE).as_posix()}
 
@@ -148,16 +172,17 @@ def pool(workers: int) -> ProcessPoolExecutor:
     return ProcessPoolExecutor(max_workers=workers, initializer=disable_power_throttling)
 
 
-def run_jobs(scenario: dict, jobs: list[tuple[float, int]], workers: int, checks: tuple[int, ...] = ()) -> tuple:
+def run_jobs(scenario: dict, jobs: list[tuple], workers: int, checks: tuple[int, ...] = ()) -> tuple:
+    """Jobs are (spread, seed) or (spread, seed, slope)."""
     runs, checked = [], []
     with pool(workers) as executor:
         futures = {executor.submit(check_one, scenario, seed): ("check", seed) for seed in checks}
-        futures.update({executor.submit(run_one, scenario, s, seed): (s, seed) for s, seed in jobs})
+        futures.update({executor.submit(run_one, scenario, *job): job for job in jobs})
         for future in as_completed(futures):
             out = future.result()
             (checked if futures[future][0] == "check" else runs).append(out)
             print(futures[future], out.get("status", "check"), round(out.get("seconds", 0), 1), flush=True)
-    runs.sort(key=lambda r: (r["spread"], r["seed"]))
+    runs.sort(key=lambda r: (r["spread"], r.get("slope", 0.0), r["seed"]))
     return runs, checked
 
 
@@ -300,6 +325,106 @@ def target(args: argparse.Namespace) -> None:
                                           "sensitivity_spreads")}, indent=1))
 
 
+def round_bp(value: float) -> float:
+    """Basis points to four significant digits (contract 26.20 (d))."""
+    return float(f"{value:.4g}")
+
+
+def rate(bp: float) -> float:
+    """Basis points to an annual rate without binary noise in the last digits (9.675 bp -> 0.0009675)."""
+    return float(f"{bp!r}e-4")
+
+
+def _quantiles(x: np.ndarray) -> dict:
+    return {name: float(np.quantile(x, q)) for name, q in
+            (("min", 0.), ("p5", .05), ("median", .5), ("p95", .95), ("max", 1.))}
+
+
+def summarize_slope(runs: list[dict]) -> dict:
+    """One rating slope: summarize()'s row with rho = rho_total, plus rho_price and the diagnostics of 26.20 (d)."""
+    slope = runs[0]["slope"]
+    row = summarize(runs)[0] | {"slope": slope, "slope_bp": round(slope * 1e4, 6)}
+    arrays = [load_arrays(r) for r in runs if r["status"] == "complete"]
+    if not arrays:
+        return row
+    rho_price = (np.concatenate([a["rho"].ravel() for a in arrays]) - slope) * 1e4
+    sd = np.concatenate([a["signal_sd"] for a in arrays])
+    passthrough = np.concatenate([a["passthrough"].ravel() for a in arrays])
+    row.update({
+        # summarize() divides rho_total by the pass-through; the quote response m belongs to rho_price alone.
+        "quote_response_m_median": float(np.median(rho_price * 1e-4 / passthrough)),
+        "rho_price_bp": {"median": float(np.median(rho_price)), "p5": float(np.quantile(rho_price, .05)),
+                         "p95": float(np.quantile(rho_price, .95))},
+        "contract_rate_decision_days": _quantiles(np.concatenate([a["contract_rate"].ravel() for a in arrays])),
+        "contract_rate_initial": _quantiles(np.concatenate([a["initial_rate"].ravel() for a in arrays])),
+        "public_signal_cross_sectional_sd": {"median": float(np.median(sd)), "min": float(sd.min()),
+                                             "max": float(sd.max())},
+    })
+    return row
+
+
+def _brief(runs: list[dict]) -> list[dict]:
+    return [{k: v for k, v in r.items() if k != "decision_days"} | {"decision_days": len(r.get("decision_days", []))}
+            for r in runs]
+
+
+def rating_slope(args: argparse.Namespace) -> None:
+    """Contract 26.20 (d), (e): lambda*, lambda_lo, lambda_hi and lambda_FE at s0, and the verification of lambda*."""
+    # The source now has the rating channel, so the frozen identity includes new source hashes; the spec file and
+    # the frozen scenario must still be the grid's.
+    scenario, experiment_id = frozen_scenario()
+    base = json.loads((HERE / "calibration_grid.json").read_text(encoding="utf-8"))
+    if (sha(H3_SPEC) != base["setting"]["spec_sha256_lf"] or scenario["domain"] != base["setting"]["domain"]
+            or scenario["config"] != base["setting"]["market"]):
+        raise SystemExit("the H3 spec or its scenario B differs from the calibration grid's")
+    rho_s0 = next(row for row in base["summary"] if row["spread"] == CURRENT)["rho_bp"]["median"]
+    targets = {"lambda_star": args.pi, "lambda_lo": args.lo, "lambda_hi": args.hi, "lambda_fe": args.fe}
+    first = {name: round_bp(value - rho_s0) for name, value in targets.items()}
+    if min(first.values()) <= 0:
+        raise SystemExit(f"a target is not above rho(s0) = {rho_s0:.4f} bp: {first}")
+    started = time.strftime("%Y-%m-%d %H:%M:%S %z")
+    runs, _ = run_jobs(scenario, [(CURRENT, seed, rate(bp)) for bp in first.values() for seed in SEEDS], args.workers)
+    by_slope = {name: summarize_slope([r for r in runs if r["slope"] == rate(first[name])]) for name in first}
+    median = by_slope["lambda_star"].get("rho_bp", {}).get("median")
+    within = median is not None and abs(median / args.pi - 1) <= TOLERANCE
+    out = {
+        "purpose": "calibration of financing_rating_slope at s0 = 0.05 (research contract section 26.20 (d), (e)); "
+                   "calibration seeds only",
+        "setting": {"spec": H3_SPEC.relative_to(ROOT).as_posix(), "spec_sha256_lf": sha(H3_SPEC),
+                    "experiment_id_current_source": experiment_id, "experiment_id_grid": H3_EXPERIMENT_ID, "scenario": SCENARIO,
+                    "overrides": {"trading_days": PRE_POLICY_DAYS, "burn_in_days": BURN_IN,
+                                  "financing_spread": CURRENT, "financing_rating_slope": "per point"}},
+        "seeds": list(SEEDS), "rho_price_s0_bp": rho_s0, "targets_bp": targets, "first_guess_bp": first,
+        "started": started, "summary": by_slope,
+        "verification": {"slope_bp": first["lambda_star"], "rho_total_median_bp": median, "within_10pct": within},
+        "runs": _brief(runs),
+    }
+    adopted, final_median = (first["lambda_star"], median) if within else (None, None)
+    if not within and median is not None:  # one adjustment by the remaining gap; both recorded
+        second = round_bp(first["lambda_star"] + args.pi - median)
+        again, _ = run_jobs(scenario, [(CURRENT, seed, rate(second)) for seed in SEEDS], args.workers)
+        row = summarize_slope(again)
+        final_median = row.get("rho_bp", {}).get("median")
+        out["adjustment"] = {"slope_bp": second, "summary": row, "rho_total_median_bp": final_median,
+                             "within_10pct": final_median is not None and abs(final_median / args.pi - 1) <= TOLERANCE,
+                             "runs": _brief(again)}
+        adopted = second
+    out["lambda_star_adopted_bp"] = adopted
+    out["financing_rating_slope"] = {"lambda_star": None if adopted is None else rate(adopted),
+                                     **{name: rate(first[name]) for name in ("lambda_lo", "lambda_hi", "lambda_fe")}}
+    rerun = adopted is not None and adopted > 0 and final_median is not None and abs(final_median / rho_s0 - 1) >= .10
+    out["rerun_rule_26_20"] = "confirmatory rerun at lambda*" if rerun else "undecided: see verification"
+    out["finished"] = time.strftime("%Y-%m-%d %H:%M:%S %z")
+    out["script_sha256"] = sha(Path(__file__))
+    out["grid_file_sha256"] = sha(HERE / "calibration_grid.json")
+    (HERE / "calibration_target_v2.json").write_bytes((json.dumps(out, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({k: out[k] for k in ("first_guess_bp", "verification", "lambda_star_adopted_bp",
+                                          "rerun_rule_26_20")}, indent=1))
+    for name, row in by_slope.items():
+        print(name, row["slope_bp"], "rho_total", round(row["rho_bp"]["median"], 3), "rho_price",
+              round(row["rho_price_bp"]["median"], 3), "failed", row["failed_worlds"], "caps", row["price_cap_hits"])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -310,8 +435,14 @@ def main() -> None:
     t.add_argument("--lo", type=float, required=True, help="lower end of its 95%% interval")
     t.add_argument("--hi", type=float, required=True, help="upper end of its 95%% interval")
     t.add_argument("--workers", type=int, default=6)
+    lam = sub.add_parser("lambda")
+    lam.add_argument("--pi", type=float, required=True, help="premium estimate, basis points per SD")
+    lam.add_argument("--lo", type=float, required=True, help="lower end of its 95%% interval")
+    lam.add_argument("--hi", type=float, required=True, help="upper end of its 95%% interval")
+    lam.add_argument("--fe", type=float, required=True, help="the firm fixed-effects estimate (exploratory point)")
+    lam.add_argument("--workers", type=int, default=12)
     args = parser.parse_args()
-    {"grid": grid, "target": target}[args.command](args)
+    {"grid": grid, "target": target, "lambda": rating_slope}[args.command](args)
 
 
 if __name__ == "__main__":
