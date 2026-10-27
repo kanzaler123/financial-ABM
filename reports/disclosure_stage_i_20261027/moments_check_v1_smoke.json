@@ -1,0 +1,75 @@
+{
+  "replay_check": {
+    "replay": "reports/disclosure_stage_i_20261027/moments_check_v1",
+    "replay_experiment_id": "ea4124a25f96a073b9eac69e8c7d6b4cba0d25b1c88b4ff5a46a40484be3cda9",
+    "reference": "reports/disclosure_stage_i_20261027/check_v2",
+    "reference_experiment_id": "37e690d0be9efd09c05aea3030d1f545349b50c743916c0e8165d40607776a01",
+    "purpose": "development",
+    "scenarios": [
+      "B",
+      "l0_B",
+      "llo_B",
+      "lhi_B",
+      "lfe_B"
+    ],
+    "seeds": [
+      38101,
+      38102
+    ],
+    "trials": 10,
+    "identical": true,
+    "problems": []
+  },
+  "sampled_signal_shapes": {
+    "B": [
+      [
+        36,
+        200
+      ],
+      [
+        36,
+        200
+      ]
+    ],
+    "l0_B": [
+      [
+        36,
+        200
+      ],
+      [
+        36,
+        200
+      ]
+    ],
+    "llo_B": [
+      [
+        36,
+        200
+      ],
+      [
+        36,
+        200
+      ]
+    ],
+    "lhi_B": [
+      [
+        36,
+        200
+      ],
+      [
+        36,
+        200
+      ]
+    ],
+    "lfe_B": [
+      [
+        36,
+        200
+      ],
+      [
+        36,
+        200
+      ]
+    ]
+  }
+}
