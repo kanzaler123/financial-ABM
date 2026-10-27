@@ -1556,3 +1556,31 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
       4. *E2：* J 规则所标记企业的真实违规比例、误报与漏报、核查预算的分配，可以从现有档案事后计算。
       5. *E3、E4：* 长期计划中 K1（处罚记录不识别核查概率）与 M（溢出对照）的识别设计修订，写入长期计划时处理。
       6. *论文中旧评级面板的数字*（附录 `app:reversion`）与本条无关，单独更正。
+23. **第 26.22 条的实施与开发检查（2026-10-27，第 26.21 条的确认性运行进行中；没有查看 stage_i_v2 的任何指标、效应估计或 P1–P8 的结果）。**
+    - **补充测试（第 26.22 条 (d)）。** `tests/test_disclosure_rating_channel.py` 新增 `test_finite_differences_of_the_quote_match_each_channel_and_their_sum`：λ = 25.75 个基点，价格乘以 exp(ε·m)，ε = 10⁻⁵。
+      1. 只移动价格：有限差分等于 (E/P)·ρ_price（相对误差 10⁻⁶），λ 项不进入；
+      2. 价格同样移动，同时把每家企业自身的信号提高 ε、其他企业等量下调（截面均值不变）：有限差分等于 `marginal_financing_saving` 给出的 (E/P)·(ρ_price + λ)（相对误差 10⁻⁶）。
+
+      `src/` 没有改动，源码摘要仍为 `fc0648eb…d47c`。全量测试 1,023 项通过（第 26.21 条的 1,022 项加本项）。
+    - **分解（第 26.22 条 (c)，[decompose.py](../reports/disclosure_stage_i_20261027/decompose.py)）。**
+      - *开发档案：* `decompose.py check_v2 --smoke` 跑通，只输出计数（decomposition_check_v2_smoke.json）：五个块（主块、l0_、llo_、lhi_、lfe_）的 P3、P5、P8 各 n = 2，没有剔除的种子。
+      - *H3（h3_v1，事后分析）：* 三项份额差与 h3_v1_analysis.json 中 P3、P5、P8 的均值逐位相同；审稿 R5 中的事后数字（最宽松方的客户份额 27.72% → 52.23%，其客户的漂绿率 11.02% → 38.05%，其他客户 11.93% → 1.92%）得到复现。结果见 [decomposition_h3_v1.md](../reports/disclosure_stage_i_20261027/decomposition_h3_v1.md)，是事后描述，不作判定：
+        - *P3（F 对 B）：* 大企业在全部漂绿决策中的份额上升 3.7 个百分点，但大企业每个世界的漂绿决策从 557.6 降到 488.2（−69.3 [−84.3, −54.4]），组内率从 73.4% 降到 64.2%；全部漂绿决策减少 348.0。逐种子分解：log 份额比 +0.097 = log 次数比 −0.130 − log 总数比 −0.227。份额上升来自其他组减少得更多，不是大企业的漂绿增加。
+        - *P5（V 对 B）：* 小企业的份额上升 24.3 个百分点；小企业的漂绿决策从 270.9 增到 896.0（+625.0 [+525.8, +724.3]），组内率从 5.94% 升到 19.65%；大企业减少 129.7，中企业与 0 不可分辨（+2.7 [−20.5, +25.8]）。小企业的漂绿确有增加，不只是分母变化。
+        - *P8（ALL_F16 对 ALL_R16）：* 份额 +69.8 个百分点，其中客户分配 +15.3 [+14.1, +16.6]，客户内行为 +54.4 [+52.3, +56.6]（Shapley）；受鉴证的漂绿决策从 888.9 增到 1,553.6。差异主要来自客户内行为：最宽松方客户的漂绿率上升，其他客户的漂绿率下降。
+    - **重放规格（第 26.22 条 (b)，[build_moments_spec.py](../reports/disclosure_stage_i_20261027/build_moments_spec.py)）。**
+      - `configs/disclosure_stage_i_moments_v1.json`：B、l0_B、llo_B、lhi_B、lfe_B × 种子 57001–57030，150 个运行，purpose `estimation`，archive `sampled`。
+      - `configs/disclosure_stage_i_moments_check_v1.json`：同样的场景 × 开发种子 38101–38102，10 个运行，重放开发档案 check_v2，只作流水线检查。
+      - 派生核对通过：五个场景与冻结的 v2 场景逐项相同，λ 分别为 0.002575、0、0.00212、0.00303、0.0009675；l0_B 与 H2 的 `q_hat` 除名称外逐字段相同；两个规格只在名称、purpose 与种子上不同。run_id 不含 purpose 与 archive，所以重放运行的 run_id 与结果指纹应与被重放的运行相同。
+      - *冻结身份：* `disclosure_stage_i_moments_v1` 的 `experiment_id` = `46eba2c0c351d8a8600767ebb51ab297f7fa0851c9ff3497de73cf03f0d69942`，配置 SHA256（LF）= `6713cebdc1e8179c6f09fb432eca049f23700a049e6d22bd660ed85e0482a63a`；`disclosure_stage_i_moments_check_v1` 的 `experiment_id` = `ea4124a25f96a073b9eac69e8c7d6b4cba0d25b1c88b4ff5a46a40484be3cda9`，SHA256（LF）= `bce8948bd12d4ec1819153a6465211679a49e3a142910d01bb8cf48264da12bd`。`check_clean_source.py` 对两个规格都通过（HEAD `6c0354f`）：源码摘要 `fc0648eb…d47c` 与干净克隆相同，也与第 26.21 条相同。
+    - **矩的计算（[moments.py](../reports/disclosure_stage_i_20261027/moments.py)）。**
+      - 直接调用 H2 的 `estimate.py`：网格只载入 Q 形式的点，与 `grid_moments` 相同；在 H2 的 Q 估计值处用 `final_stage` 计算矩、半宽、T 与 p。
+      - *验证：* `moments.py --validate-h2` 在 H2 的最终阶段档案 final_v1 上复现了 estimation_v1.json 的最终阶段（五个矩、差、半宽、T = 38.66 与 p，相对误差 10⁻¹²；moments_validate_h2.json）。
+      - 重放核对的比对逻辑，在 check_v2 与它自己的对照上跑通（106 个运行全部相同）。
+    - **门槛数值的更正（在任何重放运行之前）。** 第 26.22 条 (b) 列出的门槛由四舍五入后的标准误算出。按 data_moments.json 的自助协方差，1.96·SE_data,k 的精确值为 0.00243、0.00470、0.00916、0.01356、0.01724（滞后 1、2、4、8、12）。滞后 8 期写成了 0.0135，精确值为 0.01356（四位有效数字为 0.0136），其余各项四舍五入后一致。判定按该条的定义 1.96·SE_data,k 使用精确值。
+    - **之后的顺序（第 26.22 条 (a)）。** 确认性运行结束后，依次：
+      1. `check_pipeline.py stage_i_v2`，只输出计数；
+      2. 开发重放 moments_check_v1（10 个运行），再运行 `moments.py moments_check_v1 check_v2 --smoke`，只输出重放核对与计数；
+      3. 正式重放 stage_i_moments_v1（150 个运行，16 个 worker，WMI 脱离启动，启动前检查提交内存），再运行 `moments.py stage_i_moments_v1 stage_i_v2`；
+      4. 把复核结果与判定记入本节；
+      5. `analyze.py stage_i_v2`，然后 `decompose.py stage_i_v2`。若第 3 步判为实质偏离，先由用户决定，再做第 5 步。
