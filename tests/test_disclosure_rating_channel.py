@@ -104,6 +104,36 @@ def test_marginal_saving_adds_the_full_slope(monkeypatch):
                                                                / (exposure + prices)**2) * m)
 
 
+def test_finite_differences_of_the_quote_match_each_channel_and_their_sum(monkeypatch):
+    """Contract 26.22 (d): with a positive slope, moving prices by their local response alone changes the fee
+    by (E / P) * rho_price, and moving prices and the firm's own signal together (the cross-sectional mean held
+    fixed) changes it by (E / P) * (rho_price + slope), the local approximation of marginal_financing_saving."""
+    market = DisclosureMarket(RATED, DOMAIN, PolicySchedule.constant(DOMAIN))
+    market.prices = market.prices * np.linspace(.6, 1.4, RATED.n_firms)
+    m = np.linspace(.01, .03, RATED.n_firms)
+    monkeypatch.setattr(market, "marginal_signal_value", lambda: m)
+    exposure, prices = market.financing_exposure, market.prices.copy()
+    rho_price = RATED.financing_spread * exposure * prices / (exposure + prices)**2 * m
+    predicted = market.marginal_financing_saving()
+    np.testing.assert_allclose(predicted, exposure / prices * (rho_price + SLOPE), rtol=1e-14, atol=0)
+    before = market.quoted_financing_rate()
+    epsilon = 1e-5
+    market.prices = prices * np.exp(epsilon * m)
+    moved = market.quoted_financing_rate()
+    np.testing.assert_allclose(exposure * (before - moved) / (prices * epsilon), exposure / prices * rho_price,
+                               rtol=1e-6)
+    signal = market.public_signal_history[market.signal_day].copy()
+    others = RATED.n_firms - 1
+    for firm in range(RATED.n_firms):
+        shifted = signal - epsilon / others
+        shifted[firm] = signal[firm] + epsilon                  # the cross-sectional mean stays put
+        market.public_signal_history[market.signal_day] = shifted
+        both = market.quoted_financing_rate()[firm]
+        assert exposure[firm] * (before[firm] - both) / (prices[firm] * epsilon) \
+            == pytest.approx(predicted[firm], rel=1e-6)
+    market.public_signal_history[market.signal_day] = signal
+
+
 # -- the realized saving against the financing factors --------------------------------------
 
 @pytest.mark.parametrize("persistence", [None, PERSISTENCE])

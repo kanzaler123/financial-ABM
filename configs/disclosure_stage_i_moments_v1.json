@@ -1,0 +1,135 @@
+{
+  "name": "disclosure_stage_i_moments_v1",
+  "purpose": "estimation",
+  "archive": "sampled",
+  "_note": "Stage I rating-persistence check (research contract section 26.22 (b)): a replay with the sampled archive of the B scenarios of the stage I v2 spec on the same seeds (confirmatory seeds: disclosure_stage_i_v2; development seeds: disclosure_stage_i_check_v2) at the five rating slopes (B lambda*, l0_B lambda0 = 0, llo_B lambda_lo, lhi_B lambda_hi, lfe_B lambda_FE), to compute the H2 target moments (lags 1, 2, 4, 8, 12 of the quarterly public signal). Each replay must have the run_id and result fingerprint of the run it replays. No comparison, no hypothesis test.",
+  "financing_rating_slopes": {
+    "lambda_star": 0.002575,
+    "lambda0": 0.0,
+    "lambda_lo": 0.00212,
+    "lambda_hi": 0.00303,
+    "lambda_fe": 0.0009675
+  },
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    57001,
+    57002,
+    57003,
+    57004,
+    57005,
+    57006,
+    57007,
+    57008,
+    57009,
+    57010,
+    57011,
+    57012,
+    57013,
+    57014,
+    57015,
+    57016,
+    57017,
+    57018,
+    57019,
+    57020,
+    57021,
+    57022,
+    57023,
+    57024,
+    57025,
+    57026,
+    57027,
+    57028,
+    57029,
+    57030
+  ],
+  "scenarios": [
+    {
+      "name": "B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "l0_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "llo_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_rating_slope": 0.00212
+      }
+    },
+    {
+      "name": "lhi_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_rating_slope": 0.00303
+      }
+    },
+    {
+      "name": "lfe_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_rating_slope": 0.0009675
+      }
+    }
+  ],
+  "comparisons": [],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}
