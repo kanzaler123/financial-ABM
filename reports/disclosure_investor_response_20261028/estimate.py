@@ -85,18 +85,49 @@ def ols_cluster(y: np.ndarray, X: np.ndarray, clusters: list[np.ndarray], n_fe: 
     return beta, v
 
 
-def fama_macbeth(df: pd.DataFrame, y: str, x: str, controls: list[str], date: str, fe: str) -> dict:
+def fama_macbeth(df: pd.DataFrame, y: str, x: str | list[str], controls: list[str], date: str, fe: str,
+                 weight: str | None = None) -> dict:
+    """Per-date OLS (WLS with weight) with fe effects absorbed; the mean of the per-date slopes on x, its standard
+    error SD / sqrt(D) and D - 1 degrees of freedom. With a list x, one entry per regressor under "terms"."""
+    xs = [x] if isinstance(x, str) else list(x)
     slopes = []
     for d, g in df.groupby(date):
         g = drop_singletons(g, g[fe])
-        Z = demean(g, [y, x, *controls], g[fe])
-        b = np.linalg.lstsq(Z[:, 1:], Z[:, 0], rcond=None)[0]
-        slopes.append((d, float(b[0]), int(len(g))))
-    b = np.array([s[1] for s in slopes])
-    D = len(b)
-    se = float(b.std(ddof=1) / np.sqrt(D))
-    return {"dates": D, "obs": int(sum(s[2] for s in slopes)), "mean": float(b.mean()), "se": se, "df": D - 1,
-            "per_date": {s[0]: {"slope": s[1], "n": s[2]} for s in slopes}}
+        if weight is None:
+            Z = demean(g, [y, *xs, *controls], g[fe])
+            b = np.linalg.lstsq(Z[:, 1:], Z[:, 0], rcond=None)[0]
+        else:
+            w = g[weight].to_numpy(float)
+            cols = [y, *xs, *controls]
+            codes = pd.factorize(g[fe])[0]
+            v = g[cols].to_numpy(float)
+            sw = np.bincount(codes, weights=w)
+            means = np.column_stack([np.bincount(codes, weights=w * v[:, i]) for i in range(v.shape[1])]) / sw[:, None]
+            Z = (v - means[codes]) * np.sqrt(w)[:, None]
+            b = np.linalg.lstsq(Z[:, 1:], Z[:, 0], rcond=None)[0]
+        slopes.append((d, [float(v) for v in b[:len(xs)]], int(len(g))))
+    B = np.array([s[1] for s in slopes])
+    D = len(B)
+    terms = {}
+    for i, name in enumerate(xs):
+        terms[name] = {"mean": float(B[:, i].mean()), "se": float(B[:, i].std(ddof=1) / np.sqrt(D))}
+    out = {"dates": D, "obs": int(sum(s[2] for s in slopes)), "df": D - 1,
+           "per_date": {s[0]: {"slope": s[1][0], "n": s[2]} for s in slopes}}
+    if isinstance(x, str):
+        out.update(terms[x])
+    else:
+        out["terms"] = terms
+    return out
+
+
+def cross_section(df: pd.DataFrame, y: str, x: str, controls: list[str], fe: str) -> dict:
+    """One date: OLS with fe effects absorbed and HC1 errors; t with n - k - (fe cells) degrees of freedom."""
+    df = drop_singletons(df, df[fe])
+    Z = demean(df, [y, x, *controls], df[fe])
+    n_fe = int(df[fe].nunique())
+    beta, v = ols_cluster(Z[:, 0], Z[:, 1:], [np.arange(len(df))], n_fe)
+    k = Z.shape[1] - 1
+    return {"obs": int(len(df)), "coef": float(beta[0]), "se": float(np.sqrt(v[0, 0])), "df": int(len(df) - k - n_fe)}
 
 
 def pooled(df: pd.DataFrame, y: str, x: str, controls: list[str], cell: pd.Series, clusters: list[str]) -> dict:
@@ -129,6 +160,74 @@ def load_j2(period: str) -> pd.DataFrame:
     a = winsorize_within(a, ["dfund_own", "size", "log_bm", "ret_12", "fund_own_prev"], "year")
     a["cell"] = a.year.astype(str) + "|" + a.industry
     return a
+
+
+def inference(est: float, se: float, df: int) -> dict:
+    t = est / se
+    h = stats.t.ppf(0.975, df) * se
+    return {"estimate": est, "se": se, "df": int(df), "ci95": [est - h, est + h], "p": float(2 * stats.t.sf(abs(t), df))}
+
+
+def holm(pvalues: dict[str, float]) -> dict[str, float]:
+    order = sorted(pvalues, key=pvalues.get)
+    out, running = {}, 0.0
+    for i, name in enumerate(order):
+        running = max(running, min(1.0, (len(order) - i) * pvalues[name]))
+        out[name] = running
+    return out
+
+
+def fm_result(fm: dict) -> dict:
+    return {**inference(fm["mean"], fm["se"], fm["df"]), "dates": fm["dates"], "obs": fm["obs"],
+            "per_date": fm["per_date"]}
+
+
+def pooled_result(p: dict) -> dict:
+    return {**inference(p["coef"], p["se"], p["df"]), **{k: p[k] for k in ("obs", "fe_cells", "clusters")}}
+
+
+def j1_block(e: pd.DataFrame, robustness: bool) -> dict:
+    """J1 main specification (Fama-MacBeth, contract 27.3) and, for the point-in-time sample, the 27.8 variants."""
+    out = {"main": fm_result(fama_macbeth(e, "car", "dnotch", J1_CONTROLS, "date", "industry")),
+           "events": int(len(e)), "firms": int(e.Scode.nunique())}
+    if not robustness:
+        return out
+    r = {}
+    r["pooled_two_way"] = pooled_result(pooled(e, "car", "dnotch", J1_CONTROLS, e.cell, ["Scode", "date"]))
+    r["treatment_dns_per_sd"] = fm_result(fama_macbeth(e, "car", "dns", J1_CONTROLS, "date", "industry"))
+    ud = e.assign(up=e.dnotch.clip(lower=0), down=e.dnotch.clip(upper=0))
+    split = fama_macbeth(ud, "car", ["up", "down"], J1_CONTROLS, "date", "industry")
+    r["upgrades_and_downgrades"] = {k: {**inference(v["mean"], v["se"], split["df"])} for k, v in split["terms"].items()}
+    r["without_2024_04"] = fm_result(fama_macbeth(e[e.date != "2024-04-30"], "car", "dnotch", J1_CONTROLS, "date", "industry"))
+    one = e[e.date == "2024-04-30"]
+    cs = cross_section(one, "car", "dnotch", J1_CONTROLS, "industry")
+    r["only_2024_04_cross_section_hc1"] = {**inference(cs["coef"], cs["se"], cs["df"]), "obs": cs["obs"]}
+    for col, name in (("r+1", "month_plus_1"), ("r+2", "month_plus_2"), ("car_3_6", "months_plus_3_to_6")):
+        m = e[e[col].notna()].assign(y=lambda x: 100 * x[col])
+        m = winsorize_within(m, ["y"], "date")
+        r[name] = fm_result(fama_macbeth(m, "y", "dnotch", J1_CONTROLS, "date", "industry"))
+    r["value_weighted"] = fm_result(fama_macbeth(e, "car", "dnotch", J1_CONTROLS, "date", "industry", weight="mcap"))
+    out["robustness"] = r
+    return out
+
+
+def j2_block(a: pd.DataFrame, robustness: bool) -> dict:
+    out = {"main": pooled_result(pooled(a, "dfund_own", "dnotch", J2_CONTROLS, a.cell, ["Scode"])),
+           "firm_years": int(len(a)), "firms": int(a.Scode.nunique()), "years": sorted(int(y) for y in a.year.unique())}
+    if robustness:
+        out["robustness"] = {
+            "treatment_dns_per_sd": pooled_result(pooled(a, "dfund_own", "dns", J2_CONTROLS, a.cell, ["Scode"])),
+            "without_2024": pooled_result(pooled(a[a.year != 2024], "dfund_own", "dnotch", J2_CONTROLS,
+                                                 a.cell, ["Scode"])),
+        }
+    return out
+
+
+def difference(a: dict, b: dict) -> dict:
+    """Point-in-time minus placebo, independent samples; Welch-Satterthwaite degrees of freedom."""
+    d, se = a["estimate"] - b["estimate"], float(np.hypot(a["se"], b["se"]))
+    nu = se ** 4 / (a["se"] ** 4 / a["df"] + b["se"] ** 4 / b["df"])
+    return inference(d, se, int(np.floor(nu)))
 
 
 def smoke() -> dict:
@@ -190,17 +289,44 @@ def null_check(reps: int) -> dict:
     return out
 
 
+def dry() -> dict:
+    """The --final code path for J1 and J2 on permuted treatments (stream [27901, 1]): which estimates exist and their
+    sample sizes; no coefficient, interval or p-value is kept."""
+    rng = np.random.default_rng([SMOKE_SEED, 1])
+
+    def shape(node):
+        if isinstance(node, dict):
+            return {k: shape(v) for k, v in node.items()
+                    if k not in ("estimate", "se", "ci95", "p", "per_date", "mean")}
+        return node
+
+    out = {}
+    for period in ("pit", "prelaunch", "restated"):
+        e = load_j1(period)
+        for c in ("dnotch", "dns"):
+            e[c] = e.groupby("date")[c].transform(lambda s: rng.permutation(s.to_numpy()))
+        out[f"J1_{period}"] = shape(j1_block(e, robustness=period == "pit"))
+        a = load_j2(period)
+        for c in ("dnotch", "dns"):
+            a[c] = a.groupby("year")[c].transform(lambda s: rng.permutation(s.to_numpy()))
+        out[f"J2_{period}"] = shape(j2_block(a, robustness=period == "pit"))
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--dry", action="store_true", help="the J1/J2 estimation path on permuted treatments, sizes only")
     ap.add_argument("--null", type=int, default=0, help="permutation size check with this many replications")
     args = ap.parse_args()
-    if args.null:
+    if args.dry:
+        res, name = dry(), "dry_j1_j2.json"
+    elif args.null:
         res, name = null_check(args.null), "null_check.json"
     elif args.smoke:
         res, name = smoke(), "smoke.json"
     else:
-        raise SystemExit("only --smoke and --null exist before contract 27 is approved")
+        raise SystemExit("--final is added once the J3 and J4 panels are built (contract 27.11)")
     text = json.dumps(res, ensure_ascii=False, indent=2)
     (HERE / name).write_bytes((text + "\n").encode("utf-8"))
     print(text)
