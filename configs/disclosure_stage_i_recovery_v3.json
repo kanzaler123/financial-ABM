@@ -1,0 +1,85 @@
+{
+  "name": "disclosure_stage_i_recovery_v3",
+  "purpose": "estimation",
+  "archive": "sampled",
+  "_note": "Stage I v3 (research contract section 26.24): the recovery run at the grid-stage estimate of form U ({\"natural_decay\": 0.151}), contract 25.3 and 25.7. The stage I v2 baseline B at lambda* = 0.002575 (financing_spread 0.05), sampled archive (public signal every 63 trading days from day 1260). No comparison, no hypothesis test.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    59001,
+    59002,
+    59003,
+    59004,
+    59005,
+    59006,
+    59007,
+    59008,
+    59009,
+    59010,
+    59011,
+    59012,
+    59013,
+    59014,
+    59015,
+    59016,
+    59017,
+    59018,
+    59019,
+    59020,
+    59021,
+    59022,
+    59023,
+    59024,
+    59025,
+    59026,
+    59027,
+    59028,
+    59029,
+    59030
+  ],
+  "scenarios": [
+    {
+      "name": "u_hat",
+      "domain": {
+        "natural_decay": 0.151
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    }
+  ],
+  "comparisons": [],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}
