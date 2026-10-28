@@ -134,3 +134,6 @@ reports/disclosure_stage_i_20261027/*_v1/
 reports/disclosure_stage_i_20261027/work_*
 reports/disclosure_stage_i_20261027/*_v2/
 reports/disclosure_stage_i_20261027/*_v3/
+# Stage J: Huazheng official documents (local only) and the stage J panels built from licensed data (contract 27)
+data/raw/huazheng_official_*/
+data/processed/stage_j_*/
