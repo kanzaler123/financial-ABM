@@ -137,3 +137,7 @@ reports/disclosure_stage_i_20261027/*_v3/
 # Stage J: Huazheng official documents (local only) and the stage J panels built from licensed data (contract 27)
 data/raw/huazheng_official_*/
 data/processed/stage_j_*/
+# Stage J model replay arrays (contract 27.10, local only)
+reports/disclosure_investor_response_20261028/replay_h3_b/
+reports/disclosure_investor_response_20261028/*.log
+reports/disclosure_investor_response_20261028/*.err
