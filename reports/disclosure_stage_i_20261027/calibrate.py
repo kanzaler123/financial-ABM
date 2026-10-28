@@ -22,6 +22,11 @@ Only pre-policy pricing and financing are read; firm actions, inflation and poli
       median rho on s, doubling the grid outward while a target lies outside it, then the verification of s* on the
       same seeds (median rho within 10% of PI, otherwise one re-interpolation with the new point; both recorded);
       writes calibration_target.json
+  python calibrate.py verify --dynamics JSON --slope-bp BP --pi PI [--workers 3]
+      contract 26.24 (b): the 26.20 (d) verification of a rating slope under other natural dynamics (JSON of
+      natural_decay, natural_reversion, reversion_permanent_share; the rest of scenario B unchanged): median
+      rho_total over the calibration seeds within 10% of PI, else lambda' = lambda + (PI - median), reported, not
+      run. Arrays go to calibration_v3/; writes calibration_verify_v3.json
   python calibrate.py lambda --pi PI --lo LO --hi HI --fe FE [--workers 12]
       contract 26.20 (d), (e): the direct rating channel financing_rating_slope lambda at s0 = 0.05. Each point is
       lambda_x = target_x - median rho(s0) of calibration_grid.json, in basis points to four significant digits
@@ -99,8 +104,9 @@ def ols_slope(y: np.ndarray, x: np.ndarray) -> float:
     return float(centered @ (y - y.mean()) / (centered @ centered))
 
 
-def run_one(scenario: dict, spread: float, seed: int, slope: float = 0.0) -> dict:
-    """One instrumented pre-policy run; per-firm arrays are written to ARRAYS (ARRAYS_V2 with a rating slope)."""
+def run_one(scenario: dict, spread: float, seed: int, slope: float = 0.0, tag: str = "") -> dict:
+    """One instrumented pre-policy run; per-firm arrays are written to ARRAYS (ARRAYS_V2 with a rating slope,
+    calibration_<tag>/ with a tag)."""
     config, domain, policy = setting(scenario, spread, seed, slope=slope)
     market = DisclosureMarket(config, domain, policy)
     days, rho, passthrough, exposure_share, yield_slope, premium_slope = [], [], [], [], [], []
@@ -132,7 +138,8 @@ def run_one(scenario: dict, spread: float, seed: int, slope: float = 0.0) -> dic
                 "error": f"{type(error).__name__}: {error}"}
     extra = {}
     if slope:
-        folder, path = ARRAYS_V2, ARRAYS_V2 / f"s{spread:g}_l{slope * 1e4:g}bp_seed{seed}.npz"
+        folder = HERE / f"calibration_{tag}" if tag else ARRAYS_V2
+        path = folder / f"s{spread:g}_l{slope * 1e4:g}bp_seed{seed}.npz"
         extra = dict(contract_rate=np.array(contract_rate), initial_rate=initial_rate, signal_sd=np.array(signal_sd))
     else:
         folder, path = ARRAYS, ARRAYS / f"s{spread:g}_seed{seed}.npz"
@@ -425,6 +432,38 @@ def rating_slope(args: argparse.Namespace) -> None:
               round(row["rho_price_bp"]["median"], 3), "failed", row["failed_worlds"], "caps", row["price_cap_hits"])
 
 
+def verify(args: argparse.Namespace) -> None:
+    """Contract 26.24 (b): lambda verified at the v3 dynamics."""
+    scenario, experiment_id = frozen_scenario()
+    base = json.loads((HERE / "calibration_grid.json").read_text(encoding="utf-8"))
+    if (sha(H3_SPEC) != base["setting"]["spec_sha256_lf"] or scenario["domain"] != base["setting"]["domain"]
+            or scenario["config"] != base["setting"]["market"]):
+        raise SystemExit("the H3 spec or its scenario B differs from the calibration grid's")
+    dynamics = json.loads(args.dynamics)
+    keys = ("natural_decay", "natural_reversion", "reversion_permanent_share")
+    if set(dynamics) - set(keys):
+        raise SystemExit(f"only {keys} may change")
+    scenario = json.loads(json.dumps(scenario))
+    scenario["domain"].update({key: float(dynamics.get(key, 0.0)) for key in keys})
+    started = time.strftime("%Y-%m-%d %H:%M:%S %z")
+    runs, _ = run_jobs(scenario, [(CURRENT, seed, rate(args.slope_bp), "v3") for seed in SEEDS], args.workers)
+    row = summarize_slope(runs)
+    median = row.get("rho_bp", {}).get("median")
+    within = median is not None and abs(median / args.pi - 1) <= TOLERANCE
+    out = {"purpose": "verification of financing_rating_slope at the v3 dynamics (research contract 26.24 (b)); "
+                      "calibration seeds only",
+           "dynamics": {key: scenario["domain"][key] for key in keys}, "slope_bp": args.slope_bp, "pi_bp": args.pi,
+           "seeds": list(SEEDS), "started": started, "finished": time.strftime("%Y-%m-%d %H:%M:%S %z"),
+           "summary": row, "rho_total_median_bp": median, "within_10pct": within,
+           "adjusted_slope_bp": None if within or median is None else round_bp(args.slope_bp + args.pi - median),
+           "runs": _brief(runs), "script_sha256": sha(Path(__file__))}
+    (HERE / "calibration_verify_v3.json").write_bytes((json.dumps(out, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    print(json.dumps({k: out[k] for k in ("dynamics", "slope_bp", "rho_total_median_bp", "within_10pct",
+                                          "adjusted_slope_bp")}, indent=1))
+    print("rho_price", round(row["rho_price_bp"]["median"], 3), "failed", row["failed_worlds"], "caps",
+          row["price_cap_hits"], "rate", row["contract_rate_decision_days"])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -441,8 +480,13 @@ def main() -> None:
     lam.add_argument("--hi", type=float, required=True, help="upper end of its 95%% interval")
     lam.add_argument("--fe", type=float, required=True, help="the firm fixed-effects estimate (exploratory point)")
     lam.add_argument("--workers", type=int, default=12)
+    ver = sub.add_parser("verify")
+    ver.add_argument("--dynamics", required=True, help="JSON of the natural dynamics")
+    ver.add_argument("--slope-bp", type=float, required=True)
+    ver.add_argument("--pi", type=float, required=True)
+    ver.add_argument("--workers", type=int, default=3)
     args = parser.parse_args()
-    {"grid": grid, "target": target, "lambda": rating_slope}[args.command](args)
+    {"grid": grid, "target": target, "lambda": rating_slope, "verify": verify}[args.command](args)
 
 
 if __name__ == "__main__":

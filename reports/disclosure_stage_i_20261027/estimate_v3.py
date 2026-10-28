@@ -2,9 +2,13 @@
 
   python estimate_v3.py --validate-h2
       this wrapper, given H2's grid, reproduces H2's estimation_v1.json from H2's archives (grid, final, recovery)
+  python estimate_v3.py --selftest
+      H2's estimator self-test (selftest.py, contract 25.15) with the v3 grid; writes estimate_v3_selftest.json
   python estimate_v3.py feasibility feasibility_v3
       F0 (26.24 (c)): seed-mean moments (sigma_m = 0) of the six points; "feasible" when, at every lag, the largest
       of the six is at least the data moment; writes feasibility_v3.json and .md
+  python estimate_v3.py moments stage_i_v3 [--grid-archive grid_v3]
+      26.24 (f): rating moments of the v3 confirmatory archive at every rating slope (descriptive); moments_v3.*
   python estimate_v3.py grid grid_v3 [--final final_v3] [--recovery recovery_v3]
       the estimator of contract 25.4-25.7 on the v3 grid (26.24 (d)); with --final, the condition of 26.24 (e):
       at every lag |g_k| <= max(b_k, |g_k^H2|), g the data minus the final-stage model moments, b the final
@@ -124,6 +128,20 @@ def validate_h2() -> None:
         raise SystemExit("the wrapper does not reproduce H2")
 
 
+def selftest() -> None:
+    """H2's selftest.py (contract 25.15) on the v3 grid: its statistical stand-in, the v3 axes, H2's pass rule."""
+    h2.FORMS = V3_FORMS
+    sys.modules["estimate"] = h2          # selftest.py does `import estimate as est`
+    module = _load("h2_selftest", H2_DIR / "selftest.py")
+    work = HERE / "work_selftest_v3"
+    work.mkdir(exist_ok=True)
+    module.HERE = work                    # its output, selftest.json, goes here instead of H2's directory
+    try:
+        module.main()                     # raises SystemExit when the self-test fails
+    finally:
+        (HERE / "estimate_v3_selftest.json").write_bytes((work / "selftest.json").read_bytes())
+
+
 def feasibility(archive: Path) -> None:
     frozen = json.loads((archive / "experiment.json").read_text(encoding="utf-8"))
     seeds = frozen["spec"]["seeds"]
@@ -192,21 +210,74 @@ def estimate(grid_archive: Path, final: Path | None, recovery: Path | None) -> N
     print("\n".join(lines))
 
 
+LAMBDA_BLOCKS = {"B": "lambda_star", "l0_B": "lambda0", "llo_B": "lambda_lo", "lhi_B": "lambda_hi", "lfe_B": "lambda_fe"}
+
+
+def v3_moments(archive: Path, grid_archive: Path) -> None:
+    """Contract 26.24 (f): rating moments of the v3 archive at every rating slope, read from its sampled signal.
+
+    For each B scenario: H2's final_stage at the v3 estimate (sigma_m of the selected form), i.e. seed-mean moments,
+    gaps to the data, 95% bands and T; and the seed-by-seed paired difference from lambda0 (l0_B) with a 95% t
+    interval. Descriptive; the confirmatory rerun does not depend on it."""
+    from scipy.stats import t as student_t
+
+    h2.FORMS = V3_FORMS
+    estimation = json.loads((HERE / "estimation_v3.json").read_text(encoding="utf-8"))
+    frozen = json.loads((archive / "experiment.json").read_text(encoding="utf-8"))
+    seeds = frozen["spec"]["seeds"]
+    target, data_cov = data_target()
+    grid_frozen = json.loads((grid_archive / "experiment.json").read_text(encoding="utf-8"))
+    form = h2.Form(estimation["selected"], h2.grid_moments(grid_archive, grid_frozen["spec"]["seeds"])[estimation["selected"]])
+    theta = np.array(list(estimation["forms"][estimation["selected"]]["estimate"].values()))
+    sigma = theta[-1]
+    per_seed, rows = {}, {}
+    for name, label in LAMBDA_BLOCKS.items():
+        per_seed[name] = np.array([h2.seed_moments(s, sigma, h2.noise(seed, s.shape))
+                                   for seed in seeds for s in [h2.finished_signal(archive, name, seed)]])
+        rows[label] = {"scenario": name, **h2.final_stage(form, theta, archive, name, seeds, target, data_cov)}
+    for name, label in LAMBDA_BLOCKS.items():
+        diff = per_seed[name] - per_seed["l0_B"]
+        mean, se = diff.mean(axis=0), diff.std(axis=0, ddof=1) / np.sqrt(len(seeds))
+        q = student_t.ppf(0.975, len(seeds) - 1)
+        rows[label]["minus_lambda0"] = {"mean": mean.tolist(), "ci95": np.stack([mean - q * se, mean + q * se], 1).tolist()}
+    out = {"experiment_id": frozen["experiment_id"], "contract": "26.24 (f)", "estimate": estimation["forms"][estimation["selected"]]["estimate"],
+           "selected": estimation["selected"], "lags": list(h2.LAGS), "data": target.tolist(), "rows": rows}
+    (HERE / "moments_v3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+    lines = ["# v3 档案中各 λ 下的评级矩（契约第 26.24 条 (f)，描述）", "",
+             f"`{frozen['experiment_id']}`，种子 {seeds[0]}–{seeds[-1]}，自然动态为 v3 估计（{estimation['selected']}），"
+             f"σ_m = {sigma:.3f}。", "", "| | 滞后 1 | 2 | 4 | 8 | 12 | T |", "|---|---:|---:|---:|---:|---:|---:|",
+             "| 数据 | " + " | ".join(f"{v:.4f}" for v in target) + " | |"]
+    lines += [f"| {label}（{row['scenario']}） | " + " | ".join(f"{v:.4f}" for v in row["moments_model"])
+              + f" | {row['T']:.1f} |" for label, row in rows.items()]
+    lines += ["", "与 λ₀ 的逐种子配对差：", "", "| | 滞后 1 | 2 | 4 | 8 | 12 |", "|---|---|---|---|---|---|"]
+    lines += [f"| {label} | " + " | ".join(f"{m:+.4f} [{lo:+.4f}, {hi:+.4f}]" for m, (lo, hi) in
+                                         zip(row["minus_lambda0"]["mean"], row["minus_lambda0"]["ci95"])) + " |"
+              for label, row in rows.items() if label != "lambda0"]
+    (HERE / "moments_v3.md").write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    print("\n".join(lines))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", nargs="?", choices=("feasibility", "grid"))
+    parser.add_argument("command", nargs="?", choices=("feasibility", "grid", "moments"))
     parser.add_argument("archive", nargs="?")
     parser.add_argument("--final")
     parser.add_argument("--recovery")
+    parser.add_argument("--grid-archive", default="grid_v3", help="for moments: the v3 grid archive")
     parser.add_argument("--validate-h2", action="store_true")
+    parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args()
     if args.validate_h2:
         validate_h2()
+    elif args.selftest:
+        selftest()
     elif args.command == "feasibility":
         feasibility(archive_path(args.archive))
     elif args.command == "grid":
         estimate(archive_path(args.archive), args.final and archive_path(args.final),
                  args.recovery and archive_path(args.recovery))
+    elif args.command == "moments":
+        v3_moments(archive_path(args.archive), archive_path(args.grid_archive))
     else:
         parser.error("give --validate-h2 or a command")
 
