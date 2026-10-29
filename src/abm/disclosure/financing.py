@@ -102,7 +102,8 @@ def financing_signal_factors(
     ``real_persistence[d]`` is the share of a real change still present d
     days after it is implemented (reverting true values); displaced
     inflation does not come back. It is supported with daily reports and
-    unpublished audits only.
+    unpublished audits only, and combines with firm-level audit
+    probabilities and assurance checks.
 
     Under targeted audits ``audit_probability`` may differ by firm, and the
     new report's first audit may have ``first_audit_probability``; the old
@@ -115,23 +116,22 @@ def financing_signal_factors(
     publication, without a fine (see ``assured_signal_factors``).
     """
     if assurance_probability is not None:
-        if (publish_audit_results or reporting_interval_days != 1 or real_persistence is not None
+        if (publish_audit_results or reporting_interval_days != 1
                 or first_audit_probability is not None or np.ndim(audit_probability) > 0):
-            raise ValueError("assurance checks are modelled only with daily reports, unpublished audits, "
-                             "random audits and non-reverting true values")
+            raise ValueError("assurance checks are modelled only with daily reports, unpublished audits "
+                             "and random audits")
         return assured_signal_factors(
             discount_rate, decision_day=decision_day, horizon_days=horizon_days,
             repricing_interval=repricing_interval, period_days=period_days,
             implementation_delay=implementation_delay, disclosure_delay=disclosure_delay,
             audit_probability=float(audit_probability), transparency=transparency,
-            assurance_probability=assurance_probability,
+            assurance_probability=assurance_probability, real_persistence=real_persistence,
         )
     if real_persistence is not None and (publish_audit_results or reporting_interval_days != 1):
         raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
     firm_rates = first_audit_probability is not None or np.ndim(audit_probability) > 0
-    if firm_rates and (publish_audit_results or reporting_interval_days != 1 or real_persistence is not None):
-        raise ValueError("firm-level audit probabilities are modelled only with daily reports, unpublished "
-                         "audits and non-reverting true values")
+    if firm_rates and (publish_audit_results or reporting_interval_days != 1):
+        raise ValueError("firm-level audit probabilities are modelled only with daily reports and unpublished audits")
     real, wash, fine = financing_discount_factors(
         discount_rate, decision_day=decision_day, horizon_days=horizon_days,
         repricing_interval=repricing_interval, period_days=period_days,
@@ -160,17 +160,14 @@ def financing_signal_factors(
     real_visible = quoted_day >= real_due
     checks = np.maximum(0, (quoted_day - 1) // period_days - decision_day // period_days)
     discount = np.exp(-times[:, None] * np.asarray(discount_rate)[None, :] / TRADING_DAYS_PER_YEAR)
+    if real_persistence is not None:
+        real = _persistent_real(real_persistence, real_visible, quoted_day - real_due, discount, horizon_days)
     if np.ndim(audit_probability):
         old_survival = np.power(1.0 - np.asarray(audit_probability, dtype=np.float64)[None, :], checks[:, None])
         displaced = real - (1.0 - transparency) * (
             np.sum(real_visible[:, None] * old_survival * discount, axis=0) / TRADING_DAYS_PER_YEAR)
         return real, displaced, wash, fine
     old_survival = np.power(1.0 - audit_probability, checks)
-    if real_persistence is not None:
-        persistence = np.asarray(real_persistence, dtype=np.float64)
-        if persistence.ndim != 1 or persistence.size < horizon_days + 1 or not np.isfinite(persistence).all():
-            raise ValueError("real_persistence needs one finite value per day of the horizon")
-        real = (real_visible * persistence[np.clip(quoted_day - real_due, 0, None)]) @ discount / TRADING_DAYS_PER_YEAR
     if not publish_audit_results:
         displaced = real - (1.0 - transparency) * ((real_visible * old_survival) @ discount / TRADING_DAYS_PER_YEAR)
         return real, displaced, wash, fine
@@ -199,10 +196,22 @@ def financing_signal_factors(
             np.sum(wash_signal * discount, axis=0) / TRADING_DAYS_PER_YEAR, fine)
 
 
+def _persistent_real(
+    real_persistence: NDArray[np.float64], real_visible: NDArray[np.bool_], days_since_real: NDArray[np.int64],
+    discount: NDArray[np.float64], horizon_days: int,
+) -> NDArray[np.float64]:
+    """The real-signal annuity when only ``real_persistence[d]`` of a change is left d days after it lands."""
+    persistence = np.asarray(real_persistence, dtype=np.float64)
+    if persistence.ndim != 1 or persistence.size < horizon_days + 1 or not np.isfinite(persistence).all():
+        raise ValueError("real_persistence needs one finite value per day of the horizon")
+    return (real_visible * persistence[np.clip(days_since_real, 0, None)]) @ discount / TRADING_DAYS_PER_YEAR
+
+
 def assured_signal_factors(
     discount_rate: NDArray[np.float64], *, decision_day: int, horizon_days: int, repricing_interval: int,
     period_days: int, implementation_delay: int, disclosure_delay: int, audit_probability: float,
     transparency: float, assurance_probability: float | NDArray[np.float64],
+    real_persistence: NDArray[np.float64] | None = None,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
     """The four factors of ``financing_signal_factors`` with pre-publication assurance checks.
 
@@ -213,7 +222,8 @@ def assured_signal_factors(
     New inflation meets its first check on its own disclosure day. The old stock displaced by a real
     action meets the same checks. Daily reports and unpublished audits only; the decision day must
     be an audit day and the disclosure delay shorter than a period, so no check falls between the
-    decision and the disclosure.
+    decision and the disclosure. ``real_persistence`` discounts real changes that revert, as in
+    ``financing_signal_factors``; the displaced old stock does not come back.
     """
     if decision_day % period_days or not 0 < disclosure_delay < period_days:
         raise ValueError("assurance checks need decisions on audit days and a disclosure delay shorter than a period")
@@ -235,7 +245,10 @@ def assured_signal_factors(
     q = audit_probability
     discount = np.exp(-times[:, None] * rate[None, :] / TRADING_DAYS_PER_YEAR)
     checked = keep[None, :] ** checks[:, None]
-    real = real_visible @ discount / TRADING_DAYS_PER_YEAR
+    if real_persistence is None:
+        real = real_visible @ discount / TRADING_DAYS_PER_YEAR
+    else:
+        real = _persistent_real(real_persistence, real_visible, quoted_day - real_due, discount, horizon_days)
     wash = np.sum((wash_visible * (1.0 - q) ** audits)[:, None] * checked * discount, axis=0) / TRADING_DAYS_PER_YEAR
     old = (real_visible * (1.0 - q) ** old_audits)[:, None] * checked
     displaced = real - (1.0 - transparency) * np.sum(old * discount, axis=0) / TRADING_DAYS_PER_YEAR

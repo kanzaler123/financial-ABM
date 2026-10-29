@@ -1,0 +1,264 @@
+{
+  "sources": {
+    "faq": {
+      "url": "https://www.chindices.com/esg-faq.html",
+      "read": "2026-10-28",
+      "quotes": [
+        "华证股票ESG评级数据按季度更新，评级日期分别为每年0131、0430、0731和1031",
+        "更新后的评级数据一般会在评级日期的20个交易日内发布",
+        "华证A股ESG评级数据最早从2009年开始，其中2009-2018年为1.0体系评级结果，2019年至今为2.0体系评级结果"
+      ]
+    },
+    "tracking_report": {
+      "url": "https://www.chindices.com/files/上海华证指数ESG跟踪分析服务.pdf",
+      "read": "2026-10-28",
+      "file": "上海华证指数ESG跟踪分析服务.pdf",
+      "note": "brochure '华证指数 ESG 跟踪'; page 1: '评价回溯至 2009 年 1 月'; pages 2-3 describe 2018-10-31",
+      "sha256": "b7dbab82d4479542b0f58e506ab0bd1de2b199ada5f39dfc914393f22ca56dcb",
+      "bytes": 1279731
+    },
+    "methodology_v2_1": {
+      "url": "https://www.chindices.com/files/华证ESG评级方法论V2.1.pdf",
+      "read": "2026-10-28",
+      "file": "华证ESG评级方法论V2.1.pdf",
+      "versions": {
+        "2022.03": "V1.0 first public methodology",
+        "2022.05": "V1.1",
+        "2022.11": "V2.0 full update of the framework",
+        "2024.05": "V2.1 industry adjustment; weights aligned with the exchanges' guidelines"
+      },
+      "sha256": "b9fc3d7fd5d98be1988046563ab9effd6cc13c449f9b9693f72f270a1fb41d8b",
+      "bytes": 1331986
+    }
+  },
+  "2018-10-31": {
+    "report": {
+      "firms": 3556,
+      "counts": {
+        "AAA": 107,
+        "AA": 542,
+        "A": 654,
+        "BBB": 1604,
+        "BB": 452,
+        "B": 148,
+        "CCC": 40,
+        "CC": 8,
+        "C": 1
+      },
+      "mean_notch": 6.324521934758155
+    },
+    "panel": {
+      "firms": 3421,
+      "counts": {
+        "AAA": 0,
+        "AA": 3,
+        "A": 26,
+        "BBB": 356,
+        "BB": 1004,
+        "B": 1189,
+        "CCC": 574,
+        "CC": 185,
+        "C": 84
+      },
+      "mean_notch": 4.178310435545162
+    },
+    "old_copy": {
+      "firms": 3463,
+      "counts": {
+        "AAA": 0,
+        "AA": 3,
+        "A": 26,
+        "BBB": 355,
+        "BB": 1013,
+        "B": 1203,
+        "CCC": 586,
+        "CC": 189,
+        "C": 88
+      },
+      "mean_notch": 4.168928674559631
+    },
+    "report_downgrades_in_panel": {
+      "300152": {
+        "report": [
+          "CC",
+          "BBB"
+        ],
+        "report_change": -4,
+        "panel": [
+          "C",
+          "B"
+        ],
+        "panel_change": -3
+      },
+      "603505": {
+        "report": [
+          "CCC",
+          "A"
+        ],
+        "report_change": -4,
+        "panel": [
+          "C",
+          "BB"
+        ],
+        "panel_change": -4
+      },
+      "600397": {
+        "report": [
+          "CCC",
+          "BBB"
+        ],
+        "report_change": -3,
+        "panel": [
+          "C",
+          "CCC"
+        ],
+        "panel_change": -2
+      },
+      "002291": {
+        "report": [
+          "CCC",
+          "BBB"
+        ],
+        "report_change": -3,
+        "panel": [
+          "C",
+          "CC"
+        ],
+        "panel_change": -1
+      },
+      "002317": {
+        "report": [
+          "CCC",
+          "BBB"
+        ],
+        "report_change": -3,
+        "panel": [
+          "C",
+          "CCC"
+        ],
+        "panel_change": -2
+      },
+      "000971": {
+        "report": [
+          "CCC",
+          "BBB"
+        ],
+        "report_change": -3,
+        "panel": [
+          "C",
+          "CCC"
+        ],
+        "panel_change": -2
+      },
+      "300392": {
+        "report": [
+          "CCC",
+          "BBB"
+        ],
+        "report_change": -3,
+        "panel": null,
+        "panel_change": null
+      },
+      "300087": {
+        "report": [
+          "B",
+          "BBB"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CC",
+          "B"
+        ],
+        "panel_change": -2
+      },
+      "000513": {
+        "report": [
+          "B",
+          "BBB"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CCC",
+          "BBB"
+        ],
+        "panel_change": -3
+      },
+      "002001": {
+        "report": [
+          "BBB",
+          "AA"
+        ],
+        "report_change": -2,
+        "panel": [
+          "B",
+          "A"
+        ],
+        "panel_change": -3
+      },
+      "002484": {
+        "report": [
+          "B",
+          "BBB"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CC",
+          "B"
+        ],
+        "panel_change": -2
+      },
+      "300664": {
+        "report": [
+          "B",
+          "BBB"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CCC",
+          "BB"
+        ],
+        "panel_change": -2
+      },
+      "600200": {
+        "report": [
+          "BBB",
+          "AA"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CCC",
+          "BB"
+        ],
+        "panel_change": -2
+      },
+      "002340": {
+        "report": [
+          "BBB",
+          "AA"
+        ],
+        "report_change": -2,
+        "panel": [
+          "CC",
+          "B"
+        ],
+        "panel_change": -2
+      },
+      "002029": {
+        "report": [
+          "B",
+          "A"
+        ],
+        "report_change": -3,
+        "panel": [
+          "CCC",
+          "BB"
+        ],
+        "panel_change": -2
+      }
+    },
+    "score_000672_2016_07_31": {
+      "report": 89.85,
+      "panel": 77.53
+    }
+  }
+}

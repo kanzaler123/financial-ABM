@@ -1,0 +1,19 @@
+{
+  "seed": 27102,
+  "exactness_vs_dummies": {
+    "firm": {
+      "coef_diff": 1.3322676295501878e-15,
+      "se_rel_diff": 6.661338147750939e-16
+    },
+    "two_way": {
+      "coef_diff": 1.3322676295501878e-15,
+      "se_rel_diff": 1.3322676295501878e-15
+    }
+  },
+  "coverage_95": {
+    "pooled_two_way": 0.95,
+    "fama_macbeth": 0.94
+  },
+  "coverage_reps": 300,
+  "design": "12 dates x 4,700 firms x 30 industries; x = round(N(0, 0.6) + 0.2 size); y = 0.4 x + date shock x size + size + industry-date shock + firm effect + 10 t(5)"
+}

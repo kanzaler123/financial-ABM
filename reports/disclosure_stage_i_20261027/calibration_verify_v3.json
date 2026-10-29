@@ -1,0 +1,108 @@
+{
+  "purpose": "verification of financing_rating_slope at the v3 dynamics (research contract 26.24 (b)); calibration seeds only",
+  "dynamics": {
+    "natural_decay": 0.151,
+    "natural_reversion": 0.0,
+    "reversion_permanent_share": 0.0
+  },
+  "slope_bp": 25.75,
+  "pi_bp": 27.958972180295422,
+  "seeds": [
+    56001,
+    56002,
+    56003
+  ],
+  "started": "2026-10-28 16:35:50 +0800",
+  "finished": "2026-10-28 16:36:13 +0800",
+  "summary": {
+    "spread": 0.05,
+    "worlds": 3,
+    "failed_worlds": 0,
+    "price_cap_hits": 1,
+    "observations": 12000,
+    "rho_bp": {
+      "median": 28.031613856775806,
+      "p5": 27.23083451178324,
+      "p25": 27.704037886647228,
+      "p75": 28.38565795296673,
+      "p95": 29.06119919670057,
+      "median_days_600_on": 28.023447496091105,
+      "median_by_seed": [
+        27.921005473945797,
+        27.93266839329058,
+        28.370681889647084
+      ]
+    },
+    "passthrough_median": 0.011043354491355812,
+    "quote_response_m_median": 0.021269922050294276,
+    "exposure_share_median": 0.49101591034243,
+    "benefit_B_bp_of_value_median": 13.81741050293497,
+    "yield_slope_bp_median": -23.70225310787292,
+    "log_price_premium_slope_median": 0.046430788175792506,
+    "slope": 0.002575,
+    "slope_bp": 25.75,
+    "rho_price_bp": {
+      "median": 2.281613856775805,
+      "p5": 1.4808345117832369,
+      "p95": 3.3111991967005685
+    },
+    "contract_rate_decision_days": {
+      "min": 0.030906029658652016,
+      "p5": 0.03608257051408789,
+      "median": 0.041508544230046976,
+      "p95": 0.04862839046596143,
+      "max": 0.06167041979490179
+    },
+    "contract_rate_initial": {
+      "min": 0.03486191463419689,
+      "p5": 0.03768180134162093,
+      "median": 0.04158393314171527,
+      "p95": 0.04574996192274008,
+      "max": 0.04960365230748377
+    },
+    "public_signal_cross_sectional_sd": {
+      "median": 0.6981668352928372,
+      "min": 0.5591900877631282,
+      "max": 0.9600872003660305
+    }
+  },
+  "rho_total_median_bp": 28.031613856775806,
+  "within_10pct": true,
+  "adjusted_slope_bp": null,
+  "runs": [
+    {
+      "spread": 0.05,
+      "seed": 56001,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "2b1ac41b2c82676bc10c2fc106ad31cff94d4a6a508303d6eba0e01b30f82630",
+      "seconds": 23.30305500002578,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v3/s0.05_l25.75bp_seed56001.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56002,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "4df1b214012cb7f95f6b5928378afb001259e9120d267e1317c2015abf94d3e7",
+      "seconds": 23.14157370000612,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v3/s0.05_l25.75bp_seed56002.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56003,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "018edd841ac781505914c1012577700d20f27476dbcf0cb7333bd2075f828598",
+      "seconds": 23.13850719993934,
+      "price_cap_hits": 1,
+      "arrays": "calibration_v3/s0.05_l25.75bp_seed56003.npz",
+      "decision_days": 20
+    }
+  ],
+  "script_sha256": "a4d4c6a5b52ee34e9612f96eb1a9357da694ca02c20ceba997dc5c7fe3067873"
+}

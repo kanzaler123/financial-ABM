@@ -1,0 +1,68 @@
+{
+  "price_response_pp_per_sd": {
+    "mean": 2.3348649198529166,
+    "se_across_seeds": 0.10295965072104259,
+    "ci95": [
+      2.133064004439673,
+      2.53666583526616
+    ],
+    "seeds": 30
+  },
+  "price_response_raw_return_pp_per_sd": {
+    "mean": 2.2717370428778154,
+    "se_across_seeds": 0.10291321029405182,
+    "ci95": [
+      2.070027150701474,
+      2.473446935054157
+    ],
+    "seeds": 30
+  },
+  "price_response_rank_normal_pp_per_sd": {
+    "mean": 2.0651735248215326,
+    "se_across_seeds": 0.08483466644947713,
+    "ci95": [
+      1.8988975785805575,
+      2.2314494710625077
+    ],
+    "seeds": 30
+  },
+  "impact_holding_response_pp_per_sd": {
+    "mean": 1.6332329625476012,
+    "se_across_seeds": 0.06153934699843249,
+    "ci95": [
+      1.5126158424306735,
+      1.753850082664529
+    ],
+    "seeds": 30
+  },
+  "impact_holding_response_rank_normal_pp_per_sd": {
+    "mean": 1.4465324436426286,
+    "se_across_seeds": 0.050478501230631495,
+    "ci95": [
+      1.3475945812305907,
+      1.5454703060546664
+    ],
+    "seeds": 30
+  },
+  "signal_cross_sectional_sd_mean": {
+    "mean": 1.0450918952068915,
+    "se_across_seeds": 0.006368552781953969,
+    "ci95": [
+      1.0326095317542616,
+      1.0575742586595214
+    ],
+    "seeds": 30
+  },
+  "impact_wealth_share_median": {
+    "days_1200_3500": 0.2159618164554754,
+    "days_60_1200": 0.21020290278553133
+  },
+  "yield_slope_bp_per_signal_unit_median": {
+    "decision_days_60_1200": -27.18022999632091,
+    "decision_days_1260_3480": -31.008343068432072
+  },
+  "yield_slope_bp_per_cross_sectional_sd_median": {
+    "decision_days_60_1200": -25.645163746279096,
+    "decision_days_1260_3480": -32.41439032776053
+  }
+}

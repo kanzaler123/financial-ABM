@@ -114,3 +114,30 @@ reports/disclosure_learning_redo_20261021/*.out
 reports/disclosure_joint_robustness_20261023/joint_v1/
 reports/disclosure_joint_robustness_20261023/check_v1/
 reports/disclosure_joint_robustness_20261023/work_*
+# Stage H persistence estimation archives (local only; contract 25)
+reports/disclosure_persistence_estimation_20261026/grid_v1/
+reports/disclosure_persistence_estimation_20261026/check_v1/
+reports/disclosure_persistence_estimation_20261026/final_v1/
+reports/disclosure_persistence_estimation_20261026/recovery_v1/
+reports/disclosure_persistence_estimation_20261026/work_check/
+# CNRDS exports (licensed, local only)
+data/raw/cnrds_*/
+data/processed/cnrds_*/
+# Stage H3 confirmatory archives, development check and local work files (contract 25.17-25.18)
+reports/disclosure_stage_h3_20261027/h3_v1/
+reports/disclosure_stage_h3_20261027/check_v1/
+reports/disclosure_stage_h3_20261027/work_check/
+# Treasury yield curve downloads (CCDC, reproduction needs attribution; local only, contract 26.1)
+data/raw/chinabond_*/
+# Stage I model archives, calibration and check reruns, local work files (contract 26.7-26.9)
+reports/disclosure_stage_i_20261027/*_v1/
+reports/disclosure_stage_i_20261027/work_*
+reports/disclosure_stage_i_20261027/*_v2/
+reports/disclosure_stage_i_20261027/*_v3/
+# Stage J: Huazheng official documents (local only) and the stage J panels built from licensed data (contract 27)
+data/raw/huazheng_official_*/
+data/processed/stage_j_*/
+# Stage J model replay arrays (contract 27.10, local only)
+reports/disclosure_investor_response_20261028/replay_h3_b/
+reports/disclosure_investor_response_20261028/*.log
+reports/disclosure_investor_response_20261028/*.err

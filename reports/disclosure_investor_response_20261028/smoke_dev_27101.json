@@ -1,0 +1,142 @@
+{
+  "seed": 27101,
+  "note": "rating changes permuted within date (J1) or year (J2); only sizes, cluster counts and standard errors are read",
+  "J1_pit": {
+    "events": 56756,
+    "firms": 5060,
+    "dates": 12,
+    "fama_macbeth_dnotch": {
+      "dates": 12,
+      "obs": 56743,
+      "se": 0.113616491085077,
+      "df": 11,
+      "mde_alpha_0.05": 0.3495428547684873,
+      "mde_alpha_0.0125": 0.4381509098233796
+    },
+    "fama_macbeth_dns": {
+      "se": 0.12772888579954766,
+      "mde_alpha_0.05": 0.39295985074332335
+    },
+    "pooled_two_way": {
+      "obs": 56743,
+      "fe_cells": 540,
+      "clusters": {
+        "Scode": 5058,
+        "date": 12
+      },
+      "se": 0.058360778763380416,
+      "df": 11
+    }
+  },
+  "J2_pit": {
+    "firm_years": 13874,
+    "years": [
+      2023,
+      2024,
+      2025
+    ],
+    "obs": 13871,
+    "fe_cells": 135,
+    "clusters": {
+      "Scode": 4952
+    },
+    "se": 0.026528659736324206,
+    "df": 4951,
+    "mde_alpha_0.05": 0.07433694136542514,
+    "mde_alpha_0.0125": 0.08861401537831226
+  },
+  "J1_prelaunch": {
+    "events": 70425,
+    "firms": 2729,
+    "dates": 35,
+    "fama_macbeth_dnotch": {
+      "dates": 35,
+      "obs": 70412,
+      "se": 0.14753882486314163,
+      "df": 34,
+      "mde_alpha_0.05": 0.4255854304393917,
+      "mde_alpha_0.0125": 0.5148994119523392
+    },
+    "fama_macbeth_dns": {
+      "se": 0.19145211156094655,
+      "mde_alpha_0.05": 0.5522561900759122
+    },
+    "pooled_two_way": {
+      "obs": 70412,
+      "fe_cells": 1555,
+      "clusters": {
+        "Scode": 2729,
+        "date": 35
+      },
+      "se": 0.11584305719264397,
+      "df": 34
+    }
+  },
+  "J2_prelaunch": {
+    "firm_years": 15936,
+    "years": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017
+    ],
+    "obs": 15934,
+    "fe_cells": 356,
+    "clusters": {
+      "Scode": 2588
+    },
+    "se": 0.049448799831400644,
+    "df": 2587,
+    "mde_alpha_0.05": 0.13858726349095196,
+    "mde_alpha_0.0125": 0.16521902221943885
+  },
+  "J1_restated": {
+    "events": 56389,
+    "firms": 4246,
+    "dates": 16,
+    "fama_macbeth_dnotch": {
+      "dates": 16,
+      "obs": 56376,
+      "se": 0.14464751163540737,
+      "df": 15,
+      "mde_alpha_0.05": 0.43360905278097134,
+      "mde_alpha_0.0125": 0.5356112856929727
+    },
+    "fama_macbeth_dns": {
+      "se": 0.2849621641124764,
+      "mde_alpha_0.05": 0.8542295174124555
+    },
+    "pooled_two_way": {
+      "obs": 56376,
+      "fe_cells": 720,
+      "clusters": {
+        "Scode": 4245,
+        "date": 16
+      },
+      "se": 0.08629186790047742,
+      "df": 15
+    }
+  },
+  "J2_restated": {
+    "firm_years": 13920,
+    "years": [
+      2019,
+      2020,
+      2021,
+      2022
+    ],
+    "obs": 13917,
+    "fe_cells": 180,
+    "clusters": {
+      "Scode": 3944
+    },
+    "se": 0.03631664732279161,
+    "df": 3943,
+    "mde_alpha_0.05": 0.10176934943982403,
+    "mde_alpha_0.0125": 0.121318109789117
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "targets_bp": {
+    "s_star": 27.958972180295422,
+    "s_lo": 23.4085454265767,
+    "s_hi": 32.50939893401414,
+    "s_28": 28.0
+  },
+  "interpolated": {
+    "s_star": 0.6057464014140481,
+    "s_lo": 0.5081541781853789,
+    "s_hi": 0.7031626982874503,
+    "s_28": 0.6066254741659589
+  },
+  "extensions": [],
+  "summary_before_verification": [
+    {
+      "spread": 0.05,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 2.2122212140464956,
+        "p5": 1.4516891970549537,
+        "p25": 1.8908224178683217,
+        "p75": 2.6324985997059307,
+        "p95": 3.4939959021956883,
+        "median_days_600_on": 2.189395801771176,
+        "median_by_seed": [
+          2.17223667635176,
+          2.090547086045677,
+          2.4449449149720235
+        ]
+      },
+      "passthrough_median": 0.011054240841829783,
+      "quote_response_m_median": 0.02047625470564401,
+      "exposure_share_median": 0.4924378536558739,
+      "benefit_B_bp_of_value_median": 1.1007383928420842,
+      "yield_slope_bp_median": -24.56431693377263,
+      "log_price_premium_slope_median": 0.049225657230271
+    },
+    {
+      "spread": 0.1,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 4.42597273914523,
+        "p5": 2.9124572112112777,
+        "p25": 3.7825259774085005,
+        "p75": 5.248246969737874,
+        "p95": 6.89592087879602,
+        "median_days_600_on": 4.362693400988393,
+        "median_by_seed": [
+          4.316073650027242,
+          4.202557157818441,
+          4.9352604540731635
+        ]
+      },
+      "passthrough_median": 0.022122956358258596,
+      "quote_response_m_median": 0.02051182959633472,
+      "exposure_share_median": 0.4933876470892299,
+      "benefit_B_bp_of_value_median": 2.1993106696376064,
+      "yield_slope_bp_median": -22.818038973818965,
+      "log_price_premium_slope_median": 0.046433255166246815
+    },
+    {
+      "spread": 0.2,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 9.000763057823033,
+        "p5": 5.8738065847190075,
+        "p25": 7.647775064454439,
+        "p75": 10.64905064487401,
+        "p95": 13.69281329117593,
+        "median_days_600_on": 8.97365730325339,
+        "median_by_seed": [
+          8.760313732979188,
+          8.537622348840234,
+          10.137824848719832
+        ]
+      },
+      "passthrough_median": 0.04422427774745498,
+      "quote_response_m_median": 0.020897319557357796,
+      "exposure_share_median": 0.49267749080590273,
+      "benefit_B_bp_of_value_median": 4.442433492555581,
+      "yield_slope_bp_median": -21.083353570454676,
+      "log_price_premium_slope_median": 0.042312222395908025
+    },
+    {
+      "spread": 0.4,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 18.37718685589291,
+        "p5": 12.00958056243914,
+        "p25": 15.613782422585277,
+        "p75": 21.556349527046738,
+        "p95": 27.383609495509052,
+        "median_days_600_on": 18.565174966499665,
+        "median_by_seed": [
+          17.72785534292104,
+          17.445677305366228,
+          20.935065265632716
+        ]
+      },
+      "passthrough_median": 0.08845766606890162,
+      "quote_response_m_median": 0.021337231153967122,
+      "exposure_share_median": 0.4928268488892834,
+      "benefit_B_bp_of_value_median": 9.035571971652114,
+      "yield_slope_bp_median": -19.876079855643145,
+      "log_price_premium_slope_median": 0.03947965729106634
+    },
+    {
+      "spread": 0.8,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 37.03978238163617,
+        "p5": 24.038822310233112,
+        "p25": 31.630388234890063,
+        "p75": 43.343548679603266,
+        "p95": 55.0582678680281,
+        "median_days_600_on": 37.48626283970599,
+        "median_by_seed": [
+          36.05093517061184,
+          34.91946395077975,
+          42.64124206101724
+        ]
+      },
+      "passthrough_median": 0.177133256632251,
+      "quote_response_m_median": 0.021599595653666176,
+      "exposure_share_median": 0.49486897342529435,
+      "benefit_B_bp_of_value_median": 18.31713755720172,
+      "yield_slope_bp_median": -19.440608864445466,
+      "log_price_premium_slope_median": 0.03836005826172191
+    }
+  ],
+  "verification": {
+    "spread": 0.6057,
+    "rho_median_bp": 27.952254361703723,
+    "within_10pct": true,
+    "runs": [
+      {
+        "spread": 0.6057,
+        "seed": 56001,
+        "status": "complete",
+        "fingerprint": "7ef22ac577326c439eec8c1f30cd70696f8f54609d6a1371824b2ba8a1b41170",
+        "seconds": 17.82066530000884,
+        "decision_days": [
+          60,
+          120,
+          180,
+          240,
+          300,
+          360,
+          420,
+          480,
+          540,
+          600,
+          660,
+          720,
+          780,
+          840,
+          900,
+          960,
+          1020,
+          1080,
+          1140,
+          1200
+        ],
+        "price_cap_hits": 0,
+        "arrays": "calibration_v1/s0.6057_seed56001.npz"
+      },
+      {
+        "spread": 0.6057,
+        "seed": 56002,
+        "status": "complete",
+        "fingerprint": "b2b76ee0787675b4d308dd07363b271d5804c4d19567f1758d01da006df393b2",
+        "seconds": 17.851949999923818,
+        "decision_days": [
+          60,
+          120,
+          180,
+          240,
+          300,
+          360,
+          420,
+          480,
+          540,
+          600,
+          660,
+          720,
+          780,
+          840,
+          900,
+          960,
+          1020,
+          1080,
+          1140,
+          1200
+        ],
+        "price_cap_hits": 0,
+        "arrays": "calibration_v1/s0.6057_seed56002.npz"
+      },
+      {
+        "spread": 0.6057,
+        "seed": 56003,
+        "status": "complete",
+        "fingerprint": "96ed2b14ca29f1839ba2705864cc49e1936b762f0a38e5890820a270cba16326",
+        "seconds": 17.9101013999898,
+        "decision_days": [
+          60,
+          120,
+          180,
+          240,
+          300,
+          360,
+          420,
+          480,
+          540,
+          600,
+          660,
+          720,
+          780,
+          840,
+          900,
+          960,
+          1020,
+          1080,
+          1140,
+          1200
+        ],
+        "price_cap_hits": 1,
+        "arrays": "calibration_v1/s0.6057_seed56003.npz"
+      }
+    ],
+    "summary": {
+      "spread": 0.6057,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 27.952254361703723,
+        "p5": 18.19665885419006,
+        "p25": 23.80702361646735,
+        "p75": 32.695594446636804,
+        "p95": 41.4759782616584,
+        "median_days_600_on": 28.2834589156827,
+        "median_by_seed": [
+          27.087074141266655,
+          26.411376361125363,
+          31.979470303606128
+        ]
+      },
+      "passthrough_median": 0.13405634641509676,
+      "quote_response_m_median": 0.02149909253451015,
+      "exposure_share_median": 0.4940270989567802,
+      "benefit_B_bp_of_value_median": 13.772925959764311,
+      "yield_slope_bp_median": -19.245230075960524,
+      "log_price_premium_slope_median": 0.03840569690937777
+    }
+  },
+  "s_star_adopted": 0.6057,
+  "rerun_rule_26_9": "confirmatory rerun at s*",
+  "sensitivity_spreads": {
+    "s0": 0.05,
+    "s_lo": 0.5082,
+    "s_hi": 0.7032,
+    "s_28": 0.6066
+  },
+  "script_sha256": "728229289e69042dc211b4c932b74654007fa38f08096a157bec82eea62e4135",
+  "grid_file_sha256": "0c34d629652506e9147837110e7bc801c838eb2191c9956eea1ca480c6bef28a"
+}

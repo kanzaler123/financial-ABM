@@ -90,6 +90,10 @@ class AttributeState:
     false_reports: IntArray | None = None
     # Source of the idiosyncratic shocks that accompany mean reversion.
     shock_rng: np.random.Generator | None = None
+    # Permanent firm levels mu_i that reversion leaves alone, or None when the whole attribute reverts.
+    anchor: FloatArray | None = None
+    # Share of the attribute's unit variance that reverts and is shocked: 1 - reversion_permanent_share.
+    transitory_share: float = 1.0
 
     @classmethod
     def initialize(cls, domain: DomainSpec, size_class: IntArray, rng: np.random.Generator,
@@ -121,6 +125,15 @@ class AttributeState:
         # Drawn last, so the other initial draws stay those of a common ratio.
         spread = domain.wash_cost_log_sd
         wash_cost_ratio = domain.wash_cost_ratio * rng.lognormal(-0.5 * spread**2, spread, size) if spread else None
+        # Drawn after everything else, so the initial draws stay those of pure reversion. With
+        # mu = s g + sqrt(s (1 - s)) eta, Var(mu) = s, Var(g - mu) = 1 - s and the two are uncorrelated.
+        share = domain.reversion_permanent_share
+        if share:
+            anchor = share * goodness + np.sqrt(share * (1.0 - share)) * rng.standard_normal(size)
+        elif domain.reversion_improvement == "permanent":
+            anchor = np.zeros(size)
+        else:
+            anchor = None
         return cls(
             goodness=goodness,
             inflation=np.zeros(size),
@@ -129,6 +142,8 @@ class AttributeState:
             wash_cost_ratio=wash_cost_ratio,
             false_reports=np.zeros(size, dtype=np.int64),
             shock_rng=rng if domain.natural_reversion else None,
+            anchor=anchor,
+            transitory_share=1.0 - share,
         )
 
     def observed(self, transparency: float) -> FloatArray:
@@ -156,6 +171,11 @@ class AttributeState:
         normal shock of scale sqrt(1 - r^2) is added: the mean is unchanged
         and, without actions, the cross-sectional variance stays at its
         initial unit level.
+
+        With an ``anchor`` mu_i only the part g - mu reverts, towards its own
+        cross-sectional mean, and the shock scale keeps that part's variance
+        at ``transitory_share``. Improvements that join the permanent level
+        move the anchor with the attribute, so they do not revert.
         """
         low, high = domain.goodness_bounds
         self.goodness = np.maximum(self.goodness - domain.natural_decay / TRADING_DAYS_PER_YEAR, low)
@@ -166,16 +186,27 @@ class AttributeState:
                 raise ValueError("mean reversion needs a shock generator")
             retention = np.exp(-reversion / TRADING_DAYS_PER_YEAR)
             shock = self.shock_rng.standard_normal(self.goodness.size)
-            mean = self.goodness.mean()
-            self.goodness = np.clip(mean + retention * (self.goodness - mean)
-                                    + np.sqrt(1.0 - retention**2) * (shock - shock.mean()), low, high)
+            if self.anchor is None:
+                mean = self.goodness.mean()
+                self.goodness = np.clip(mean + retention * (self.goodness - mean)
+                                        + np.sqrt(1.0 - retention**2) * (shock - shock.mean()), low, high)
+            else:
+                transitory = self.goodness - self.anchor
+                mean = transitory.mean()
+                scale = np.sqrt((1.0 - retention**2) * self.transitory_share)
+                self.goodness = np.clip(self.anchor + mean + retention * (transitory - mean)
+                                        + scale * (shock - shock.mean()), low, high)
+        permanent = self.anchor is not None and getattr(domain, "reversion_improvement", "transitory") == "permanent"
         remaining = []
         for item in self.pending:
             due_day, kind, firms, amounts = item
             if due_day > day:
                 remaining.append(item)
             elif kind == IMPROVE:
-                self.goodness[firms] = np.minimum(self.goodness[firms] + amounts, high)
+                before = self.goodness[firms]
+                self.goodness[firms] = np.minimum(before + amounts, high)
+                if permanent:
+                    self.anchor[firms] += self.goodness[firms] - before
             else:
                 self.inflation[firms] += amounts
                 if self.false_reports is not None:
@@ -254,27 +285,38 @@ def real_persistence(domain: DomainSpec, n_firms: int, horizon_days: int) -> Flo
     the firm's deviation from that mean decays geometrically. Shocks are
     independent of actions and drop out.
     """
-    if not domain.natural_reversion:
+    if not domain.natural_reversion or getattr(domain, "reversion_improvement", "transitory") == "permanent":
+        # Permanent improvements: the change stays, like under uniform decay.
         return None
     retention = np.exp(-domain.natural_reversion / TRADING_DAYS_PER_YEAR)
     return 1.0 / n_firms + (1.0 - 1.0 / n_firms) * retention ** np.arange(horizon_days + 1)
 
 
-def expected_natural_path(domain: DomainSpec, initial: FloatArray, days: IntArray) -> FloatArray:
-    """Expected true values on ``days`` after day zero without any action (shocks average out)."""
+def expected_natural_path(domain: DomainSpec, initial: FloatArray, days: IntArray,
+                          anchor: FloatArray | None = None) -> FloatArray:
+    """Expected true values on ``days`` after day zero without any action (shocks average out).
+
+    With ``anchor`` (permanent levels on day zero) only the part above the anchor reverts.
+    """
     days = np.asarray(days, dtype=np.int64)
     low, _ = domain.goodness_bounds
     if not domain.natural_reversion:
         return np.maximum(np.asarray(initial)[None, :] - domain.natural_decay * days[:, None] / TRADING_DAYS_PER_YEAR, low)
     retention = np.exp(-domain.natural_reversion / TRADING_DAYS_PER_YEAR)
     values = np.asarray(initial, dtype=np.float64).copy()
+    base = None if anchor is None else np.asarray(anchor, dtype=np.float64)
     path = np.empty((days.size, values.size))
     wanted = {int(day): index for index, day in enumerate(days)}
     for day in range(int(days.max(initial=0)) + 1):
         if day:
             values = np.maximum(values - domain.natural_decay / TRADING_DAYS_PER_YEAR, low)
-            mean = values.mean()
-            values = mean + retention * (values - mean)
+            if base is None:
+                mean = values.mean()
+                values = mean + retention * (values - mean)
+            else:
+                transitory = values - base
+                mean = transitory.mean()
+                values = base + mean + retention * (transitory - mean)
         if day in wanted:
             path[wanted[day]] = values
     return path
@@ -351,6 +393,7 @@ def npv_choices(
             implementation_delay=domain.implementation_delay_days,
             disclosure_delay=disclosure_delay, audit_probability=planned,
             transparency=regime.transparency, assurance_probability=assurance_probability,
+            real_persistence=real_persistence,
         )
         checked = np.asarray(assurance_probability) > 0
         real_annuity, displaced_annuity, wash_annuity, detection = (
@@ -510,6 +553,8 @@ class DisclosureResult:
     assurer_quality: FloatArray | None = None
     assurer_inflation_share: FloatArray | None = None
     assurer_liability_events: IntArray | None = None
+    # Per day and firm, recorded only when reversion has permanent levels: the anchors mu_i.
+    reversion_anchor: FloatArray | None = None
 
     def fingerprint(self) -> str:
         digest = hashlib.sha256(self.market.fingerprint().encode("ascii"))
@@ -527,6 +572,7 @@ class DisclosureResult:
             self.audit_probability, self.audit_flags,
             self.assurer_assignment, self.assurance_checked_inflated, self.assurance_corrections,
             self.assurer_quality, self.assurer_inflation_share, self.assurer_liability_events,
+            self.reversion_anchor,
         ):
             if array is None:
                 continue
@@ -608,22 +654,21 @@ class DisclosureMarket(CrossSectionMarket):
             raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
         regimes = [regime for regime in (policy.baseline, policy.intervention) if regime is not None]
         self.audit_targeting = any(regime.audit_allocation != "uniform" for regime in regimes)
-        if self.audit_targeting and (config.firm_policy != "npv" or domain.natural_reversion or any(
+        if self.audit_targeting and (config.firm_policy != "npv" or any(
             regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes
         )):
-            raise ValueError("targeted audits are modelled only with NPV firms, daily reports, unpublished audits "
-                             "and non-reverting true values")
+            raise ValueError("targeted audits are modelled only with NPV firms, daily reports and unpublished audits")
         assured = policy.intervention is not None and policy.intervention.assurance_scope != "none"
         if policy.baseline.assurance_scope != "none":
             raise ValueError("assurance is modelled only as a policy switch")
         if assured:
             delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
                      else policy.intervention.disclosure_delay_days)
-            if (config.firm_policy != "npv" or domain.natural_reversion or self.audit_targeting
+            if (config.firm_policy != "npv" or self.audit_targeting
                     or any(regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes)
                     or not 0 < delay < config.firm_decision_interval):
-                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits, "
-                                 "non-reverting true values and a disclosure delay shorter than a decision period")
+                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits "
+                                 "and a disclosure delay shorter than a decision period")
         # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
         self.report_after_audit: FloatArray | None = None
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
@@ -638,13 +683,12 @@ class DisclosureMarket(CrossSectionMarket):
         self.window_wealth = investors.wealth(self.prices)
         self.pending_value_change = np.zeros(config.n_firms)
         self.financing_exposure = config.financing_exposure_fraction * self.prices.copy()
-        self.contract_rate = self.quoted_financing_rate()
-        self.initial_contract_rate = self.contract_rate.copy()
 
         days, firms = config.trading_days + 1, config.n_firms
         decisions = config.trading_days // config.firm_decision_interval + 1
         self.true_history = np.empty((days, firms))
         self.inflation_history = np.empty((days, firms))
+        self.anchor_history = np.empty((days, firms)) if self.attributes.anchor is not None else None
         self.impact_share = np.empty(days)
         self.impact_wealth_share = np.empty(days)
         self.slope_history = np.full(days, np.nan)
@@ -655,7 +699,6 @@ class DisclosureMarket(CrossSectionMarket):
         self.penalty_history = np.zeros((decisions, firms))
         self.subsidy_history = np.zeros((decisions, firms))
         self.financing_rate_history = np.empty((days, firms))
-        self.financing_rate_history[0] = self.contract_rate
         self.financing_cost_history = np.zeros((days, firms))
         self.financing_adjustment_history = np.zeros((days, firms))
         self.public_signal_history = np.empty((days, firms))
@@ -703,6 +746,10 @@ class DisclosureMarket(CrossSectionMarket):
                     self.learning_update_history = np.zeros((decisions, firms), dtype=bool)
         self.signal_day = -1
         self._prepare_signals(0)
+        # Quoted after the day-0 signal, so the initial rate carries the day-0 rating term.
+        self.contract_rate = self.quoted_financing_rate()
+        self.initial_contract_rate = self.contract_rate.copy()
+        self.financing_rate_history[0] = self.contract_rate
         self._record_attributes(0)
 
     # -- signals and pricing -------------------------------------------------
@@ -742,15 +789,27 @@ class DisclosureMarket(CrossSectionMarket):
         return self.config.cash_flow_yield * self.firms.intrinsic_value / self.prices
 
     def quoted_financing_rate(self) -> FloatArray:
-        return self.config.risk_free_rate + self.config.financing_spread * (
+        """Rate on the exposure: price term, minus the rating term on the latest public signal (contract 26.20)."""
+        rate = self.config.risk_free_rate + self.config.financing_spread * (
             self.financing_exposure / (self.financing_exposure + self.prices)
         )
+        if self.config.financing_rating_slope:
+            signal = self.public_signal_history[self.signal_day]
+            rate = rate - self.config.financing_rating_slope * (signal - signal.mean())
+        return rate
 
     def marginal_financing_saving(self) -> FloatArray:
-        """Annual fee saving per SD, normalized by current market cap."""
+        """Annual fee saving per SD, normalized by current market cap.
+
+        The rating term's own effect is the full slope: a firm takes the cross-sectional
+        mean as given (contract 26.20).
+        """
         exposure = self.financing_exposure
         rate_response = self.config.financing_spread * exposure * self.prices / (exposure + self.prices)**2
-        return exposure / self.prices * rate_response * self.marginal_signal_value()
+        if not self.config.financing_rating_slope:
+            return exposure / self.prices * rate_response * self.marginal_signal_value()
+        rate_response = rate_response * self.marginal_signal_value() + self.config.financing_rating_slope
+        return exposure / self.prices * rate_response
 
     def marginal_signal_value(self) -> FloatArray:
         """Local permanent quote response per initial SD, for one rebalance each."""
@@ -1048,7 +1107,10 @@ class DisclosureMarket(CrossSectionMarket):
 
         Firms take this audit's number of flagged firms, at least one, as the next audit's and apply
         the regulator's rule. The room is the threshold less actions landing before the next audit,
-        plus one period of natural decay; report bounds are ignored.
+        plus one period of natural decay and, under reversion, less one period of expected reversion
+        drift -(1 - r^P)(x_i - mean x), with r = exp(-reversion / year), P the decision interval and
+        x = g - anchor (x = g without an anchor). Shocks have mean zero and are left out, as are
+        report bounds and the reversion of actions landing within the period.
         """
         size, period = self.config.n_firms, self.config.firm_decision_interval
         forecast = np.zeros(size, dtype=bool)
@@ -1060,7 +1122,13 @@ class DisclosureMarket(CrossSectionMarket):
                 np.add.at(landing, firms, amounts)
         decay = self.domain.natural_decay * period / TRADING_DAYS_PER_YEAR
         unflagged = expected[0] if forecast.all() else expected[-1]
-        return float(unflagged), float(expected[0]), regime.audit_jump_threshold - landing + decay
+        room = regime.audit_jump_threshold - landing + decay
+        if self.domain.natural_reversion:
+            state = self.attributes
+            transitory = state.goodness if state.anchor is None else state.goodness - state.anchor
+            retention = np.exp(-self.domain.natural_reversion / TRADING_DAYS_PER_YEAR)
+            room = room + (1.0 - retention**period) * (transitory - transitory.mean())
+        return float(unflagged), float(expected[0]), room
 
     def _discrete_decision(
         self, day: int, period: int, regime: PolicyRegime, published: NDArray[np.bool_],
@@ -1189,6 +1257,8 @@ class DisclosureMarket(CrossSectionMarket):
         wealth = investors.wealth(self.prices)
         self.true_history[day] = self.attributes.goodness
         self.inflation_history[day] = self.attributes.inflation
+        if self.anchor_history is not None:
+            self.anchor_history[day] = self.attributes.anchor
         self.impact_share[day] = float(impact.mean())
         self.impact_wealth_share[day] = float(wealth[impact].sum() / wealth.sum())
 
@@ -1235,6 +1305,7 @@ class DisclosureMarket(CrossSectionMarket):
                 ("audit_flags", self.audit_flag_history),
                 *((name, None if self.assurance is None else self.assurance.history[name])
                   for name in ASSURANCE_ARRAYS),
+                ("reversion_anchor", self.anchor_history),
             )},
         )
 
