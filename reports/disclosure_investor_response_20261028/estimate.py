@@ -1,6 +1,10 @@
-"""Stage J estimators (contract 27): returns after Huazheng rating changes (J1) and year-end fund ownership (J2).
+"""Stage J estimators (contract 27): returns after Huazheng rating changes (J1), year-end fund ownership (J2) and
+the implied cost of equity (J4). J3 is not done: the fund holdings were not obtained (contract 27.17).
 
     python -I -X utf8 estimate.py --smoke      # rating changes permuted within date or year: sizes and SEs only
+    python -I -X utf8 estimate.py --smoke-j4   # J4 with the score permuted within year: sizes, SEs, size check
+    python -I -X utf8 estimate.py --dry        # the --final path on permuted treatments: which estimates exist
+    python -I -X utf8 estimate.py --final      # once (contract 27.11): estimates.json
 
 The smoke run permutes the rating change within each rating date (J1) or year (J2) with seed 27901 before any
 estimation, so it carries no information about the relation between rating changes and returns or holdings. It
@@ -14,6 +18,9 @@ freedom); pooled OLS with date x industry effects and two-way (firm, date) clust
 J2: change in year-end fund ownership (percentage points of tradable shares) on the October-to-October notch change,
 with size, log book-to-market, the return of November y-1 to October y and the ownership at December y-1 as controls
 and year x industry effects; firm-clustered (CR1) errors, t with G - 1 degrees of freedom.
+J4: PEG implied cost of equity at the end of June t+1 (basis points) on the 31 October t rank-normal score, with
+size, leverage, ROA, state ownership and log book-to-market as controls and industry x year effects; firm-clustered
+(CR1) errors, t with G - 1 degrees of freedom; pi_E = -beta (contract 27.6, 27.17).
 """
 
 from __future__ import annotations
@@ -34,6 +41,10 @@ NULL_SEED = 27903
 WINSOR = (0.01, 0.99)
 J1_CONTROLS = ["size", "log_bm", "ret_q", "mom", "notch_prev"]
 J2_CONTROLS = ["size", "log_bm", "ret_12", "fund_own_prev"]
+J4_CONTROLS = ["size", "lev", "roa", "soe", "log_bm"]
+J4_VARIANTS = ("brokers3", "days90", "unadjusted")       # contract 27.8 and 27.17
+FAMILY = ("J1", "J2", "J4")                              # Holm family (contract 27.17); J3 not done
+J4_PANEL_SHA = "79d039316ccea3188276c2f3f7ad81384e9c9bc20b07b3a0bd7206059abdccb5"
 
 
 def winsorize_within(df: pd.DataFrame, cols: list[str], by: str) -> pd.DataFrame:
@@ -162,6 +173,16 @@ def load_j2(period: str) -> pd.DataFrame:
     return a
 
 
+def load_j4(period: str, variant: str = "main") -> pd.DataFrame:
+    """Firm-years of the period with the variant's cost of equity, in basis points; winsorized within year."""
+    a = pd.read_csv(PANELS / "j4_icc.csv.gz", dtype={"Scode": str})
+    a = a[a.in_base & a[f"r_{variant}"].notna() & (a.period == period)].copy()
+    a["icc"] = 1e4 * a[f"r_{variant}"]
+    a = winsorize_within(a, ["icc", "size", "lev", "roa", "log_bm"], "year")
+    a["cell"] = a.year.astype(str) + "|" + a.industry
+    return a
+
+
 def inference(est: float, se: float, df: int) -> dict:
     t = est / se
     h = stats.t.ppf(0.975, df) * se
@@ -223,11 +244,89 @@ def j2_block(a: pd.DataFrame, robustness: bool) -> dict:
     return out
 
 
+def j4_result(a: pd.DataFrame) -> dict:
+    """pi_E = -beta: basis points lower cost of equity per SD of the score."""
+    r = pooled_result(pooled(a, "icc", "ns", J4_CONTROLS, a.cell, ["Scode"]))
+    pi = inference(-r["estimate"], r["se"], r["df"])
+    return {**r, **pi, "beta_bp_per_sd": r["estimate"], "firm_years": int(len(a)), "firms": int(a.Scode.nunique()),
+            "years": sorted(int(y) for y in a.year.unique()),
+            "ci95_contains_28bp": bool(pi["ci95"][0] <= 28 <= pi["ci95"][1])}
+
+
 def difference(a: dict, b: dict) -> dict:
     """Point-in-time minus placebo, independent samples; Welch-Satterthwaite degrees of freedom."""
     d, se = a["estimate"] - b["estimate"], float(np.hypot(a["se"], b["se"]))
     nu = se ** 4 / (a["se"] ** 4 / a["df"] + b["se"] ** 4 / b["df"])
     return inference(d, se, int(np.floor(nu)))
+
+
+def verdict(estimate: float, p_holm: float) -> str:
+    """Contract 27.7: every prediction is positive."""
+    if p_holm >= 0.05:
+        return "unresolved"
+    return "supported" if estimate > 0 else "unsupported"
+
+
+def final(rng: np.random.Generator | None = None) -> dict:
+    """Contract 27.7-27.8 for J1, J2 and J4. With rng the treatments are permuted within date or year first (the
+    --dry check of the code path); without, the real estimates."""
+
+    def perm(df: pd.DataFrame, by: str, cols: tuple[str, ...]) -> pd.DataFrame:
+        if rng is not None:
+            for c in cols:
+                df[c] = df.groupby(by)[c].transform(lambda s: rng.permutation(s.to_numpy()))
+        return df
+
+    out: dict = {"family": list(FAMILY),
+                 "not_done": {"J3": "fund holdings and fund information not obtained (contract 27.17)",
+                              "J2_half_yearly": "needs the fund holdings (contract 27.4, 27.17)"}}
+    j1, j2, j4 = {}, {}, {}
+    for period in ("pit", "prelaunch", "restated"):
+        j1[period] = j1_block(perm(load_j1(period), "date", ("dnotch", "dns")), robustness=period == "pit")
+        j2[period] = j2_block(perm(load_j2(period), "year", ("dnotch", "dns")), robustness=period == "pit")
+        j4[period] = {"main": j4_result(perm(load_j4(period), "year", ("ns",)))}
+    j4["pit"]["robustness"] = {v: j4_result(perm(load_j4("pit", v), "year", ("ns",))) for v in J4_VARIANTS}
+    for j in (j1, j2, j4):
+        j["difference_pit_minus_prelaunch"] = difference(j["pit"]["main"], j["prelaunch"]["main"])
+    primary = {"J1": j1["pit"]["main"], "J2": j2["pit"]["main"], "J4": j4["pit"]["main"]}
+    adj = holm({k: v["p"] for k, v in primary.items()})
+    out["primary"] = {k: {"estimate": v["estimate"], "ci95": v["ci95"], "p": v["p"], "p_holm": adj[k],
+                          "verdict": verdict(v["estimate"], adj[k])} for k, v in primary.items()}
+    out["J1"], out["J2"], out["J4"] = j1, j2, j4
+    return out
+
+
+def smoke_j4(reps: int = 200) -> dict:
+    """J4 with the score permuted within year (stream [27901, 2]): sizes, fixed-effect cells, clusters and standard
+    errors; then a size check with reps permutations (stream [27903, 4]) that keeps only the standard errors and
+    whether each rejects at 5%."""
+    rng = np.random.default_rng([SMOKE_SEED, 2])
+    out: dict = {"seed_stream": [SMOKE_SEED, 2], "panel_sha256": J4_PANEL_SHA}
+    for period in ("pit", "restated", "prelaunch"):
+        for variant in ("main", *J4_VARIANTS) if period == "pit" else ("main",):
+            a = load_j4(period, variant)
+            a["ns"] = a.groupby("year").ns.transform(lambda s: rng.permutation(s.to_numpy()))
+            p = pooled(a, "icc", "ns", J4_CONTROLS, a.cell, ["Scode"])
+            out[f"J4_{period}_{variant}"] = {
+                "firm_years": int(len(a)), "firms": int(a.Scode.nunique()),
+                "years": sorted(int(y) for y in a.year.unique()),
+                **{k: p[k] for k in ("obs", "fe_cells", "clusters", "se", "df")},
+                "mde_bp_alpha_0.05": mde(p["se"], p["df"], 0.05),
+                "mde_bp_alpha_0.0167": mde(p["se"], p["df"], 0.05 / 3)}
+    rng = np.random.default_rng([NULL_SEED, 4])
+    a = load_j4("pit")
+    t, se = [], []
+    for _ in range(reps):
+        a["x"] = a.groupby("year").ns.transform(lambda s: rng.permutation(s.to_numpy()))
+        p = pooled(a, "icc", "x", J4_CONTROLS, a.cell, ["Scode"])
+        t.append(p["coef"] / p["se"])
+        se.append(p["se"])
+    t, se = np.array(t), np.array(se)
+    out["size_check_pit"] = {"seed_stream": [NULL_SEED, 4], "reps": reps, "df": int(p["df"]),
+                             "rejection_rate_5pct": float(np.mean(np.abs(t) > stats.t.ppf(0.975, p["df"]))),
+                             "se_quantiles_5_50_95": [float(x) for x in np.quantile(se, [0.05, 0.5, 0.95])],
+                             "sd_of_t": float(t.std(ddof=1))}
+    return out
 
 
 def smoke() -> dict:
@@ -290,43 +389,48 @@ def null_check(reps: int) -> dict:
 
 
 def dry() -> dict:
-    """The --final code path for J1 and J2 on permuted treatments (stream [27901, 1]): which estimates exist and their
-    sample sizes; no coefficient, interval or p-value is kept."""
-    rng = np.random.default_rng([SMOKE_SEED, 1])
+    """The --final code path on permuted treatments (stream [27901, 3]): which estimates exist and their sample
+    sizes; no coefficient, interval, p-value or verdict is kept."""
+    drop = {"estimate", "se", "ci95", "p", "p_holm", "per_date", "mean", "beta_bp_per_sd", "ci95_contains_28bp",
+            "verdict"}
 
     def shape(node):
         if isinstance(node, dict):
-            return {k: shape(v) for k, v in node.items()
-                    if k not in ("estimate", "se", "ci95", "p", "per_date", "mean")}
+            return {k: shape(v) for k, v in node.items() if k not in drop}
         return node
 
-    out = {}
-    for period in ("pit", "prelaunch", "restated"):
-        e = load_j1(period)
-        for c in ("dnotch", "dns"):
-            e[c] = e.groupby("date")[c].transform(lambda s: rng.permutation(s.to_numpy()))
-        out[f"J1_{period}"] = shape(j1_block(e, robustness=period == "pit"))
-        a = load_j2(period)
-        for c in ("dnotch", "dns"):
-            a[c] = a.groupby("year")[c].transform(lambda s: rng.permutation(s.to_numpy()))
-        out[f"J2_{period}"] = shape(j2_block(a, robustness=period == "pit"))
-    return out
+    return shape(final(np.random.default_rng([SMOKE_SEED, 3])))
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--dry", action="store_true", help="the J1/J2 estimation path on permuted treatments, sizes only")
+    ap.add_argument("--smoke-j4", action="store_true")
+    ap.add_argument("--dry", action="store_true", help="the --final path on permuted treatments, sizes only")
+    ap.add_argument("--final", action="store_true", help="run once (contract 27.11)")
     ap.add_argument("--null", type=int, default=0, help="permutation size check with this many replications")
     args = ap.parse_args()
-    if args.dry:
-        res, name = dry(), "dry_j1_j2.json"
+    if args.final:
+        import hashlib
+        for f, want in (("events.csv.gz", "83d8a81cd89629f74a3f95dedcce15081b28abda8d25b87ced7b798e152ffe74"),
+                        ("annual_fund_ownership.csv.gz",
+                         "f62d517aba35f288fba355c870481dea2119d05518b291f1fe0079df050817b2"),
+                        ("j4_icc.csv.gz", J4_PANEL_SHA)):                     # contract 27.2 and 27.17
+            got = hashlib.sha256((PANELS / f).read_bytes()).hexdigest()
+            assert got == want, (f, got)
+        if (HERE / "estimates.json").exists():
+            raise SystemExit("estimates.json exists: --final runs once (contract 27.11)")
+        res, name = final(), "estimates.json"
+    elif args.dry:
+        res, name = dry(), "dry_final.json"
+    elif args.smoke_j4:
+        res, name = smoke_j4(), "smoke_j4.json"
     elif args.null:
         res, name = null_check(args.null), "null_check.json"
     elif args.smoke:
         res, name = smoke(), "smoke.json"
     else:
-        raise SystemExit("--final is added once the J3 and J4 panels are built (contract 27.11)")
+        raise SystemExit("choose --smoke, --smoke-j4, --null N, --dry or --final")
     text = json.dumps(res, ensure_ascii=False, indent=2)
     (HERE / name).write_bytes((text + "\n").encode("utf-8"))
     print(text)
