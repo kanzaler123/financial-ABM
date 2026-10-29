@@ -2071,3 +2071,14 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
       - m8 的规模组在每个观测日、有得分且有当月末市值的公司内划分；有得分但缺市值的 523 个公司-日不进入规模组。
       - m9 的规模组在非金融总体内划分（同上一项更正），m9 即更正后的 T1∪T2 ln 比值。
       - 模型一侧：m1–m8 为种子平均；m9 由种子合并的查处次数计算（同第 4 条）。模型年度块的查处以核查日（第 60p 日）所在的 252 日块计，8 个块分别含 4 或 5 个核查日。Ω_sim / S 取按种子重抽样（1,000 次，种子 28906）的种子合并矩的协方差，m1–m8 与“样本协方差 / S”一致，m9 也能计算。28906 在第 28.8 条的谱系核查范围内没有出现过。
+16. **K3a 的实施、检查与冻结（2026-10-29，K3a 运行之前；没有计算过任何模拟矩，也没有与数据矩比较）。**
+    - *脚本：* [estimate_k3.py](../reports/disclosure_enforcement_costs_20261029/estimate_k3.py)（参数、识别规则、三明治标准误、拟合检验、二次代理面与第 6 条 (a)–(c) 的通用函数、读取档案）、[build_spec_k3.py](../reports/disclosure_enforcement_costs_20261029/build_spec_k3.py)（规格与派生核对）、[check_pipeline_k3.py](../reports/disclosure_enforcement_costs_20261029/check_pipeline_k3.py)（只计数）、[selftest_k3.py](../reports/disclosure_enforcement_costs_20261029/selftest_k3.py)、[seed_lineage.py](../reports/disclosure_enforcement_costs_20261029/seed_lineage.py)。运行入口 finalize.py、_no_wmi.py 与 launch.ps1 取自阶段 I，内容不变。
+    - *第 5 条没有写明、运行之前定下的细节：*
+      - 参数在单位坐标 u ∈ [0, 1] 中处理（c 在对数尺度上），“范围宽度的一半”即 0.5，差分步长即 0.1。
+      - K3a 中 σ_m 固定为 0，不进入识别计算：测量误差对相关系数的影响约与 σ_m² 成正比，在 0 处的导数为 0，放进三明治公式会使矩阵奇异。σ_m 在第 6 条的估计中照常处理。
+      - θ₀ 的规格与 H3 的 B 只差每次查处的罚款（领域与基准政策中的 `fixed_fine` 都为 8.2516×10⁻⁶）；12 个差分点各自只改自己参数的字段（派生核对通过）。规模成本差 ψ 的差分点为乘数 (0.6^ψ, 1, 1.6^ψ)，ψ = 1 ± 0.2。
+      - 第 6 条 (e) 与 K1 对照时用 `yearly_detection_rate`（全部企业，8 个年度块）。
+    - *自检（selftest.json → selftest_k3.json，种子 28903）：* 统计替身中参数 3、4 的列相关为 0.975。识别规则只去掉了导数为 0 的参数 6（条件数 25.0；参数 3、4 的估计相关为 −0.92）；其余五个参数的 95% 区间都覆盖真值，**按第 7 条记“通过”**。附带结果：二次代理的交叉验证误差合格；拟合检验 p = 0.23；三组恢复检验中只有一组全部落在主区间内（替身中按“全部参数都在区间内”判定很严），照实记录，规则不改。
+    - *种子谱系（seed_lineage.json）：* 扫描 66,476 个 JSON 文件（本阶段目录与本阶段的规格除外），第 28.8 条与第 28.15 条的全部编号（含 28906、28907）都没有出现过。28907 用于拟合检验的蒙特卡罗。
+    - *开发检查（种子 38201–38202，θ₀ 与 κ_T 的两个差分点，6 个运行）：* WMI 脱离启动，6 个 worker，全部一次完成，错误日志为空；3500 日、36 个抽样日（第 1260 + 63j 日）、信号 36 × 200 且有限、规模组 20 / 60 / 120、规格字段与冻结一致、没有价格截断；13 个 σ_m 下 m1–m9 都能计算（k3a_check_v1_pipeline.json）。没有输出或查看任何矩的数值。
+    - *冻结身份：* `configs/disclosure_stage_k3a_v1.json`（purpose estimation，13 个点 × 种子 68001–68010 = 130 个运行）的 `experiment_id` = `b657f140e21dc6788e25b9632cbf1afdc5ffbee02db2a96ba9f2b3f5ebc86e00`，配置 SHA256（LF）= `a1f76caded588d13d8e5841d68b276b5b6ab4e243cfa30f629aeccaae914240f`；开发规格 `configs/disclosure_stage_k3a_check_v1.json` 为 `298b14150757d1337be933d6da3e09f598daaa4c9d751ade320e20533ef1a5e0`，SHA256 `55b29476fe3a26ed50555a67ce7ca09f9458ff13dc3ee1b80031959b3be531d7`。`check_clean_source.py` 对两个规格通过（HEAD `39448b0`，源码摘要 `fc0648eb…d47c`，与第 26.21 条相同）。
