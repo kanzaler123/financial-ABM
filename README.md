@@ -12,7 +12,12 @@
   An open-source agent-based market where investors, firms and a regulator learn and react, built to compare ESG policies that were never tried.
 </p>
 
-<p align="center"><a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a> · <a href="README.zh-CN.md"><b>中文</b></a></p>
+<p align="center">
+  <b>Paper:</b> <i>Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market</i>, Ellis Lin (2026).<br>
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 24 October 2026</a>
+</p>
+
+<p align="center"><a href="paper/main.pdf"><b>Read the paper</b></a> · <a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a> · <a href="README.zh-CN.md"><b>中文</b></a></p>
 
 <p align="center">
   <a href="https://kanzaler123.github.io/financial-ABM/"><img src=".github/assets/policy-desk-demo.gif" alt="The policy desk as transparency rises from 0.10 to 0.70: orange firms, which inflate their reports, thin out and disappear near the threshold, and the sphere turns blue, improving for real." width="88%"></a><br>
@@ -21,19 +26,22 @@
 
 ## What we found
 
-In pre-registered experiments, conditional on the model's assumptions. The first four points come from stage F (1,770 simulated markets), the last two from stages E.1 (450) and E.2 (540):
+**Greenwashing moves to where enforcement is weakest.** This is the main result of the [paper](paper/main.pdf), from pre-registered experiments and conditional on the model's assumptions. Sources: stage F (1,770 simulated markets), stages E.1 (450) and E.2 (540), and the joint robustness test (720). Each enforcement gap below is a place where greenwashing goes:
 
-- **Clearer sight beats heavier fines.** Raising transparency moves firms toward real improvement more than raising the fixed fine, at the doses tested.
-- **Transparency has a threshold, but how sharp it is depends on costs.** If every firm faces the same cost of greenwashing, firms stop greenwashing altogether above it; if the cost differs across firms, greenwashing falls step by step as transparency rises. Heavier fines have diminishing bite.
-- **Big firms greenwash more,** because a capped fine is negligible next to a large market cap, not because improving costs them more.
-- **With the original financing contract, nothing works without investors who care.** Without impact investors' taste for ESG, none of the policies has any effect, because a firm's financing rate then responds to its rating only through its share price. If lenders priced the rating directly (stage I), firms would still have a financing incentive; we have not run that case. In our sample, fund ownership and the implied cost of equity do respond to Huazheng ratings, less strongly than the model's investors do under policy (stage J).
-- **Targeted audits can backfire when firms know the rule.** At the same expected number of audits, both targeting rules tested lowered the equal-weighted true ESG level relative to random audits. Neither rule was optimised (stage E.1).
-- **Letting firms choose their assurance provider undoes most of the gain from assurance.** With strong provider liability and assurance mandatory for all firms, letting firms choose their provider removed most of the improvement that random assignment achieved (stage E.2).
+- **Large firms, under a capped fine (stage F).** With a fixed fine at the Securities Law cap for false disclosure (CNY 10 million per case, Art. 197(2)), used as a benchmark without a view on whether it applies to ESG reports, 66% of large firms' decisions are greenwashing, against 6% for small firms. The gap comes from the cap being negligible next to a large market cap, not from improvement costing large firms more.
+- **Cases already open, when each case is fined once (stage F).** Going from no fine to that fine cuts the share of greenwashing decisions from 91% to 22%, but eight times that fine still leaves 12.5%, because a firm adds new inflation to an undetected case and faces no new fine. Fining every false report separately cuts it to 0.8% at the 8× fine.
+- **Small firms and small jumps, when firms know the audit rule (stage E.1).** At the same expected number of audits, auditing in proportion to market value moves greenwashing from large to small firms and lowers the equal-weighted true ESG level by 0.19 SD relative to random audits. Auditing firms whose scores jump lowers it by 0.14 SD, because firms keep new inflation below the jump threshold. With the rule hidden, neither rule differs significantly from random audits. Neither rule was optimised.
+- **The laxest assurance provider, when firms choose (stage E.2).** With strong provider liability (16×) and assurance mandatory for all firms, letting firms choose their provider removes most of the gain from random assignment (−0.20 SD against assignment). Counted by decisions, 96.9% of assured firms' greenwashing decisions were made by clients of that year's lowest-quality provider.
 
-Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below.
+Two further results frame this:
+
+- **Transparency is harder to route around, but how much it adds depends on how long real improvement lasts (stage F and the joint robustness test).** At the doses tested, raising transparency from 0.1 to 0.6 raises the true level more than quadrupling the fixed fine; the doses are not matched on cost. This ordering held at both ends of natural decay (0 and 0.2 SD/year), under mean reversion of true levels, and in all four settings of the pre-registered joint test, but its size did not: +0.21 SD at 0.2 SD/year of decay, +0.035 SD without decay, and only +0.003 to +0.012 SD under mean reversion (two speeds used as sensitivity values, not estimates). With a common washing cost and lasting improvement, greenwashing stops above transparency ≈ 0.57; with costs that differ across firms, it falls step by step.
+- **With the original financing contract, nothing works without investors who care (stage F).** Without impact investors' taste for reported ESG, firms neither improve nor greenwash, and none of the policies has any effect, because a firm's financing rate then responds to its rating only through its share price. If lenders priced the rating directly (stage I), firms would still have a financing incentive; we have not run that case. In our sample, fund ownership and the implied cost of equity do respond to Huazheng ratings, less strongly than the model's investors do under policy (stage J).
+
+Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below, and in the [paper](paper/main.pdf).
 
 > [!NOTE]
-> **Research in progress.** The stage F confirmatory experiment is complete. Its conclusions are conditional on the model's assumptions, and policy-effect magnitudes depend on an uncalibrated natural decay, so they are reported as a range. Other items carry an evidence label.
+> **Research in progress.** This page and the paper's version of 24 October 2026 report the same experiments. Their conclusions are conditional on the model's assumptions, and the magnitudes depend on how long real improvement lasts, which these experiments did not calibrate, so they are reported as a range. Work to estimate it from a quarterly rating panel, and the later stages in the [roadmap](#roadmap), is under way and not yet reflected on this page or in the paper.
 
 ## Quick start
 
@@ -59,7 +67,7 @@ Developers: `python -m pip install -c requirements-lock.txt -e ".[all,dev]"` the
 - **A new domain is a JSON file.** The disclosure game, a true attribute versus a reported one, is not specific to ESG: copy [`configs/domains/esg.json`](configs/domains/esg.json) and model carbon claims, earnings management or AI-washing.
 - **A new policy experiment is a spec.** Copy the quickstart spec, add scenarios and paired comparisons, and the runner reports intervals.
 - **Start small.** [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup, the research rules and where to begin; issues labelled [`good first issue`](https://github.com/kanzaler123/financial-ABM/labels/good%20first%20issue) are scoped for newcomers.
-- **Cite it:** [CITATION.cff](CITATION.cff).
+- **Cite it:** for the results, the paper: Lin, E. (2026), *Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market*, [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081); for the code, [CITATION.cff](CITATION.cff).
 
 ## The question
 
@@ -184,6 +192,15 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] In-sample financing premium: debt cost 28.0 bp lower per SD of the Huazheng score (an association); matching it in the model makes ratings bunch at the top of the scale, so the main results keep the smaller incentive (stage I, 2026-10-28)
 - [x] Investor response to Huazheng ratings: fund ownership and the cost of equity respond (14.5 bp per SD, about half the calibration target), returns show no statistically significant response; the model's investors respond more strongly, taste not recalibrated (stage J, 2026-10-29)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
+- [x] Joint robustness test: mean reversion of true levels and one fine per false report together, pre-registered on new seeds (contract §24, 2026-10-23)
+- [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081); version of 24 October 2026 in [`paper/`](paper/main.pdf)
+- [ ] How long real ESG changes last: estimate it from a quarterly rating panel and re-run the key comparisons at the estimate (stage H)
+- [ ] The financing benefit of ESG ratings, estimated from Chinese listed firms' accounts (stage I)
+- [ ] How investors respond to rating changes (stage J)
+- [ ] Enforcement intensity, greenwashing proxies and cost parameters from data (stage K)
+- [ ] Global sensitivity analysis (stage L)
+- [ ] Pre-registered out-of-sample tests: the 2020 increase in Securities Law fines and the 2024 exchange sustainability-reporting guidelines (stage M)
+- [ ] Policies compared at equal cost (stage N) and behavioural robustness (stage O)
 
 ## Research standards
 
