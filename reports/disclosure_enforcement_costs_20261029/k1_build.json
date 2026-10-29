@@ -1,0 +1,369 @@
+{
+  "inputs": {
+    "violations": "e6331ae8eadd9f5ac45c6d15195c11f7659ff0dc3727df2a51adcee74416ecda",
+    "monthly_returns": "95964fc76c42ad04c9a90e359a5428512765db8d139790b74c1131b814316fa2",
+    "company_info": "e5569a715b21c1b055263cf15fe0a64aac5e2b6d0ed1546e05a33e902dac7d94"
+  },
+  "rows": {
+    "all": 27364,
+    "company_itself": 21318,
+    "company_itself_and_csrc_or_exchange": 10200,
+    "company_itself_csrc_or_exchange_disclosure_text": 8642,
+    "bare_监管局_not_securities": 4353
+  },
+  "keyword_hits_among_company_itself_csrc_or_exchange": {
+    "披露": 8519,
+    "虚假记载": 835,
+    "误导性陈述": 255,
+    "重大遗漏": 502,
+    "业绩预告": 1392,
+    "业绩快报": 429,
+    "定期报告": 950
+  },
+  "keyword_unique_hits": {
+    "披露": 5560,
+    "虚假记载": 41,
+    "误导性陈述": 4,
+    "重大遗漏": 3,
+    "业绩预告": 45,
+    "业绩快报": 1,
+    "定期报告": 10
+  },
+  "events": {
+    "rows_used": 8642,
+    "events": 8638,
+    "events_with_several_rows": 4
+  },
+  "tier_counts_by_year": {
+    "1998": {
+      "T1": 4
+    },
+    "1999": {
+      "T1": 3,
+      "T2": 2
+    },
+    "2000": {
+      "T1": 7,
+      "T2": 4
+    },
+    "2001": {
+      "T1": 4,
+      "T2": 32
+    },
+    "2002": {
+      "T1": 4,
+      "T2": 31
+    },
+    "2003": {
+      "T1": 11,
+      "T2": 28
+    },
+    "2004": {
+      "T1": 16,
+      "T2": 19,
+      "T3": 2
+    },
+    "2005": {
+      "T1": 8,
+      "T2": 39
+    },
+    "2006": {
+      "T1": 16,
+      "T2": 28
+    },
+    "2007": {
+      "T1": 26,
+      "T2": 13
+    },
+    "2008": {
+      "T1": 16,
+      "T2": 10
+    },
+    "2009": {
+      "T1": 8,
+      "T2": 8,
+      "T3": 2
+    },
+    "2010": {
+      "T1": 12,
+      "T2": 13
+    },
+    "2011": {
+      "T1": 15,
+      "T2": 17
+    },
+    "2012": {
+      "T1": 14,
+      "T2": 29
+    },
+    "2013": {
+      "T1": 9,
+      "T2": 33,
+      "T3": 5
+    },
+    "2014": {
+      "T1": 26,
+      "T2": 41,
+      "T3": 7
+    },
+    "2015": {
+      "T1": 20,
+      "T2": 35,
+      "T3": 21
+    },
+    "2016": {
+      "T1": 29,
+      "T2": 69,
+      "T3": 63
+    },
+    "2017": {
+      "T1": 24,
+      "T2": 69,
+      "T3": 88
+    },
+    "2018": {
+      "T1": 29,
+      "T2": 109,
+      "T3": 429
+    },
+    "2019": {
+      "T1": 32,
+      "T2": 131,
+      "T3": 431
+    },
+    "2020": {
+      "T1": 44,
+      "T2": 160,
+      "T3": 487
+    },
+    "2021": {
+      "T1": 38,
+      "T2": 151,
+      "T3": 566
+    },
+    "2022": {
+      "T1": 75,
+      "T2": 198,
+      "T3": 688,
+      "investigation": 3
+    },
+    "2023": {
+      "T1": 87,
+      "T2": 133,
+      "T3": 766,
+      "investigation": 7
+    },
+    "2024": {
+      "T1": 169,
+      "T2": 202,
+      "T3": 1276,
+      "investigation": 96
+    },
+    "2025": {
+      "T1": 183,
+      "T2": 148,
+      "T3": 467,
+      "investigation": 81
+    },
+    "2026": {
+      "T1": 77,
+      "T2": 78,
+      "T3": 263,
+      "investigation": 54
+    }
+  },
+  "tier_counts_total": {
+    "T1": 1006,
+    "T2": 1830,
+    "T3": 5561,
+    "investigation": 241
+  },
+  "t3_disp_types_top": {
+    "监管关注": 2252,
+    "出具警示函": 1656,
+    "出具警示函,其他": 515,
+    "责令改正": 420,
+    "监管措施": 319,
+    "责令改正,其他": 199,
+    "其他": 192,
+    "约见谈话": 2,
+    "监管关注,其他": 2,
+    "出具警示函|监管措施": 1,
+    "出具警示函|监管关注": 1,
+    "约见谈话,其他": 1,
+    "公开处罚,责令改正": 1
+  },
+  "esg_events": [
+    {
+      "Itemid": "5000826455651",
+      "Scode": "000826",
+      "date": "2024-09-30",
+      "tier": "T2",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5002114433551",
+      "Scode": "002114",
+      "date": "2018-09-12",
+      "tier": "T2",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5002486433151",
+      "Scode": "002486",
+      "date": "2018-08-03",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5300436457491",
+      "Scode": "300436",
+      "date": "2025-04-02",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600187433411",
+      "Scode": "600187",
+      "date": "2018-08-29",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600187434451",
+      "Scode": "600187",
+      "date": "2018-12-11",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600237441971",
+      "Scode": "600237",
+      "date": "2021-01-01",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600237442871",
+      "Scode": "600237",
+      "date": "2021-04-01",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600673459231",
+      "Scode": "600673",
+      "date": "2025-09-23",
+      "tier": "T3",
+      "fine_wan": 0.0
+    },
+    {
+      "Itemid": "5600868432461",
+      "Scode": "600868",
+      "date": "2018-05-26",
+      "tier": "T3",
+      "fine_wan": 0.0
+    }
+  ],
+  "population": {
+    "2008": {
+      "firms": 1538,
+      "non_financial": 1483,
+      "with_prev_dec_mcap": 1476
+    },
+    "2009": {
+      "firms": 1558,
+      "non_financial": 1503,
+      "with_prev_dec_mcap": 1552
+    },
+    "2010": {
+      "firms": 1830,
+      "non_financial": 1769,
+      "with_prev_dec_mcap": 1652
+    },
+    "2011": {
+      "firms": 2170,
+      "non_financial": 2104,
+      "with_prev_dec_mcap": 1999
+    },
+    "2012": {
+      "firms": 2396,
+      "non_financial": 2323,
+      "with_prev_dec_mcap": 2288
+    },
+    "2013": {
+      "firms": 2461,
+      "non_financial": 2387,
+      "with_prev_dec_mcap": 2445
+    },
+    "2014": {
+      "firms": 2510,
+      "non_financial": 2436,
+      "with_prev_dec_mcap": 2457
+    },
+    "2015": {
+      "firms": 2767,
+      "non_financial": 2689,
+      "with_prev_dec_mcap": 2579
+    },
+    "2016": {
+      "firms": 2858,
+      "non_financial": 2779,
+      "with_prev_dec_mcap": 2797
+    },
+    "2017": {
+      "firms": 3267,
+      "non_financial": 3175,
+      "with_prev_dec_mcap": 3018
+    },
+    "2018": {
+      "firms": 3519,
+      "non_financial": 3421,
+      "with_prev_dec_mcap": 3455
+    },
+    "2019": {
+      "firms": 3613,
+      "non_financial": 3505,
+      "with_prev_dec_mcap": 3546
+    },
+    "2020": {
+      "firms": 3852,
+      "non_financial": 3734,
+      "with_prev_dec_mcap": 3731
+    },
+    "2021": {
+      "firms": 4413,
+      "non_financial": 4288,
+      "with_prev_dec_mcap": 4120
+    },
+    "2022": {
+      "firms": 4741,
+      "non_financial": 4615,
+      "with_prev_dec_mcap": 4561
+    },
+    "2023": {
+      "firms": 5022,
+      "non_financial": 4895,
+      "with_prev_dec_mcap": 4860
+    },
+    "2024": {
+      "firms": 5116,
+      "non_financial": 4992,
+      "with_prev_dec_mcap": 5076
+    },
+    "2025": {
+      "firms": 5153,
+      "non_financial": 5031,
+      "with_prev_dec_mcap": 5100
+    }
+  },
+  "events_in_population": {
+    "in_population": 7397,
+    "in_population_non_financial": 7236,
+    "not_in_population": 1241
+  },
+  "outputs": {
+    "k1_events.csv.gz": "9e18ade4478d9a7036a9bba2e7056b0c600115157a9ef947da7219e8cb7670a4",
+    "k1_firm_year.csv.gz": "502873098264df5cea39d996778f1a817976ccf07f724cdbadd2be50a021d3a9"
+  }
+}

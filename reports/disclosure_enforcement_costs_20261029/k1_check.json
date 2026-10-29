@@ -1,0 +1,144 @@
+{
+  "panels": {
+    "k1_events.csv.gz": "9e18ade4478d9a7036a9bba2e7056b0c600115157a9ef947da7219e8cb7670a4",
+    "k1_firm_year.csv.gz": "502873098264df5cea39d996778f1a817976ccf07f724cdbadd2be50a021d3a9"
+  },
+  "seed": 28901,
+  "draws": 1000,
+  "main_years": [
+    2016,
+    2025
+  ],
+  "main": {
+    "pooled": {},
+    "by_size": {
+      "large": {},
+      "mid": {},
+      "small": {}
+    },
+    "log_ratio_small_over_large": {},
+    "firm_years_without_size_group": 1267
+  },
+  "by_year": {
+    "2008": {},
+    "2009": {},
+    "2010": {},
+    "2011": {},
+    "2012": {},
+    "2013": {},
+    "2014": {},
+    "2015": {},
+    "2016": {},
+    "2017": {},
+    "2018": {},
+    "2019": {},
+    "2020": {},
+    "2021": {},
+    "2022": {},
+    "2023": {},
+    "2024": {},
+    "2025": {}
+  },
+  "by_law_period": {
+    "2016-2019": {
+      "pooled": {},
+      "by_size": {
+        "large": {},
+        "mid": {},
+        "small": {}
+      },
+      "log_ratio_small_over_large": {},
+      "firm_years_without_size_group": 426
+    },
+    "2020-2025": {
+      "pooled": {},
+      "by_size": {
+        "large": {},
+        "mid": {},
+        "small": {}
+      },
+      "log_ratio_small_over_large": {},
+      "firm_years_without_size_group": 841
+    }
+  },
+  "pre_2016_descriptive": {
+    "pooled": {},
+    "by_size": {
+      "large": {},
+      "mid": {},
+      "small": {}
+    },
+    "log_ratio_small_over_large": {},
+    "firm_years_without_size_group": 771
+  },
+  "fines": {
+    "2016-2025": {
+      "t1_events": 691,
+      "t1_events_with_fine": 688,
+      "fine_share_of_market_value": {
+        "n": 683
+      }
+    },
+    "before_law": {
+      "t1_events": 117,
+      "t1_events_with_fine": 116,
+      "fine_share_of_market_value": {
+        "n": 116
+      }
+    },
+    "from_law": {
+      "t1_events": 574,
+      "t1_events_with_fine": 572,
+      "fine_share_of_market_value": {
+        "n": 567
+      }
+    }
+  },
+  "F_K": {
+    "events": 1524,
+    "t1_events": 574,
+    "rule": "use F_K unless within 10% of 10 million yuan (contract 28.2)"
+  },
+  "composition_highest_tier": {
+    "firm_years_with_event": 6456
+  },
+  "model_reference": {
+    "q_per_decision_period": 0.01,
+    "yearly_audit_probability": 0.04133291322192156
+  },
+  "robustness": {
+    "including_financials": {
+      "pooled": {},
+      "by_size": {
+        "large": {},
+        "mid": {},
+        "small": {}
+      },
+      "log_ratio_small_over_large": {},
+      "firm_years_without_size_group": 1290
+    },
+    "top_300_by_market_value": {
+      "pooled": {}
+    },
+    "without_keyword_定期报告": {
+      "pooled": {},
+      "by_size": {
+        "large": {},
+        "mid": {},
+        "small": {}
+      },
+      "log_ratio_small_over_large": {},
+      "firm_years_without_size_group": 1267
+    },
+    "t1_by_amount_only": {
+      "pooled": {},
+      "by_size": {
+        "large": {},
+        "mid": {},
+        "small": {}
+      },
+      "log_ratio_small_over_large": {},
+      "firm_years_without_size_group": 1267
+    }
+  }
+}
