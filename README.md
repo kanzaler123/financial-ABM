@@ -26,7 +26,7 @@ In pre-registered experiments, conditional on the model's assumptions. The first
 - **Clearer sight beats heavier fines.** Raising transparency moves firms toward real improvement more than raising the fixed fine, at the doses tested.
 - **Transparency has a threshold, but how sharp it is depends on costs.** If every firm faces the same cost of greenwashing, firms stop greenwashing altogether above it; if the cost differs across firms, greenwashing falls step by step as transparency rises. Heavier fines have diminishing bite.
 - **Big firms greenwash more,** because a capped fine is negligible next to a large market cap, not because improving costs them more.
-- **With the original financing contract, nothing works without investors who care.** Without impact investors' taste for ESG, none of the policies has any effect, because a firm's financing rate then responds to its rating only through its share price. If lenders priced the rating directly (stage I), firms would still have a financing incentive; we have not run that case.
+- **With the original financing contract, nothing works without investors who care.** Without impact investors' taste for ESG, none of the policies has any effect, because a firm's financing rate then responds to its rating only through its share price. If lenders priced the rating directly (stage I), firms would still have a financing incentive; we have not run that case. In our sample, fund ownership and the implied cost of equity do respond to Huazheng ratings, less strongly than the model's investors do under policy (stage J).
 - **Targeted audits can backfire when firms know the rule.** At the same expected number of audits, both targeting rules tested lowered the equal-weighted true ESG level relative to random audits. Neither rule was optimised (stage E.1).
 - **Letting firms choose their assurance provider undoes most of the gain from assurance.** With strong provider liability and assurance mandatory for all firms, letting firms choose their provider removed most of the improvement that random assignment achieved (stage E.2).
 
@@ -159,6 +159,16 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - **Under that channel the eight primary contrasts keep their sign, but where greenwashing goes barely changes.** All eight Holm-corrected primary questions are supported. 93.5% of baseline decisions are then greenwashing, against 21.4% without the channel. Small firms' share of all greenwashing decisions rises by 0.3 percentage points under value-targeted audits relative to the baseline, against 22.4 without the channel in the same run (uncorrected); the laxest provider's clients' share of assured firms' greenwashing decisions rises by 16.4 points when firms choose their provider rather than being assigned one, against 70.1.
 - **So the main results keep the smaller financing incentive.** Their signs do not depend on it; their magnitudes do, and should not be extrapolated to an incentive that matches the sample.
 
+## Investor response (stage J)
+
+> Pre-registered in the [research contract, §27](docs/disclosure_research_contract.md) (2026-10-28 to 10-29). The samples and specifications were fixed before the estimate, which was run once; three primary questions, Holm-corrected. A change found before the estimate (forecasts restated to the June share count) was written into the contract and approved first. Report (Chinese): [investor response](reports/disclosure_investor_response_20261028/README.md).
+
+- **Fund ownership and the cost of equity respond to Huazheng ratings; returns after an update show no statistically significant response.** Over the twelve updates from January 2023 to October 2025, a one-notch upgrade over the year goes with year-end fund ownership 0.12 percentage points of tradable shares higher [0.07, 0.17] (13,871 firm-years), and a one-SD higher score with an implied cost of equity (PEG, analyst forecasts) 14.5 basis points lower [3.0, 26.0] (6,160 firm-years of firms with at least two brokers). Returns in the two months after an update: +0.14 percentage points per notch [−0.17, +0.45]. These are associations, not causal effects.
+- **On ratings that were not yet public, neither responds distinguishably from zero.** On ratings Huazheng back-calculated for 2009–2017: fund ownership +0.01 [−0.09, +0.12], cost of equity +3.0 [−4.7, +10.7]. The differences between the two periods are not statistically significant (+0.11 [−0.01, +0.22] and +11.5 [−2.4, +25.4]).
+- **The fund-ownership result is fragile.** With the change in the normal score as treatment it is +0.07 [−0.02, +0.16] per SD, and without 2024, the year of Huazheng's method revision, +0.07 [−0.01, +0.14]. The cost-of-equity result holds in all three pre-registered variants (14.5 to 16.2 basis points).
+- **The model's investors respond more strongly.** In the baseline of the stage H re-run, a one-SD change in the signal moves the price by 2.33 percentage points within a quarter, three times the upper end of the data's interval (+0.12 [−0.52, +0.77] per SD), and the slope of dividend yield on the signal is 32.4 basis points per SD over the policy window, 2.2 times the cost-of-equity estimate (25.6 before any policy, inside its interval). The calibration target, 28 basis points per SD from Zhao et al. (2024), lies just above the in-sample interval. We did not recalibrate the investor taste.
+- **Not tested:** the holdings of ESG-themed funds, because fund-level holdings were not available to us.
+
 ## Roadmap
 
 - [x] Single-asset market foundation (Stage 1): frozen v15 formal acceptance 22/22
@@ -172,6 +182,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [ ] Rating disagreement
 - [x] Formal experiments: information vs enforcement, phase diagrams, size divide (fresh seeds, design frozen before running; stage F)
 - [x] In-sample financing premium: debt cost 28.0 bp lower per SD of the Huazheng score (an association); matching it in the model makes ratings bunch at the top of the scale, so the main results keep the smaller incentive (stage I, 2026-10-28)
+- [x] Investor response to Huazheng ratings: fund ownership and the cost of equity respond (14.5 bp per SD, about half the calibration target), returns show no statistically significant response; the model's investors respond more strongly, taste not recalibrated (stage J, 2026-10-29)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
 
 ## Research standards
