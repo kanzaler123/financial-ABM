@@ -1,0 +1,8 @@
+{
+  "reference": "reports/disclosure_persistence_estimation_20261026/estimation_v1.json",
+  "fields": 238,
+  "fields_identical": 238,
+  "max_relative_difference": 0.0,
+  "fields_beyond_1e-12": [],
+  "reproduced": true
+}

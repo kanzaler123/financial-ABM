@@ -27,15 +27,16 @@ from .runner import render_run, run_and_archive, run_identity, source_hashes, wr
 def freeze_spec(path: str | Path) -> dict:
     path = Path(path)
     spec = json.loads(path.read_text(encoding="utf-8"))
-    if spec["purpose"] not in ("development", "confirmatory"):
-        raise ValueError("purpose must be development or confirmatory")
+    # "estimation" runs simulated-moment grids (research contract section 25), not hypothesis tests.
+    if spec["purpose"] not in ("development", "estimation", "confirmatory"):
+        raise ValueError("purpose must be development, estimation or confirmatory")
     seeds = spec["seeds"]
     if len(seeds) < 2 or len(set(seeds)) != len(seeds) or any(type(seed) is not int or seed < 0 for seed in seeds):
         raise ValueError("at least two distinct nonnegative seeds are required")
     if spec["purpose"] == "confirmatory" and len(seeds) < 30:
         raise ValueError("confirmatory experiments require at least 30 seeds")
-    if spec.get("archive", "full") not in ("full", "compact"):
-        raise ValueError("archive must be 'full' or 'compact'")
+    if spec.get("archive", "full") not in ("full", "compact", "sampled"):
+        raise ValueError("archive must be 'full', 'compact' or 'sampled'")
     raw_domain = json.loads((path.parent / spec["domain"]).read_text(encoding="utf-8"))
     domain = DomainSpec.from_dict({key: value for key, value in raw_domain.items() if not key.startswith("_")})
     base_config = MarketConfig.from_dict(spec["market"])

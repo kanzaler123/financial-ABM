@@ -1,0 +1,63 @@
+{
+  "true_beta": -8.0,
+  "exact_vs_dummies": [
+    {
+      "fixed_effects": [
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 8.171241461241152e-14,
+      "max_rel_se_diff": 2.220446049250313e-16
+    },
+    {
+      "fixed_effects": [
+        "Scode",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 2.7355895326763857e-13,
+      "max_rel_se_diff": 2.7755575615628914e-15
+    },
+    {
+      "fixed_effects": [
+        "kind",
+        "market",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 6.146194664324867e-13,
+      "max_rel_se_diff": 3.774758283725532e-15
+    },
+    {
+      "fixed_effects": [
+        "kind",
+        "market",
+        "ind_year",
+        "grade"
+      ],
+      "max_abs_beta_diff": 1.4566126083082054e-13,
+      "max_rel_se_diff": 4.440892098500626e-15
+    },
+    {
+      "fixed_effects": [
+        "Scode",
+        "kind",
+        "market",
+        "ind_year"
+      ],
+      "max_abs_beta_diff": 8.064660050877137e-13,
+      "max_rel_se_diff": 9.281464485866309e-14
+    }
+  ],
+  "coverage": {
+    "ind_year": {
+      "replications": 1000,
+      "ci95_coverage": 0.945,
+      "mean_estimate": -7.996881123180521,
+      "sd_estimate": 1.0810199548630075
+    },
+    "Scode+ind_year": {
+      "replications": 1000,
+      "ci95_coverage": 0.962,
+      "mean_estimate": -8.062396605804954,
+      "sd_estimate": 1.1240894341676275
+    }
+  }
+}

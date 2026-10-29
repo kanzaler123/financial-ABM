@@ -120,8 +120,8 @@ def test_two_rate_factors_match_a_direct_sum():
 
 def test_firm_rates_are_rejected_outside_the_main_timing():
     rates = np.full(2, .05)
-    for changes in (dict(publish_audit_results=True), dict(reporting_interval_days=5),
-                    dict(real_persistence=np.ones(1261))):
+    # Reverting true values are allowed since contract section 25.9 (d).
+    for changes in (dict(publish_audit_results=True), dict(reporting_interval_days=5)):
         with pytest.raises(ValueError, match="firm-level audit probabilities"):
             financing_signal_factors(rates, audit_probability=np.full(2, .01), transparency=.1, **TIMING, **changes)
         with pytest.raises(ValueError, match="firm-level audit probabilities"):
@@ -274,8 +274,6 @@ def test_targeting_rejects_unsupported_settings():
     schedule = PolicySchedule.constant(WASHING).with_intervention(121, audit_allocation="value")
     with pytest.raises(ValueError, match="targeted audits"):
         DisclosureMarket(replace(SMALL, firm_policy="npv_discrete"), WASHING, schedule)
-    with pytest.raises(ValueError, match="targeted audits"):
-        DisclosureMarket(SMALL, replace(WASHING, natural_decay=0., natural_reversion=.3), schedule)
     with pytest.raises(ValueError, match="targeted audits"):
         DisclosureMarket(SMALL, WASHING, PolicySchedule.constant(WASHING).with_intervention(
             121, audit_allocation="jump", reporting_interval_days=20))

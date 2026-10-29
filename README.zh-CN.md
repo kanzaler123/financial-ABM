@@ -14,7 +14,7 @@
 
 <p align="center">
   <b>论文：</b><i>Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market</i>，Ellis Lin（2026）。<br>
-  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF（2026 年 10 月 24 日版）</a>
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF（2026 年 10 月 29 日版）</a>
 </p>
 
 <p align="center">
@@ -48,7 +48,7 @@
 数值、区间和限定条件见下文[阶段 F 发现](#阶段-f-发现)、[定向核查](#定向核查阶段-e1)与[鉴证机构](#鉴证机构阶段-e2)，以及[论文](paper/main.pdf)。
 
 > [!NOTE]
-> **研究进行中。** 本页与论文 2026 年 10 月 24 日版报告的是同一批实验。结论以模型假设为条件；量级取决于真实改善能持续多久，这些实验没有校准它，所以按区间报告。用季度评级面板估计它的工作，以及[路线图](#路线图)中后续的阶段，正在进行，尚未反映在本页和论文中。
+> **研究进行中。** 本页与论文报告的是主实验（阶段 F、E.1、E.2 与联合稳健性检验）。结论以模型假设为条件；量级取决于真实改善能持续多久，这些实验没有校准它，所以按区间报告。阶段 H 之后用季度评级面板估计了它，并在估计值下重跑了实验，这些结果尚未写进本页和论文正文。阶段 I（本样本的融资溢价）与阶段 J（投资者对评级的反应）见[英文 README](README.md#financing-premium-stage-i) 与论文附录（[`paper/`](paper/main.pdf) 中为 2026 年 10 月 29 日版；SSRN 上仍是 10 月 24 日版），本页尚未收录。后续阶段见[路线图](#路线图)。
 
 ## 快速开始
 
@@ -202,7 +202,7 @@ flowchart LR
 - [x] **正式实验**：信息型 vs 惩罚型、相图、规模鸿沟，按正式规模、用新种子、对比事先冻结（阶段 F）
 - [x] **浏览器政策沙盘**：[GitHub Pages](https://kanzaler123.github.io/financial-ABM/)，v0.2.0（2026-10-16）；改版为浅色政策作战台，默认英文（2026-10-18）
 - [x] **联合稳健性检验**：真实水平均值回归与每份虚假报告各罚一笔同时成立，用新种子预注册（契约第 24 节，2026-10-23）
-- [x] **工作论文**：*Greenwashing Moves to Where Enforcement Is Weakest*，见 [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081)；2026 年 10 月 24 日版在 [`paper/`](paper/main.pdf)
+- [x] **工作论文**：*Greenwashing Moves to Where Enforcement Is Weakest*，见 [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081)（2026 年 10 月 24 日版）；2026 年 10 月 29 日版在 [`paper/`](paper/main.pdf)
 - [ ] **真实 ESG 变化能持续多久**：用季度评级面板估计，并在估计值处重跑关键对比（阶段 H）
 - [ ] **ESG 评级的融资收益**：用中国上市公司财务数据估计（阶段 I）
 - [ ] **投资者对评级变动的反应**（阶段 J）

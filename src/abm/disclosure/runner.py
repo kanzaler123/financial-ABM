@@ -130,15 +130,41 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 # Day-by-firm float matrices dropped by a compact archive (about 27 of 28 MB at contract scale).
 # The manifest fingerprint still covers them; a deterministic replay regenerates them.
 COMPACT_OMITTED = ("true_goodness", "public_signal", "planning_signal", "market_prices", "market_intrinsic_values")
+# archive="sampled" adds these day-by-firm arrays on every SAMPLE_INTERVAL_DAYS-th day from
+# SAMPLE_START_DAY: one quarter (63 trading days) apart, like the rating panel's observation
+# dates (research contract section 25.3).
+SAMPLE_START_DAY = 1260
+SAMPLE_INTERVAL_DAYS = 63
+SAMPLED_ARRAYS = ("public_signal", "true_goodness", "reversion_anchor")
 
 
-def save_result(path: Path, result: DisclosureResult, *, omit: tuple[str, ...] = ()) -> None:
+def compact_omitted(result: DisclosureResult) -> tuple[str, ...]:
+    """COMPACT_OMITTED, plus the day-by-firm anchor history when reversion has permanent levels."""
+    return COMPACT_OMITTED + (("reversion_anchor",) if result.reversion_anchor is not None else ())
+
+
+def sampled_arrays(result: DisclosureResult) -> dict[str, np.ndarray]:
+    days = np.arange(SAMPLE_START_DAY, np.asarray(result.true_goodness).shape[0], SAMPLE_INTERVAL_DAYS)
+    arrays = {"sampled_days": days}
+    for name in SAMPLED_ARRAYS:
+        value = getattr(result, name)
+        if value is not None:
+            arrays["sampled_" + name] = np.asarray(value)[days]
+    return arrays
+
+
+def save_result(path: Path, result: DisclosureResult, *, omit: tuple[str, ...] = (),
+                extra: dict[str, np.ndarray] | None = None) -> None:
     arrays = {item.name: getattr(result, item.name) for item in fields(result)
               if item.name != "market" and getattr(result, item.name) is not None}
     arrays.update({"market_" + item.name: getattr(result.market, item.name) for item in fields(result.market)})
     if set(omit) - set(arrays):
         raise ValueError("cannot omit unknown result arrays")
     arrays = {name: value for name, value in arrays.items() if name not in omit}
+    if extra:
+        if set(extra) & set(arrays):
+            raise ValueError("extra arrays may not replace result arrays")
+        arrays.update(extra)
     temporary = path.with_suffix(".tmp.npz")
     np.savez_compressed(temporary, **arrays)
     temporary.replace(path)
@@ -297,9 +323,10 @@ def run_and_archive(
 
     ``archive="compact"`` leaves COMPACT_OMITTED out of result.npz; such archives cannot be loaded
     with load_result, but metrics, validation and the result fingerprint are complete.
+    ``archive="sampled"`` is compact plus the arrays of ``sampled_arrays``.
     """
-    if archive not in ("full", "compact"):
-        raise ValueError("archive must be 'full' or 'compact'")
+    if archive not in ("full", "compact", "sampled"):
+        raise ValueError("archive must be 'full', 'compact' or 'sampled'")
     if type(coverage_target) is not int or coverage_target < 0:
         raise ValueError("coverage_target must be a nonnegative integer")
     policy = policy or PolicySchedule.constant(domain)
@@ -387,12 +414,18 @@ def run_and_archive(
         validation = validate_market(result.market, config)
         if source_hashes() != identity["source_hashes"]:
             raise RuntimeError("source changed during the run")
-        save_result(destination / "result.npz", result, omit=COMPACT_OMITTED if archive == "compact" else ())
+        omitted = compact_omitted(result) if archive in ("compact", "sampled") else ()
+        extra = sampled_arrays(result) if archive == "sampled" else None
+        save_result(destination / "result.npz", result, omit=omitted, extra=extra)
         write_json(destination / "metrics.json", metrics)
         write_json(destination / "validation.json", validation)
-        if archive == "compact":
-            manifest["compact_archive"] = {"omitted_result_arrays": list(COMPACT_OMITTED),
+        if archive in ("compact", "sampled"):
+            manifest["compact_archive"] = {"omitted_result_arrays": list(omitted),
                                            "note": "The result fingerprint covers the full result; replay to regenerate."}
+        if archive == "sampled":
+            manifest["sampled_archive"] = {"start_day": SAMPLE_START_DAY, "interval_days": SAMPLE_INTERVAL_DAYS,
+                                           "days": len(extra["sampled_days"]),
+                                           "arrays": sorted(name for name in extra if name != "sampled_days")}
         manifest.update({
             "status": "complete",
             "elapsed_seconds": time.perf_counter() - started,

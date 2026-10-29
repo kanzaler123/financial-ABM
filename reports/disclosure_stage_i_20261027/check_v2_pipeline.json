@@ -1,0 +1,425 @@
+{
+  "experiment_id": "37e690d0be9efd09c05aea3030d1f545349b50c743916c0e8165d40607776a01",
+  "purpose": "development",
+  "financing_rating_slopes": {
+    "lambda_star": 0.002575,
+    "lambda0": 0.0,
+    "lambda_lo": 0.00212,
+    "lambda_hi": 0.00303,
+    "lambda_fe": 0.0009675
+  },
+  "completion_by_point": {
+    "lambda_star": {
+      "value": 0.002575,
+      "planned": 42,
+      "complete": 42,
+      "failed": 0,
+      "errors": {},
+      "rate_min": 0.024058614367280514,
+      "rate_max": 0.06071719859377709,
+      "price_cap_hits": 0,
+      "completion_rate": 1.0
+    },
+    "lambda0": {
+      "value": 0.0,
+      "planned": 16,
+      "complete": 16,
+      "failed": 0,
+      "errors": {},
+      "rate_min": 0.027478044884078068,
+      "rate_max": 0.056627469176377565,
+      "price_cap_hits": 0,
+      "completion_rate": 1.0
+    },
+    "lambda_lo": {
+      "value": 0.00212,
+      "planned": 16,
+      "complete": 16,
+      "failed": 0,
+      "errors": {},
+      "rate_min": 0.02463950863985034,
+      "rate_max": 0.05915281338057847,
+      "price_cap_hits": 0,
+      "completion_rate": 1.0
+    },
+    "lambda_hi": {
+      "value": 0.00303,
+      "planned": 16,
+      "complete": 16,
+      "failed": 0,
+      "errors": {},
+      "rate_min": 0.023490958824722824,
+      "rate_max": 0.062277346465144656,
+      "price_cap_hits": 0,
+      "completion_rate": 1.0
+    },
+    "lambda_fe": {
+      "value": 0.0009675,
+      "planned": 16,
+      "complete": 16,
+      "failed": 0,
+      "errors": {},
+      "rate_min": 0.02613312533181015,
+      "rate_max": 0.05663572657538153,
+      "price_cap_hits": 0,
+      "completion_rate": 1.0
+    }
+  },
+  "planned": 106,
+  "complete": 106,
+  "attempts_by_status": {
+    "complete": 106
+  },
+  "failing_core_validation": 0,
+  "core_validation_failures": [],
+  "metric_windows": [
+    [
+      1200,
+      3500
+    ]
+  ],
+  "policy_window_decisions_per_trial": [
+    7600
+  ],
+  "spread_in_frozen_configs_as_planned": true,
+  "day0_rate_matches_spread": {
+    "true": 106
+  },
+  "pre_switch_pairing": {
+    "lambda_star_main": {
+      "scenarios": 18,
+      "spread": 0.002575,
+      "pairs_compared": 34,
+      "pairs_differing_before_switch": 0
+    },
+    "lambda_star_perm": {
+      "scenarios": 3,
+      "spread": 0.002575,
+      "pairs_compared": 4,
+      "pairs_differing_before_switch": 0
+    },
+    "l0_main": {
+      "scenarios": 8,
+      "spread": 0.0,
+      "pairs_compared": 14,
+      "pairs_differing_before_switch": 0
+    },
+    "llo_main": {
+      "scenarios": 8,
+      "spread": 0.00212,
+      "pairs_compared": 14,
+      "pairs_differing_before_switch": 0
+    },
+    "lhi_main": {
+      "scenarios": 8,
+      "spread": 0.00303,
+      "pairs_compared": 14,
+      "pairs_differing_before_switch": 0
+    },
+    "lfe_main": {
+      "scenarios": 8,
+      "spread": 0.0009675,
+      "pairs_compared": 14,
+      "pairs_differing_before_switch": 0
+    }
+  },
+  "policy_activity": {
+    "B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "IF": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F_2x": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "F_8x": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "A2": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "V": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "V_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "J": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5518
+    },
+    "J_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5506
+    },
+    "VF": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "ALL_R1": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "ALL_F1": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "LRG_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 1520
+    },
+    "LRG_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 1520
+    },
+    "perm_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "perm_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "perm_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "l0_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "l0_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "l0_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "l0_J": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5574
+    },
+    "l0_J_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5551
+    },
+    "l0_V": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "l0_ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "l0_ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "llo_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "llo_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "llo_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "llo_J": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5542
+    },
+    "llo_J_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5533
+    },
+    "llo_V": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "llo_ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "llo_ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "lhi_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lhi_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lhi_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lhi_J": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5525
+    },
+    "lhi_J_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5515
+    },
+    "lhi_V": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "lhi_ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "lhi_ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "lfe_B": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lfe_I": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lfe_F": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 0
+    },
+    "lfe_J": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5605
+    },
+    "lfe_J_hidden": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 5596
+    },
+    "lfe_V": {
+      "has_audit_probability": 2,
+      "has_audit_flags": 2,
+      "has_assurer_assignment": 0,
+      "flags_in_window": 0
+    },
+    "lfe_ALL_R16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    },
+    "lfe_ALL_F16": {
+      "has_audit_probability": 0,
+      "has_audit_flags": 0,
+      "has_assurer_assignment": 2,
+      "assigned_firm_periods_in_window": 15200
+    }
+  },
+  "activity_where_expected": true
+}

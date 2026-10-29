@@ -1,0 +1,317 @@
+{
+  "spec": "configs/disclosure_stage_h3_v1.json",
+  "experiment_id_current_source": "4586225f1c0e60c40e490333d48270bcad71fed566558655fa03cd243ce10ac5",
+  "scenario": "B",
+  "seeds": [
+    53001,
+    53030
+  ],
+  "sample_days": [
+    1260,
+    3465,
+    36
+  ],
+  "all_fingerprints_match": true,
+  "runs": [
+    {
+      "seed": 53001,
+      "fingerprint": "e9540f6e4c6d76b00a68eb4ac115744cd08cb23511170092d986819265fcb852",
+      "archived_fingerprint": "e9540f6e4c6d76b00a68eb4ac115744cd08cb23511170092d986819265fcb852",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 194.9133145000087,
+      "arrays": "replay_h3_b/seed_53001.npz"
+    },
+    {
+      "seed": 53002,
+      "fingerprint": "b5002628e24f7f31d839dddeafdff81673c1a8f91acfc8f2c517abc68e7d8604",
+      "archived_fingerprint": "b5002628e24f7f31d839dddeafdff81673c1a8f91acfc8f2c517abc68e7d8604",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 198.18860439991113,
+      "arrays": "replay_h3_b/seed_53002.npz"
+    },
+    {
+      "seed": 53003,
+      "fingerprint": "705c5a2167f806bd5edd97bf2d417dce560658ad5dc42aa441f02900f3c00030",
+      "archived_fingerprint": "705c5a2167f806bd5edd97bf2d417dce560658ad5dc42aa441f02900f3c00030",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 191.96212030004244,
+      "arrays": "replay_h3_b/seed_53003.npz"
+    },
+    {
+      "seed": 53004,
+      "fingerprint": "843be9b70eb81c72df54d208e85aec3eb6b280bfe6b27b89aac5b9adf1c5e67a",
+      "archived_fingerprint": "843be9b70eb81c72df54d208e85aec3eb6b280bfe6b27b89aac5b9adf1c5e67a",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 197.50147539994214,
+      "arrays": "replay_h3_b/seed_53004.npz"
+    },
+    {
+      "seed": 53005,
+      "fingerprint": "b23080d843c96fb74fae72b23fa7833fb475edb3326b9657af5a062a2a3cb46a",
+      "archived_fingerprint": "b23080d843c96fb74fae72b23fa7833fb475edb3326b9657af5a062a2a3cb46a",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 193.27433909999672,
+      "arrays": "replay_h3_b/seed_53005.npz"
+    },
+    {
+      "seed": 53006,
+      "fingerprint": "d4e85a133b7337ba15032035c824c73c99bd74f5b10ec535aa03b0e3e5f96c04",
+      "archived_fingerprint": "d4e85a133b7337ba15032035c824c73c99bd74f5b10ec535aa03b0e3e5f96c04",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 192.4588386999676,
+      "arrays": "replay_h3_b/seed_53006.npz"
+    },
+    {
+      "seed": 53007,
+      "fingerprint": "9eb29beb79a85f92d63b0b5f585329d834e5e20f72beaba130632b19c5fd506f",
+      "archived_fingerprint": "9eb29beb79a85f92d63b0b5f585329d834e5e20f72beaba130632b19c5fd506f",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 193.11122189997695,
+      "arrays": "replay_h3_b/seed_53007.npz"
+    },
+    {
+      "seed": 53008,
+      "fingerprint": "a76958c842443a7711260cd057cd399a72d6d937a12a914f704f7b34fead8395",
+      "archived_fingerprint": "a76958c842443a7711260cd057cd399a72d6d937a12a914f704f7b34fead8395",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 191.84195090003777,
+      "arrays": "replay_h3_b/seed_53008.npz"
+    },
+    {
+      "seed": 53009,
+      "fingerprint": "dc1703fddf502e221d75ec691daab69bad60653616c929682de51fc2088d1134",
+      "archived_fingerprint": "dc1703fddf502e221d75ec691daab69bad60653616c929682de51fc2088d1134",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 196.69989499996882,
+      "arrays": "replay_h3_b/seed_53009.npz"
+    },
+    {
+      "seed": 53010,
+      "fingerprint": "e53f81f0ad229ca8fefd3762160116c7e9e8778bd061f3b7f6986ff4c3f446b9",
+      "archived_fingerprint": "e53f81f0ad229ca8fefd3762160116c7e9e8778bd061f3b7f6986ff4c3f446b9",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 196.25526780006476,
+      "arrays": "replay_h3_b/seed_53010.npz"
+    },
+    {
+      "seed": 53011,
+      "fingerprint": "fa32ba1a924d7cd101752d4aef518e5e83de21017e49e0be2bbe91c497af95f3",
+      "archived_fingerprint": "fa32ba1a924d7cd101752d4aef518e5e83de21017e49e0be2bbe91c497af95f3",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 195.55019219999667,
+      "arrays": "replay_h3_b/seed_53011.npz"
+    },
+    {
+      "seed": 53012,
+      "fingerprint": "ed45cdddf932880e1494d914148b95c986da345c704e6143d7ab1728f082a06b",
+      "archived_fingerprint": "ed45cdddf932880e1494d914148b95c986da345c704e6143d7ab1728f082a06b",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 195.03172930004075,
+      "arrays": "replay_h3_b/seed_53012.npz"
+    },
+    {
+      "seed": 53013,
+      "fingerprint": "8338494d14524be7a09420f48a317a15a3e90d92db5e8d12fc0b75ee89ed1233",
+      "archived_fingerprint": "8338494d14524be7a09420f48a317a15a3e90d92db5e8d12fc0b75ee89ed1233",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 196.07913680002093,
+      "arrays": "replay_h3_b/seed_53013.npz"
+    },
+    {
+      "seed": 53014,
+      "fingerprint": "6f36b83b1817e14b60d8b28f2ae897661be649caa354e19ebfbb1b9e0f6e93cf",
+      "archived_fingerprint": "6f36b83b1817e14b60d8b28f2ae897661be649caa354e19ebfbb1b9e0f6e93cf",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 196.61813039996196,
+      "arrays": "replay_h3_b/seed_53014.npz"
+    },
+    {
+      "seed": 53015,
+      "fingerprint": "f58183627e7b2a629ef1ce006e251ef289390187fab62f08228077149cefc35c",
+      "archived_fingerprint": "f58183627e7b2a629ef1ce006e251ef289390187fab62f08228077149cefc35c",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 193.17784030002076,
+      "arrays": "replay_h3_b/seed_53015.npz"
+    },
+    {
+      "seed": 53016,
+      "fingerprint": "5c3278c96d1be4c3489327a893788e7ab57c17ff60b3a5774804623faf1a5a4a",
+      "archived_fingerprint": "5c3278c96d1be4c3489327a893788e7ab57c17ff60b3a5774804623faf1a5a4a",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 189.11649479996413,
+      "arrays": "replay_h3_b/seed_53016.npz"
+    },
+    {
+      "seed": 53017,
+      "fingerprint": "dbc2b9ffa5e0cbc43e7c4a1af7e6b6c932cf11daa1b47d27e88b036bc8a03053",
+      "archived_fingerprint": "dbc2b9ffa5e0cbc43e7c4a1af7e6b6c932cf11daa1b47d27e88b036bc8a03053",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 185.49890270002652,
+      "arrays": "replay_h3_b/seed_53017.npz"
+    },
+    {
+      "seed": 53018,
+      "fingerprint": "d492f6167c5e907bc311474f9bc51680b6ebdb838d36bde6a51ab739dae3102f",
+      "archived_fingerprint": "d492f6167c5e907bc311474f9bc51680b6ebdb838d36bde6a51ab739dae3102f",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 184.2776976999594,
+      "arrays": "replay_h3_b/seed_53018.npz"
+    },
+    {
+      "seed": 53019,
+      "fingerprint": "5e6d2a083ca6fa70b137f027b1318a654ad237fc03254a3105ae34a8d6ae2b94",
+      "archived_fingerprint": "5e6d2a083ca6fa70b137f027b1318a654ad237fc03254a3105ae34a8d6ae2b94",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 184.74962859996594,
+      "arrays": "replay_h3_b/seed_53019.npz"
+    },
+    {
+      "seed": 53020,
+      "fingerprint": "6d9922deffd3ddfa665b0a8a94d48f295c9f35974644d08737d899abdc07185c",
+      "archived_fingerprint": "6d9922deffd3ddfa665b0a8a94d48f295c9f35974644d08737d899abdc07185c",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 185.32251280010678,
+      "arrays": "replay_h3_b/seed_53020.npz"
+    },
+    {
+      "seed": 53021,
+      "fingerprint": "c05185d46002257d2bf1f93fea038338732505eee1c2e2ff381f75a609fa3078",
+      "archived_fingerprint": "c05185d46002257d2bf1f93fea038338732505eee1c2e2ff381f75a609fa3078",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 184.15699439996388,
+      "arrays": "replay_h3_b/seed_53021.npz"
+    },
+    {
+      "seed": 53022,
+      "fingerprint": "ce956ed9e2277442b1f5a3ae1da462c55eb359b3c641defa214b57e4e0074d2b",
+      "archived_fingerprint": "ce956ed9e2277442b1f5a3ae1da462c55eb359b3c641defa214b57e4e0074d2b",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 184.50409680011217,
+      "arrays": "replay_h3_b/seed_53022.npz"
+    },
+    {
+      "seed": 53023,
+      "fingerprint": "3941a7877dd81977620616123ff8df297ef56b32adeb9a9883339237b69d53f9",
+      "archived_fingerprint": "3941a7877dd81977620616123ff8df297ef56b32adeb9a9883339237b69d53f9",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 184.52661450009327,
+      "arrays": "replay_h3_b/seed_53023.npz"
+    },
+    {
+      "seed": 53024,
+      "fingerprint": "99283539251784ff54815c200668f771fed05a8f1ade7d5399383b612d280a1b",
+      "archived_fingerprint": "99283539251784ff54815c200668f771fed05a8f1ade7d5399383b612d280a1b",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 183.63850429991726,
+      "arrays": "replay_h3_b/seed_53024.npz"
+    },
+    {
+      "seed": 53025,
+      "fingerprint": "c6d9b7ccf8ce61143f93f94fc82164783bab3561ef74e154dd569df4ad11962d",
+      "archived_fingerprint": "c6d9b7ccf8ce61143f93f94fc82164783bab3561ef74e154dd569df4ad11962d",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 183.32081870001275,
+      "arrays": "replay_h3_b/seed_53025.npz"
+    },
+    {
+      "seed": 53026,
+      "fingerprint": "0caaa164c6f47fa81ba4ee182008cbc92bd09cca0b04313d25dace4bedabea75",
+      "archived_fingerprint": "0caaa164c6f47fa81ba4ee182008cbc92bd09cca0b04313d25dace4bedabea75",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 183.00048229994718,
+      "arrays": "replay_h3_b/seed_53026.npz"
+    },
+    {
+      "seed": 53027,
+      "fingerprint": "ff70b10f8f1a8eb9ede7dbf6573541c4ce85e4eecf98309d7f0e084913b5c3f2",
+      "archived_fingerprint": "ff70b10f8f1a8eb9ede7dbf6573541c4ce85e4eecf98309d7f0e084913b5c3f2",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 182.84639980003703,
+      "arrays": "replay_h3_b/seed_53027.npz"
+    },
+    {
+      "seed": 53028,
+      "fingerprint": "8afcd400b46a749a938738162a5bf2a608c50c85cf0eceef9884b19277cc1589",
+      "archived_fingerprint": "8afcd400b46a749a938738162a5bf2a608c50c85cf0eceef9884b19277cc1589",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 182.18772269994952,
+      "arrays": "replay_h3_b/seed_53028.npz"
+    },
+    {
+      "seed": 53029,
+      "fingerprint": "7bdb730927bcb14910940d90e2faacc64d72d3349487e3ee5ada8ca1bf654e71",
+      "archived_fingerprint": "7bdb730927bcb14910940d90e2faacc64d72d3349487e3ee5ada8ca1bf654e71",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 182.49174189998303,
+      "arrays": "replay_h3_b/seed_53029.npz"
+    },
+    {
+      "seed": 53030,
+      "fingerprint": "c098422f44bdcda08b2706ddf4e656c30d16a1ef90333d0ac267a0ce72a13e9d",
+      "archived_fingerprint": "c098422f44bdcda08b2706ddf4e656c30d16a1ef90333d0ac267a0ce72a13e9d",
+      "fingerprint_matches": true,
+      "sampled_days": 36,
+      "price_cap_hits": 0,
+      "seconds": 182.336574499961,
+      "arrays": "replay_h3_b/seed_53030.npz"
+    }
+  ]
+}
