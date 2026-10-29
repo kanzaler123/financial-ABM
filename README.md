@@ -14,7 +14,7 @@
 
 <p align="center">
   <b>Paper:</b> <i>Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market</i>, Ellis Lin (2026).<br>
-  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 24 October 2026</a>
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 29 October 2026</a>
 </p>
 
 <p align="center"><a href="paper/main.pdf"><b>Read the paper</b></a> · <a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a> · <a href="README.zh-CN.md"><b>中文</b></a></p>
@@ -41,7 +41,7 @@ Two further results frame this:
 Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below, and in the [paper](paper/main.pdf).
 
 > [!NOTE]
-> **Research in progress.** This page and the paper's version of 24 October 2026 report the same experiments. Their conclusions are conditional on the model's assumptions, and the magnitudes depend on how long real improvement lasts, which these experiments did not calibrate, so they are reported as a range. Work to estimate it from a quarterly rating panel, and the later stages in the [roadmap](#roadmap), is under way and not yet reflected on this page or in the paper.
+> **Research in progress.** This page and the paper report the main experiments (stages F, E.1, E.2 and the joint robustness test). Their conclusions are conditional on the model's assumptions, and the magnitudes depend on how long real improvement lasts, which these experiments did not calibrate, so they are reported as a range. Stage H has since estimated it from a quarterly rating panel and re-run the experiments at the estimate; those results are not yet on this page or in the paper's main text. Stages I and J, an in-sample financing premium and investors' response to ratings, are in the sections below and in the paper's appendix (version of 29 October 2026 in [`paper/`](paper/main.pdf); the version on SSRN is that of 24 October 2026). Later stages are in the [roadmap](#roadmap).
 
 ## Quick start
 
@@ -193,7 +193,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] Investor response to Huazheng ratings: fund ownership and the cost of equity respond (14.5 bp per SD, about half the calibration target), returns show no statistically significant response; the model's investors respond more strongly, taste not recalibrated (stage J, 2026-10-29)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
 - [x] Joint robustness test: mean reversion of true levels and one fine per false report together, pre-registered on new seeds (contract §24, 2026-10-23)
-- [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081); version of 24 October 2026 in [`paper/`](paper/main.pdf)
+- [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081) (version of 24 October 2026); version of 29 October 2026 in [`paper/`](paper/main.pdf)
 - [ ] How long real ESG changes last: estimate it from a quarterly rating panel and re-run the key comparisons at the estimate (stage H)
 - [ ] The financing benefit of ESG ratings, estimated from Chinese listed firms' accounts (stage I)
 - [ ] How investors respond to rating changes (stage J)
