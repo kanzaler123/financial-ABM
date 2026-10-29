@@ -141,3 +141,5 @@ data/processed/stage_j_*/
 reports/disclosure_investor_response_20261028/replay_h3_b/
 reports/disclosure_investor_response_20261028/*.log
 reports/disclosure_investor_response_20261028/*.err
+# Stage K: panels built from licensed data (contract 28)
+data/processed/stage_k_*/
