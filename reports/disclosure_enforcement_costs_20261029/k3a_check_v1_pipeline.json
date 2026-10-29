@@ -1,0 +1,30 @@
+{
+  "archive": "k3a_check_v1",
+  "runs": {
+    "theta0/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 60
+    },
+    "theta0/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 62
+    },
+    "fd_kappa_T_up/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 61
+    },
+    "fd_kappa_T_up/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 64
+    },
+    "fd_kappa_T_down/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 51
+    },
+    "fd_kappa_T_down/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 57
+    }
+  },
+  "problems": []
+}
