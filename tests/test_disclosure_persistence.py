@@ -1,6 +1,7 @@
 """Stage H (research contract section 25): permanent-plus-transitory dynamics and the sampled archive."""
 
 import dataclasses
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -11,6 +12,7 @@ from abm.disclosure.domain import DomainSpec, load_domain
 from abm.disclosure.game import IMPROVE, AttributeState, DisclosureMarket, expected_natural_path, real_persistence
 
 MAIN = "configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json"
+pytestmark = pytest.mark.skipif(not Path(MAIN).exists(), reason="the CSI 300 domain config holds licensed Huazheng scores and is not in the repository (.gitignore)")
 
 
 def _domain(**changes):

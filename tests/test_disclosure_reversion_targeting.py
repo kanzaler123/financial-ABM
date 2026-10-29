@@ -3,6 +3,7 @@ financing factors that discount reverting real changes, NPV decisions against br
 jump rule's room with the expected reversion drift, and exact equality when nothing reverts."""
 
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -18,6 +19,7 @@ from abm.disclosure.policy import PolicyRegime, PolicySchedule
 
 ESG = load_domain("configs/domains/esg.json")
 MAIN = "configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json"
+NEEDS_MAIN = pytest.mark.skipif(not Path(MAIN).exists(), reason="the CSI 300 domain config holds licensed Huazheng scores and is not in the repository (.gitignore)")
 # The stage H point estimate (contract section 25.16).
 Q = dict(natural_decay=0.0, natural_reversion=0.505, reversion_permanent_share=0.423)
 PERSISTENCE = real_persistence(replace(ESG, **{**Q, "reversion_permanent_share": 0.0}), 200, 1260)
@@ -188,6 +190,7 @@ def _jump_market(domain):
     return market, schedule.intervention
 
 
+@NEEDS_MAIN
 @pytest.mark.parametrize("dynamics", ["decay", "reversion", "q", "q_permanent"])
 def test_jump_room_adds_the_expected_reversion_drift(dynamics):
     base = load_domain(MAIN)
@@ -215,11 +218,13 @@ def test_jump_room_adds_the_expected_reversion_drift(dynamics):
 
 # -- the market with reverting true values -----------------------------------------------
 
-WASHING = replace(load_domain(MAIN), baseline_penalty=0.0, baseline_audit_probability=0.1, **Q)
+WASHING = (replace(load_domain(MAIN), baseline_penalty=0.0, baseline_audit_probability=0.1, **Q)
+           if Path(MAIN).exists() else None)
 ASSURED = dict(assurance_scope="all", assurer_effort_cost=1e-4, assurer_liability=2e-3, assurance_fee=1e-6,
                assurer_selection="firm")
 
 
+@NEEDS_MAIN
 @pytest.mark.parametrize("changes", [dict(audit_allocation="value"), JUMP, ASSURED])
 def test_markets_with_reversion_plan_with_its_persistence(monkeypatch, changes):
     import abm.disclosure.game as game
