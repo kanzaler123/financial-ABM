@@ -1,0 +1,526 @@
+{
+  "archive": "k3a_v1",
+  "runs": {
+    "theta0/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 64
+    },
+    "theta0/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 74
+    },
+    "theta0/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 50
+    },
+    "theta0/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "theta0/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "theta0/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 56
+    },
+    "theta0/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "theta0/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "theta0/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "theta0/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 62
+    },
+    "fd_kappa_T_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 67
+    },
+    "fd_kappa_T_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "fd_kappa_T_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 51
+    },
+    "fd_kappa_T_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "fd_kappa_T_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "fd_kappa_T_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 58
+    },
+    "fd_kappa_T_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "fd_kappa_T_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "fd_kappa_T_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 80
+    },
+    "fd_kappa_T_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 64
+    },
+    "fd_kappa_T_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 62
+    },
+    "fd_kappa_T_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 71
+    },
+    "fd_kappa_T_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 46
+    },
+    "fd_kappa_T_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_kappa_T_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 74
+    },
+    "fd_kappa_T_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 56
+    },
+    "fd_kappa_T_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_kappa_T_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "fd_kappa_T_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "fd_kappa_T_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 60
+    },
+    "fd_s_P_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 66
+    },
+    "fd_s_P_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 71
+    },
+    "fd_s_P_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 50
+    },
+    "fd_s_P_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_s_P_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_s_P_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 56
+    },
+    "fd_s_P_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "fd_s_P_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "fd_s_P_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 74
+    },
+    "fd_s_P_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 64
+    },
+    "fd_s_P_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 66
+    },
+    "fd_s_P_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "fd_s_P_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 50
+    },
+    "fd_s_P_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "fd_s_P_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 80
+    },
+    "fd_s_P_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 58
+    },
+    "fd_s_P_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "fd_s_P_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "fd_s_P_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "fd_s_P_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 62
+    },
+    "fd_c_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 57
+    },
+    "fd_c_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 65
+    },
+    "fd_c_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 43
+    },
+    "fd_c_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_c_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 72
+    },
+    "fd_c_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 53
+    },
+    "fd_c_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "fd_c_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_c_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 70
+    },
+    "fd_c_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 59
+    },
+    "fd_c_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 66
+    },
+    "fd_c_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "fd_c_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 59
+    },
+    "fd_c_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "fd_c_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "fd_c_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 61
+    },
+    "fd_c_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 90
+    },
+    "fd_c_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "fd_c_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_c_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 68
+    },
+    "fd_eta_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 65
+    },
+    "fd_eta_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "fd_eta_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 58
+    },
+    "fd_eta_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "fd_eta_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_eta_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 62
+    },
+    "fd_eta_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "fd_eta_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "fd_eta_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "fd_eta_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 62
+    },
+    "fd_eta_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 56
+    },
+    "fd_eta_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 68
+    },
+    "fd_eta_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 47
+    },
+    "fd_eta_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "fd_eta_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "fd_eta_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 51
+    },
+    "fd_eta_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_eta_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "fd_eta_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "fd_eta_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 65
+    },
+    "fd_psi_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 63
+    },
+    "fd_psi_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 71
+    },
+    "fd_psi_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 48
+    },
+    "fd_psi_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_psi_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 74
+    },
+    "fd_psi_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 55
+    },
+    "fd_psi_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "fd_psi_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "fd_psi_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "fd_psi_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 61
+    },
+    "fd_psi_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 65
+    },
+    "fd_psi_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "fd_psi_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 50
+    },
+    "fd_psi_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "fd_psi_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "fd_psi_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 59
+    },
+    "fd_psi_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "fd_psi_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "fd_psi_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "fd_psi_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 63
+    },
+    "fd_w_up/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 54
+    },
+    "fd_w_up/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 63
+    },
+    "fd_w_up/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 41
+    },
+    "fd_w_up/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "fd_w_up/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 71
+    },
+    "fd_w_up/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 51
+    },
+    "fd_w_up/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "fd_w_up/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "fd_w_up/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 70
+    },
+    "fd_w_up/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 58
+    },
+    "fd_w_down/68001": {
+      "price_cap_hits": 0,
+      "detections_total": 67
+    },
+    "fd_w_down/68002": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_w_down/68003": {
+      "price_cap_hits": 0,
+      "detections_total": 67
+    },
+    "fd_w_down/68004": {
+      "price_cap_hits": 0,
+      "detections_total": 97
+    },
+    "fd_w_down/68005": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "fd_w_down/68006": {
+      "price_cap_hits": 0,
+      "detections_total": 64
+    },
+    "fd_w_down/68007": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "fd_w_down/68008": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "fd_w_down/68009": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "fd_w_down/68010": {
+      "price_cap_hits": 4,
+      "detections_total": 74
+    }
+  },
+  "problems": []
+}

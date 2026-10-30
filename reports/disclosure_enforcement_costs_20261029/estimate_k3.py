@@ -314,12 +314,96 @@ def identify(archive: Path) -> dict:
             "omega_sim_over_30_diag": (cov10 * len(seeds) / FINAL_SEEDS).diagonal().tolist(), **rule}
 
 
+# -- 28.6 (a)-(e) on the archives ----------------------------------------------------------------------------
+
+def design_moments(archive: Path, spec_path: Path) -> tuple[list[str], np.ndarray, np.ndarray]:
+    """Scenario names, their unit coordinates over the identified parameters, and moments (points, sigmas, 9)."""
+    mk = _load("moments_k3")
+    names = identified_names()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    _, _, _, cuts = data_target()
+    rows, U, M = [], [], []
+    for sc in spec["scenarios"]:
+        theta = theta_from_domain(sc["domain"])
+        U.append([next(p for p in PARAMS if p.name == n).to_unit(theta[n]) for n in names])
+        M.append([mk.pooled_model_moments(point_stats(archive, sc["name"], spec["seeds"], float(sig), mk, cuts))
+                  for sig in SIGMAS])
+        rows.append(sc["name"])
+    return rows, np.array(U), np.array(M)
+
+
+def identified_names() -> list[str]:
+    return json.loads((HERE / "identification_k3a.json").read_text(encoding="utf-8"))["identified"]
+
+
+def theta_from_domain(d: dict) -> dict[str, float]:
+    psi = math.log(d["size_cost_multipliers"][2]) / math.log(SIZE_MULTIPLIERS_0[2])
+    return {"kappa_T": d["natural_reversion"], "s_P": d["reversion_permanent_share"], "c": d["real_cost_scale"],
+            "eta": d["cost_level_elasticity"], "psi": psi, "w": d["wash_cost_ratio"]}
+
+
+def to_theta(u: np.ndarray, names: list[str]) -> dict[str, float]:
+    theta = {p.name: p.theta0 for p in PARAMS}
+    for n, x in zip(names, u):
+        theta[n] = next(p for p in PARAMS if p.name == n).from_unit(float(x))
+    return theta
+
+
+def stage1(archive: Path, spec_path: Path) -> dict:
+    m_data, _, W, _ = data_target()
+    rows, U, M = design_moments(archive, spec_path)
+    i, s, J = stage1_pick(U, M, m_data, W)
+    names = identified_names()
+    return {"contract": "28.6 (a)", "parameters": names, "points": len(rows), "best_point": rows[i],
+            "u_best": U[i].tolist(), "theta_best": to_theta(U[i], names), "sigma_m_best": float(SIGMAS[s]), "J_best": J,
+            "J_quantiles_0_10_50": np.quantile(criterion(m_data, W, M).min(1), [0, 0.1, 0.5]).tolist()}
+
+
+def stage2(archive: Path, spec_path: Path, centre: np.ndarray) -> dict:
+    m_data, _, W, _ = data_target()
+    rows, U, M = design_moments(archive, spec_path)
+    names = identified_names()
+    lo, hi = local_box(centre)
+    surface = Surface(U, M, SIGMAS)
+    J = criterion(m_data, W, M)
+    best = np.argsort(J.min(1))[:10]
+    starts = np.column_stack([U[best], SIGMAS[J[best].argmin(1)]])
+    u, sigma, J_hat = minimise_surface(surface, starts, lo, hi, m_data, W)
+    s_near = int(np.argmin(np.abs(SIGMAS - sigma)))
+    cv = Quadratic.cv_rmse(U, M[:, s_near])
+    return {"contract": "28.6 (b)", "parameters": names, "points": len(rows), "centre": centre.tolist(),
+            "box_lo": lo.tolist(), "box_hi": hi.tolist(), "u_hat": u.tolist(), "theta_hat": to_theta(u, names),
+            "sigma_m_hat": sigma, "J_hat": J_hat, "edge": on_box_edge(u, lo, hi),
+            "sigma_m_on_range_edge": bool(sigma <= SIGMAS[0] + 1e-4 or sigma >= SIGMAS[-1] - 1e-4),
+            "cv_rmse_sigma_grid_value": float(SIGMAS[s_near]), "cv_rmse": cv.tolist(),
+            "best_design_point": rows[int(best[0])], "best_design_J": float(J[best[0]].min())}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("identify")
     p.add_argument("archive", type=Path)
+    p = sub.add_parser("stage1")
+    p.add_argument("archive", type=Path)
+    p.add_argument("spec", type=Path)
+    p = sub.add_parser("stage2")
+    p.add_argument("archive", type=Path)
+    p.add_argument("spec", type=Path)
+    p.add_argument("--centre-from", type=Path, required=True, help="stage1_k3.json (u_best) or stage2_k3.json (u_hat)")
     args = ap.parse_args()
+    if args.cmd == "stage1":
+        out = stage1(args.archive, args.spec)
+        (HERE / "stage1_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps(out, indent=1))
+        return
+    if args.cmd == "stage2":
+        prev = json.loads(args.centre_from.read_text(encoding="utf-8"))
+        out = stage2(args.archive, args.spec, np.array(prev.get("u_hat", prev.get("u_best"))))
+        name = "stage2_k3.json" if args.centre_from.name == "stage1_k3.json" else "stage2r_k3.json"
+        (HERE / name).write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps({k: out[k] for k in ("theta_hat", "sigma_m_hat", "J_hat", "edge", "best_design_J")}, indent=1))
+        return
     if args.cmd == "identify":
         out = identify(args.archive)
         (HERE / "identification_k3a.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
