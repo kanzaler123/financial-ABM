@@ -1,0 +1,22 @@
+{
+  "archive": "stage1_check_v1",
+  "runs": {
+    "s1_000/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 24
+    },
+    "s1_000/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 34
+    },
+    "s1_001/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 65
+    },
+    "s1_001/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 62
+    }
+  },
+  "problems": []
+}
