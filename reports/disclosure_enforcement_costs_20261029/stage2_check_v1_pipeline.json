@@ -1,0 +1,22 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/stage2_check_v1",
+  "runs": {
+    "s2_000/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 63
+    },
+    "s2_000/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 72
+    },
+    "s2_001/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 45
+    },
+    "s2_001/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 57
+    }
+  },
+  "problems": []
+}

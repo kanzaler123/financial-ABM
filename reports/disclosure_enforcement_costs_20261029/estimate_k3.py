@@ -364,6 +364,10 @@ def stage2(archive: Path, spec_path: Path, centre: np.ndarray) -> dict:
     rows, U, M = design_moments(archive, spec_path)
     names = identified_names()
     lo, hi = local_box(centre)
+    # contract 28.23: points with any moment undefined (m9 when a size group has no detection) leave the fit
+    keep = np.isfinite(M).all(axis=(1, 2))
+    dropped = [r for r, k in zip(rows, keep) if not k]
+    rows, U, M = [r for r, k in zip(rows, keep) if k], U[keep], M[keep]
     surface = Surface(U, M, SIGMAS)
     J = criterion(m_data, W, M)
     best = np.argsort(J.min(1))[:10]
@@ -371,7 +375,8 @@ def stage2(archive: Path, spec_path: Path, centre: np.ndarray) -> dict:
     u, sigma, J_hat = minimise_surface(surface, starts, lo, hi, m_data, W)
     s_near = int(np.argmin(np.abs(SIGMAS - sigma)))
     cv = Quadratic.cv_rmse(U, M[:, s_near])
-    return {"contract": "28.6 (b)", "parameters": names, "points": len(rows), "centre": centre.tolist(),
+    return {"contract": "28.6 (b)", "parameters": names, "points": len(rows), "points_dropped_undefined": dropped,
+            "centre": centre.tolist(),
             "box_lo": lo.tolist(), "box_hi": hi.tolist(), "u_hat": u.tolist(), "theta_hat": to_theta(u, names),
             "sigma_m_hat": sigma, "J_hat": J_hat, "edge": on_box_edge(u, lo, hi),
             "sigma_m_on_range_edge": bool(sigma <= SIGMAS[0] + 1e-4 or sigma >= SIGMAS[-1] - 1e-4),

@@ -1,0 +1,84 @@
+{
+  "name": "disclosure_stage_k3_stage2_check_v1",
+  "purpose": "development",
+  "archive": "sampled",
+  "_note": "Stage K3 local design (contract 28.6 (b)): 80 scrambled Sobol points (seed 28905) in the box centre +- 0.15 (unit coordinates) over ['kappa_T', 's_P', 'eta', 'psi', 'w'], sampled archive.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    38201,
+    38202
+  ],
+  "scenarios": [
+    {
+      "name": "s2_000",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.421336,
+        "reversion_permanent_share": 0.573232,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.065473,
+        "size_cost_multipliers": [
+          0.66395453,
+          1.0,
+          1.45763259
+        ],
+        "wash_cost_ratio": 0.11858,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_001",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.24131,
+        "reversion_permanent_share": 0.657506,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.621575,
+        "size_cost_multipliers": [
+          0.76652959,
+          1.0,
+          1.27715423
+        ],
+        "wash_cost_ratio": 0.199508,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    }
+  ],
+  "comparisons": [],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

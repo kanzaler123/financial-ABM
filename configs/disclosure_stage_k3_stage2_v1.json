@@ -1,0 +1,1496 @@
+{
+  "name": "disclosure_stage_k3_stage2_v1",
+  "purpose": "estimation",
+  "archive": "sampled",
+  "_note": "Stage K3 local design (contract 28.6 (b)): 80 scrambled Sobol points (seed 28905) in the box centre +- 0.15 (unit coordinates) over ['kappa_T', 's_P', 'eta', 'psi', 'w'], sampled archive.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    64001,
+    64002,
+    64003,
+    64004,
+    64005,
+    64006,
+    64007,
+    64008,
+    64009,
+    64010
+  ],
+  "scenarios": [
+    {
+      "name": "s2_000",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.421336,
+        "reversion_permanent_share": 0.573232,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.065473,
+        "size_cost_multipliers": [
+          0.66395453,
+          1.0,
+          1.45763259
+        ],
+        "wash_cost_ratio": 0.11858,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_001",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.24131,
+        "reversion_permanent_share": 0.657506,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.621575,
+        "size_cost_multipliers": [
+          0.76652959,
+          1.0,
+          1.27715423
+        ],
+        "wash_cost_ratio": 0.199508,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_002",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.161503,
+        "reversion_permanent_share": 0.61094,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.434161,
+        "size_cost_multipliers": [
+          0.6027576,
+          1.0,
+          1.59326379
+        ],
+        "wash_cost_ratio": 0.151124,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_003",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.395856,
+        "reversion_permanent_share": 0.724796,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.76702,
+        "size_cost_multipliers": [
+          0.69587805,
+          1.0,
+          1.39599253
+        ],
+        "wash_cost_ratio": 0.070131,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_004",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.361381,
+        "reversion_permanent_share": 0.597014,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.505419,
+        "size_cost_multipliers": [
+          0.69423385,
+          1.0,
+          1.39903424
+        ],
+        "wash_cost_ratio": 0.063402,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_005",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.113644,
+        "reversion_permanent_share": 0.687876,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.189643,
+        "size_cost_multipliers": [
+          0.58991186,
+          1.0,
+          1.62515808
+        ],
+        "wash_cost_ratio": 0.144356,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_006",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.29884,
+        "reversion_permanent_share": 0.536337,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.866196,
+        "size_cost_multipliers": [
+          0.73638791,
+          1.0,
+          1.32517533
+        ],
+        "wash_cost_ratio": 0.172281,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_007",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.492248,
+        "reversion_permanent_share": 0.643555,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.327177,
+        "size_cost_multipliers": [
+          0.62573126,
+          1.0,
+          1.53936192
+        ],
+        "wash_cost_ratio": 0.091318,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_008",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.51236,
+        "reversion_permanent_share": 0.623113,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.845688,
+        "size_cost_multipliers": [
+          0.58188034,
+          1.0,
+          1.64578574
+        ],
+        "wash_cost_ratio": 0.188791,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_009",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.27883,
+        "reversion_permanent_share": 0.712745,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.291347,
+        "size_cost_multipliers": [
+          0.67178787,
+          1.0,
+          1.4419869
+        ],
+        "wash_cost_ratio": 0.107827,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_010",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.146213,
+        "reversion_permanent_share": 0.562436,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.539402,
+        "size_cost_multipliers": [
+          0.64124271,
+          1.0,
+          1.50506757
+        ],
+        "wash_cost_ratio": 0.080885,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_011",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.328709,
+        "reversion_permanent_share": 0.668423,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.211819,
+        "size_cost_multipliers": [
+          0.74032215,
+          1.0,
+          1.31869445
+        ],
+        "wash_cost_ratio": 0.161839,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_012",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.376567,
+        "reversion_permanent_share": 0.548471,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.413758,
+        "size_cost_multipliers": [
+          0.76336653,
+          1.0,
+          1.28202251
+        ],
+        "wash_cost_ratio": 0.13364,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_013",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.180689,
+        "reversion_permanent_share": 0.631516,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.731289,
+        "size_cost_multipliers": [
+          0.6486678,
+          1.0,
+          1.48920903
+        ],
+        "wash_cost_ratio": 0.052648,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_014",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.207917,
+        "reversion_permanent_share": 0.58618,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.099563,
+        "size_cost_multipliers": [
+          0.71999491,
+          1.0,
+          1.35291102
+        ],
+        "wash_cost_ratio": 0.102071,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_015",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.454831,
+        "reversion_permanent_share": 0.698806,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.643852,
+        "size_cost_multipliers": [
+          0.61181268,
+          1.0,
+          1.57155435
+        ],
+        "wash_cost_ratio": 0.182998,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_016",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.465546,
+        "reversion_permanent_share": 0.577142,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.256987,
+        "size_cost_multipliers": [
+          0.72716872,
+          1.0,
+          1.34062576
+        ],
+        "wash_cost_ratio": 0.077987,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_017",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.223601,
+        "reversion_permanent_share": 0.706097,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.823688,
+        "size_cost_multipliers": [
+          0.62985972,
+          1.0,
+          1.53007593
+        ],
+        "wash_cost_ratio": 0.14938,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_018",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.19802,
+        "reversion_permanent_share": 0.542664,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.231952,
+        "size_cost_multipliers": [
+          0.68721152,
+          1.0,
+          1.4121826
+        ],
+        "wash_cost_ratio": 0.196478,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_019",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.385635,
+        "reversion_permanent_share": 0.635577,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.57541,
+        "size_cost_multipliers": [
+          0.59524975,
+          1.0,
+          1.61174432
+        ],
+        "wash_cost_ratio": 0.125038,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_020",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.311433,
+        "reversion_permanent_share": 0.554962,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.725164,
+        "size_cost_multipliers": [
+          0.59950238,
+          1.0,
+          1.60122191
+        ],
+        "wash_cost_ratio": 0.094383,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_021",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.137193,
+        "reversion_permanent_share": 0.677433,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.363743,
+        "size_cost_multipliers": [
+          0.70551916,
+          1.0,
+          1.37843077
+        ],
+        "wash_cost_ratio": 0.165787,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_022",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.268164,
+        "reversion_permanent_share": 0.618972,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.692219,
+        "size_cost_multipliers": [
+          0.65881421,
+          1.0,
+          1.46809348
+        ],
+        "wash_cost_ratio": 0.136539,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_023",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.496731,
+        "reversion_permanent_share": 0.718421,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.107556,
+        "size_cost_multipliers": [
+          0.77532002,
+          1.0,
+          1.26382521
+        ],
+        "wash_cost_ratio": 0.065107,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_024",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.476615,
+        "reversion_permanent_share": 0.527325,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.601332,
+        "size_cost_multipliers": [
+          0.71528901,
+          1.0,
+          1.36109839
+        ],
+        "wash_cost_ratio": 0.157749,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_025",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.288176,
+        "reversion_permanent_share": 0.651025,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.029355,
+        "size_cost_multipliers": [
+          0.61955777,
+          1.0,
+          1.55346927
+        ],
+        "wash_cost_ratio": 0.086317,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_026",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.104627,
+        "reversion_permanent_share": 0.591334,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.80127,
+        "size_cost_multipliers": [
+          0.7565352,
+          1.0,
+          1.29266991
+        ],
+        "wash_cost_ratio": 0.116707,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_027",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.344102,
+        "reversion_permanent_share": 0.692014,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.456051,
+        "size_cost_multipliers": [
+          0.65528401,
+          1.0,
+          1.47536891
+        ],
+        "wash_cost_ratio": 0.188111,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_028",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.404927,
+        "reversion_permanent_share": 0.603645,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.141385,
+        "size_cost_multipliers": [
+          0.63249178,
+          1.0,
+          1.52421652
+        ],
+        "wash_cost_ratio": 0.174155,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_029",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.17883,
+        "reversion_permanent_share": 0.733831,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.497536,
+        "size_cost_multipliers": [
+          0.74432806,
+          1.0,
+          1.3121631
+        ],
+        "wash_cost_ratio": 0.102715,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_030",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.25699,
+        "reversion_permanent_share": 0.569167,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.333412,
+        "size_cost_multipliers": [
+          0.57529385,
+          1.0,
+          1.66311452
+        ],
+        "wash_cost_ratio": 0.056777,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_031",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.432054,
+        "reversion_permanent_share": 0.663311,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.916321,
+        "size_cost_multipliers": [
+          0.67701675,
+          1.0,
+          1.43173668
+        ],
+        "wash_cost_ratio": 0.12817,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_032",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.439319,
+        "reversion_permanent_share": 0.614735,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.546633,
+        "size_cost_multipliers": [
+          0.77976761,
+          1.0,
+          1.25719122
+        ],
+        "wash_cost_ratio": 0.088964,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_033",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.246535,
+        "reversion_permanent_share": 0.720798,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.204548,
+        "size_cost_multipliers": [
+          0.66259216,
+          1.0,
+          1.46038992
+        ],
+        "wash_cost_ratio": 0.169937,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_034",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.166624,
+        "reversion_permanent_share": 0.570462,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.852946,
+        "size_cost_multipliers": [
+          0.70782323,
+          1.0,
+          1.3743018
+        ],
+        "wash_cost_ratio": 0.141928,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_035",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.413737,
+        "reversion_permanent_share": 0.660069,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.284103,
+        "size_cost_multipliers": [
+          0.6014586,
+          1.0,
+          1.59642956
+        ],
+        "wash_cost_ratio": 0.060983,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_036",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.34303,
+        "reversion_permanent_share": 0.533567,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.078669,
+        "size_cost_multipliers": [
+          0.59119114,
+          1.0,
+          1.62192214
+        ],
+        "wash_cost_ratio": 0.072559,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_037",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.10889,
+        "reversion_permanent_share": 0.646117,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.664705,
+        "size_cost_multipliers": [
+          0.68252454,
+          1.0,
+          1.42110281
+        ],
+        "wash_cost_ratio": 0.153542,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_038",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.294187,
+        "reversion_permanent_share": 0.600809,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.392891,
+        "size_cost_multipliers": [
+          0.62701229,
+          1.0,
+          1.53646799
+        ],
+        "wash_cost_ratio": 0.201862,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_039",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.474001,
+        "reversion_permanent_share": 0.683878,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.75217,
+        "size_cost_multipliers": [
+          0.72387942,
+          1.0,
+          1.34622972
+        ],
+        "wash_cost_ratio": 0.120925,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_040",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.507188,
+        "reversion_permanent_share": 0.558436,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.42693,
+        "size_cost_multipliers": [
+          0.67962865,
+          1.0,
+          1.42667326
+        ],
+        "wash_cost_ratio": 0.180654,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_041",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.260898,
+        "reversion_permanent_share": 0.672217,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.774292,
+        "size_cost_multipliers": [
+          0.57751217,
+          1.0,
+          1.65723582
+        ],
+        "wash_cost_ratio": 0.099717,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_042",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.128385,
+        "reversion_permanent_share": 0.625678,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.058215,
+        "size_cost_multipliers": [
+          0.74905428,
+          1.0,
+          1.30454359
+        ],
+        "wash_cost_ratio": 0.050229,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_043",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.323638,
+        "reversion_permanent_share": 0.709977,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.628819,
+        "size_cost_multipliers": [
+          0.63650616,
+          1.0,
+          1.51536941
+        ],
+        "wash_cost_ratio": 0.131212,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_044",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.381374,
+        "reversion_permanent_share": 0.588744,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.887091,
+        "size_cost_multipliers": [
+          0.65350081,
+          1.0,
+          1.4790726
+        ],
+        "wash_cost_ratio": 0.164258,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_045",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.19909,
+        "reversion_permanent_share": 0.696038,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.306324,
+        "size_cost_multipliers": [
+          0.75447499,
+          1.0,
+          1.29591732
+        ],
+        "wash_cost_ratio": 0.083313,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_046",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.226217,
+        "reversion_permanent_share": 0.544472,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.526286,
+        "size_cost_multipliers": [
+          0.61643466,
+          1.0,
+          1.56070937
+        ],
+        "wash_cost_ratio": 0.110172,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_047",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.459534,
+        "reversion_permanent_share": 0.635309,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.168762,
+        "size_cost_multipliers": [
+          0.71168141,
+          1.0,
+          1.36744532
+        ],
+        "wash_cost_ratio": 0.191145,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_048",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.443854,
+        "reversion_permanent_share": 0.538664,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.79448,
+        "size_cost_multipliers": [
+          0.62215788,
+          1.0,
+          1.54749486
+        ],
+        "wash_cost_ratio": 0.067459,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_049",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.215499,
+        "reversion_permanent_share": 0.63937,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.462883,
+        "size_cost_multipliers": [
+          0.73218063,
+          1.0,
+          1.33217997
+        ],
+        "wash_cost_ratio": 0.138881,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_050",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.190019,
+        "reversion_permanent_share": 0.579706,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.594514,
+        "size_cost_multipliers": [
+          0.58799848,
+          1.0,
+          1.63002319
+        ],
+        "wash_cost_ratio": 0.168214,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_051",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.364047,
+        "reversion_permanent_share": 0.703329,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.03616,
+        "size_cost_multipliers": [
+          0.69198074,
+          1.0,
+          1.40322497
+        ],
+        "wash_cost_ratio": 0.0968,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_052",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.332655,
+        "reversion_permanent_share": 0.621536,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.354746,
+        "size_cost_multipliers": [
+          0.70066354,
+          1.0,
+          1.38721753
+        ],
+        "wash_cost_ratio": 0.122612,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_053",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.145663,
+        "reversion_permanent_share": 0.715654,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.895028,
+        "size_cost_multipliers": [
+          0.60690106,
+          1.0,
+          1.58325271
+        ],
+        "wash_cost_ratio": 0.194061,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_054",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.27653,
+        "reversion_permanent_share": 0.550962,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.162692,
+        "size_cost_multipliers": [
+          0.77000521,
+          1.0,
+          1.27184919
+        ],
+        "wash_cost_ratio": 0.147028,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_055",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.517851,
+        "reversion_permanent_share": 0.681226,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.476216,
+        "size_cost_multipliers": [
+          0.66696373,
+          1.0,
+          1.45158051
+        ],
+        "wash_cost_ratio": 0.075644,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_056",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.484668,
+        "reversion_permanent_share": 0.595129,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.238743,
+        "size_cost_multipliers": [
+          0.60945713,
+          1.0,
+          1.57714215
+        ],
+        "wash_cost_ratio": 0.130513,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_057",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.309816,
+        "reversion_permanent_share": 0.688016,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.568578,
+        "size_cost_multipliers": [
+          0.7172209,
+          1.0,
+          1.35772479
+        ],
+        "wash_cost_ratio": 0.059128,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_058",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.126165,
+        "reversion_permanent_share": 0.524555,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.263806,
+        "size_cost_multipliers": [
+          0.6445825,
+          1.0,
+          1.49789102
+        ],
+        "wash_cost_ratio": 0.105132,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_059",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.35205,
+        "reversion_permanent_share": 0.653588,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.816883,
+        "size_cost_multipliers": [
+          0.75855737,
+          1.0,
+          1.28949895
+        ],
+        "wash_cost_ratio": 0.176581,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_060",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.396407,
+        "reversion_permanent_share": 0.566397,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.670885,
+        "size_cost_multipliers": [
+          0.74235093,
+          1.0,
+          1.3153782
+        ],
+        "wash_cost_ratio": 0.185694,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_061",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.157556,
+        "reversion_permanent_share": 0.665874,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.128849,
+        "size_cost_multipliers": [
+          0.64299824,
+          1.0,
+          1.50128637
+        ],
+        "wash_cost_ratio": 0.114281,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_062",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.23582,
+        "reversion_permanent_share": 0.60744,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.703858,
+        "size_cost_multipliers": [
+          0.67518669,
+          1.0,
+          1.43530682
+        ],
+        "wash_cost_ratio": 0.083974,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_063",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.423635,
+        "reversion_permanent_share": 0.729833,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.385063,
+        "size_cost_multipliers": [
+          0.58482313,
+          1.0,
+          1.63816452
+        ],
+        "wash_cost_ratio": 0.155397,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_064",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.42767,
+        "reversion_permanent_share": 0.602295,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.733078,
+        "size_cost_multipliers": [
+          0.71865363,
+          1.0,
+          1.35523411
+        ],
+        "wash_cost_ratio": 0.170772,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_065",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.231836,
+        "reversion_permanent_share": 0.682493,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.405055,
+        "size_cost_multipliers": [
+          0.61066187,
+          1.0,
+          1.57427912
+        ],
+        "wash_cost_ratio": 0.089846,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_066",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.153561,
+        "reversion_permanent_share": 0.531773,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.652672,
+        "size_cost_multipliers": [
+          0.76023959,
+          1.0,
+          1.28687339
+        ],
+        "wash_cost_ratio": 0.0607,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_067",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.400454,
+        "reversion_permanent_share": 0.648014,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.097892,
+        "size_cost_multipliers": [
+          0.64599899,
+          1.0,
+          1.49486879
+        ],
+        "wash_cost_ratio": 0.141691,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_068",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.355889,
+        "reversion_permanent_share": 0.571949,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.30005,
+        "size_cost_multipliers": [
+          0.64158566,
+          1.0,
+          1.50432733
+        ],
+        "wash_cost_ratio": 0.153788,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_069",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.122377,
+        "reversion_permanent_share": 0.658685,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.843899,
+        "size_cost_multipliers": [
+          0.74070466,
+          1.0,
+          1.31806786
+        ],
+        "wash_cost_ratio": 0.072833,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_070",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.306043,
+        "reversion_permanent_share": 0.61294,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.213491,
+        "size_cost_multipliers": [
+          0.58367179,
+          1.0,
+          1.64113745
+        ],
+        "wash_cost_ratio": 0.120052,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_071",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.488493,
+        "reversion_permanent_share": 0.722695,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.530583,
+        "size_cost_multipliers": [
+          0.67384392,
+          1.0,
+          1.43793819
+        ],
+        "wash_cost_ratio": 0.201017,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_072",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.521075,
+        "reversion_permanent_share": 0.546266,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.177424,
+        "size_cost_multipliers": [
+          0.73061698,
+          1.0,
+          1.33480301
+        ],
+        "wash_cost_ratio": 0.098176,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_073",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.273358,
+        "reversion_permanent_share": 0.633412,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.510723,
+        "size_cost_multipliers": [
+          0.62083877,
+          1.0,
+          1.55051986
+        ],
+        "wash_cost_ratio": 0.179141,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_074",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.142503,
+        "reversion_permanent_share": 0.587257,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.32199,
+        "size_cost_multipliers": [
+          0.69055103,
+          1.0,
+          1.40589781
+        ],
+        "wash_cost_ratio": 0.133324,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_075",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.335867,
+        "reversion_permanent_share": 0.697422,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.878531,
+        "size_cost_multipliers": [
+          0.58679308,
+          1.0,
+          1.63310376
+        ],
+        "wash_cost_ratio": 0.052369,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_076",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.367049,
+        "reversion_permanent_share": 0.627472,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.616271,
+        "size_cost_multipliers": [
+          0.60814505,
+          1.0,
+          1.58027265
+        ],
+        "wash_cost_ratio": 0.081164,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_077",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.187069,
+        "reversion_permanent_share": 0.70808,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.077692,
+        "size_cost_multipliers": [
+          0.70211055,
+          1.0,
+          1.38458681
+        ],
+        "wash_cost_ratio": 0.162156,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_078",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.212534,
+        "reversion_permanent_share": 0.55695,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.754685,
+        "size_cost_multipliers": [
+          0.66838383,
+          1.0,
+          1.44874259
+        ],
+        "wash_cost_ratio": 0.192648,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    },
+    {
+      "name": "s2_079",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.446869,
+        "reversion_permanent_share": 0.673601,
+        "real_cost_scale": 0.05,
+        "cost_level_elasticity": 1.439348,
+        "size_cost_multipliers": [
+          0.77165717,
+          1.0,
+          1.2693438
+        ],
+        "wash_cost_ratio": 0.111722,
+        "baseline_audit_probability": 0.01,
+        "baseline_fixed_fine": 8.251629197036494e-06
+      }
+    }
+  ],
+  "comparisons": [],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}
