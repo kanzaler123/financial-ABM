@@ -517,6 +517,44 @@ def recovery(local_archive: Path, local_spec: Path, est_path: Path, rec_archive:
             "recovered": all(all(g["inside_main_ci"].values()) for g in groups)}
 
 
+def yearly_rates(archive: Path, scenario: str, seeds: list[int], mk) -> np.ndarray:
+    return np.array([mk.yearly_detection_rate(finished(archive, scenario, s)["detections"]) for s in seeds])
+
+
+def qw_set(qw_archive: Path, qw_spec: Path, final_archive: Path, final_spec: Path) -> dict:
+    """Contract 28.6 (e): the model's yearly detection rate (all firms, eight blocks; seed mean, equal firm counts)
+    on the (q, w) grid at theta_hat, against K1's main T1-or-T2 rate and its 95% interval; (0.01, w_hat) from the
+    final-stage runs. Also the ESG-specific bound of 28.2 (v): the one-sided 95% Clopper-Pearson upper limit of the
+    ESG-specific T1-or-T2 firm-year rate over the main years."""
+    from scipy.stats import beta
+    mk = _load("moments_k3")
+    k1 = json.loads((HERE / "k1_estimates.json").read_text(encoding="utf-8"))
+    main = k1["main"]["pooled"]["T1_T2"]
+    y0, y1 = k1["main_years"]
+    esg = {(e["Scode"], e["date"][:4]) for e in k1["esg_events"]
+           if e["tier"] in ("T1", "T2") and y0 <= int(e["date"][:4]) <= y1}
+    n = main["firm_years"]
+    esg_upper = float(beta.ppf(0.95, len(esg) + 1, n - len(esg)))
+    spec = json.loads(qw_spec.read_text(encoding="utf-8"))
+    rows = []
+    for sc in spec["scenarios"]:
+        d = sc["domain"]
+        r = yearly_rates(qw_archive, sc["name"], spec["seeds"], mk)
+        rows.append({"q": d["baseline_audit_probability"], "w": d["wash_cost_ratio"], "rate": float(r.mean()),
+                     "rate_se": float(r.std(ddof=1) / math.sqrt(len(r))), "per_seed": r.tolist(),
+                     "inside_k1_ci": bool(main["ci95"][0] <= r.mean() <= main["ci95"][1]),
+                     "below_esg_upper": bool(r.mean() <= esg_upper)})
+    theta, _, seeds = run_point(final_spec)
+    r = yearly_rates(final_archive, "theta_hat", seeds, mk)
+    hat = {"q": 0.01, "w": theta["w"], "rate": float(r.mean()), "rate_se": float(r.std(ddof=1) / math.sqrt(len(r))),
+           "inside_k1_ci": bool(main["ci95"][0] <= r.mean() <= main["ci95"][1])}
+    return {"contract": "28.6 (e)", "theta_hat": theta, "k1_rate": main["rate"], "k1_ci95": main["ci95"],
+            "esg_events_main_years": sorted(map(list, esg)), "firm_years": n, "esg_upper_95": esg_upper,
+            "grid": rows, "set_inside_k1_ci": [[x["q"], x["w"]] for x in rows if x["inside_k1_ci"]],
+            "set_below_esg_upper": [[x["q"], x["w"]] for x in rows if x["below_esg_upper"]],
+            "theta_hat_point": hat, "theta_hat_point_in_set": hat["inside_k1_ci"]}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -536,7 +574,16 @@ def main() -> None:
         p.add_argument("estimate", type=Path, help="stage2r_k3.json (or stage2_k3.json without recentring)")
         for name in extra:
             p.add_argument(name, type=Path)
+    p = sub.add_parser("qw")
+    for name in ("qw_archive", "qw_spec", "final_archive", "final_spec"):
+        p.add_argument(name, type=Path)
     args = ap.parse_args()
+    if args.cmd == "qw":
+        out = qw_set(args.qw_archive, args.qw_spec, args.final_archive, args.final_spec)
+        (HERE / "qw_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps({k: out[k] for k in ("k1_ci95", "esg_upper_95", "set_inside_k1_ci", "set_below_esg_upper",
+                                              "theta_hat_point")}, indent=1))
+        return
     if args.cmd == "final":
         out = final(args.local_archive, args.local_spec, args.estimate, args.final_archive, args.final_spec)
         (HERE / "final_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))

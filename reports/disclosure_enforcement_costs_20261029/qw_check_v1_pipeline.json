@@ -1,0 +1,22 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/qw_check_v1",
+  "runs": {
+    "qw_q0p0025_w0p05/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 38
+    },
+    "qw_q0p0025_w0p05/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 25
+    },
+    "qw_q0p0025_w0p1/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 32
+    },
+    "qw_q0p0025_w0p1/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 22
+    }
+  },
+  "problems": []
+}
