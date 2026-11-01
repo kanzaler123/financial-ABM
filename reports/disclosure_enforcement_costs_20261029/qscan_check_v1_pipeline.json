@@ -1,0 +1,22 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/qscan_check_v1",
+  "runs": {
+    "qs_q0p010/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 68
+    },
+    "qs_q0p010/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "qs_q0p011/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "qs_q0p011/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    }
+  },
+  "problems": []
+}

@@ -555,6 +555,88 @@ def qw_set(qw_archive: Path, qw_spec: Path, final_archive: Path, final_spec: Pat
             "theta_hat_point": hat, "theta_hat_point_in_set": hat["inside_k1_ci"]}
 
 
+def load_arrays(archive: Path, scenario: str, seed: int, keys: tuple[str, ...]) -> dict[str, np.ndarray]:
+    """Named arrays of a run's completed attempt (finished() keeps its own fixed set)."""
+    for attempt in sorted((archive / scenario / f"seed_{seed}").glob("attempt_*"), reverse=True):
+        manifest = json.loads((attempt / "manifest.json").read_text(encoding="utf-8"))
+        if manifest["status"] == "complete":
+            with np.load(attempt / "result.npz") as saved:
+                return {k: saved[k].copy() for k in keys}
+    raise FileNotFoundError(f"no completed attempt for {scenario} seed {seed}")
+
+
+def qscan(archive: Path, spec_path: Path) -> dict:
+    """Contract 28.34: the model's yearly detection rate (as in 28.6 (e)) along q at fixed w_hat; per q a 95% t
+    interval over the 30 seeds, classed against K1's main T1-or-T2 interval; monotonicity; interpolated crossings on
+    rising steps only; the yearly audit probability; a cross-check of q = 0.010 against the final stage. Descriptive
+    by-products: size-group rates and m9; the share of firm-days with inflation; the share of audits that found
+    inflation; m1-m9 at sigma_m = 0 and J."""
+    from scipy.stats import t as student_t
+    mk = _load("moments_k3")
+    k1 = json.loads((HERE / "k1_estimates.json").read_text(encoding="utf-8"))["main"]["pooled"]["T1_T2"]
+    lo_k1, hi_k1 = k1["ci95"]
+    m_data, _, W, cuts = data_target()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    seeds = spec["seeds"]
+    tq = float(student_t.ppf(0.975, len(seeds) - 1))
+    groups = {"large": 0, "mid": 1, "small": 2}
+    points, without_audit = [], 0
+    for sc in spec["scenarios"]:
+        q = sc["domain"]["baseline_audit_probability"]
+        rates = yearly_rates(archive, sc["name"], seeds, mk)
+        mean, se = float(rates.mean()), float(rates.std(ddof=1) / math.sqrt(len(rates)))
+        ci = [mean - tq * se, mean + tq * se]
+        cls = "clearly_below" if ci[1] < lo_k1 else "clearly_above" if ci[0] > hi_k1 else "cannot_exclude"
+        stats = point_stats(archive, sc["name"], seeds, 0.0, mk, cuts)
+        cs, ys, cl, yl = np.concatenate([s.ratio for s in stats]).sum(0)
+        m = mk.pooled_model_moments(stats)
+        infl = {g: [0, 0] for g in ("all", *groups)}
+        aud = {g: [0, 0] for g in ("all", *groups)}
+        for seed in seeds:
+            a = load_arrays(archive, sc["name"], seed, ("inflation", "audit_selected", "detections", "market_size_class"))
+            days = np.zeros(a["inflation"].shape[0], dtype=bool)
+            days[mk.BLOCK_START:mk.BLOCK_START + mk.BLOCKS * mk.BLOCK_DAYS] = True
+            pdays = np.arange(a["detections"].shape[0]) * 60
+            periods = (pdays >= mk.BLOCK_START) & ((pdays - mk.BLOCK_START) // mk.BLOCK_DAYS < mk.BLOCKS)
+            inflating = a["inflation"][days] > 0
+            selected = a["audit_selected"][periods] == 1
+            found = a["detections"][periods] > 0
+            without_audit += int((found & ~selected).sum())
+            for g in infl:
+                cols = np.ones(a["market_size_class"].size, dtype=bool) if g == "all" else a["market_size_class"] == groups[g]
+                infl[g][0] += int(inflating[:, cols].sum())
+                infl[g][1] += int(inflating[:, cols].size)
+                aud[g][0] += int((found & selected)[:, cols].sum())
+                aud[g][1] += int(selected[:, cols].sum())
+        points.append({
+            "q": q, "yearly_audit_probability": 1 - (1 - q) ** (252 / 60), "rate": mean, "rate_se": se, "ci95": ci,
+            "class": cls, "mean_in_k1_ci": bool(lo_k1 <= mean <= hi_k1), "per_seed": rates.tolist(),
+            "small_rate": float(cs / ys), "large_rate": float(cl / yl), "m9": mk.log_ratio(np.concatenate([s.ratio for s in stats])),
+            "inflating_firm_day_share": {g: v[0] / v[1] for g, v in infl.items()},
+            "audits_finding_inflation_share": {g: (v[0] / v[1] if v[1] else None) for g, v in aud.items()},
+            "audits": {g: v[1] for g, v in aud.items()},
+            "moments_sigma0": m.tolist(), "J": float(criterion(m_data, W, m))})
+    steps = [{"from": a["q"], "to": b["q"], "rising": b["rate"] > a["rate"]} for a, b in zip(points, points[1:])]
+    crossings = {}
+    for level in (lo_k1, hi_k1):
+        crossings[f"{level:.6f}"] = [a["q"] + (level - a["rate"]) / (b["rate"] - a["rate"]) * (b["q"] - a["q"])
+                                     for a, b in zip(points, points[1:]) if a["rate"] < level <= b["rate"]]
+    hat = json.loads((HERE / "qw_k3.json").read_text(encoding="utf-8"))["theta_hat_point"]
+    first = points[0]
+    return {"contract": "28.34", "theta_hat": theta_from_domain(spec["scenarios"][0]["domain"]), "seeds": seeds,
+            "k1_rate": k1["rate"], "k1_ci95": [lo_k1, hi_k1], "t_quantile": tq, "points": points, "steps": steps,
+            "all_steps_rising": all(s["rising"] for s in steps), "crossings_on_rising_steps": crossings,
+            "cannot_exclude": [p["q"] for p in points if p["class"] == "cannot_exclude"],
+            "clearly_below": [p["q"] for p in points if p["class"] == "clearly_below"],
+            "clearly_above": [p["q"] for p in points if p["class"] == "clearly_above"],
+            "point_rule_set": [p["q"] for p in points if p["mean_in_k1_ci"]],
+            "cross_check_first_point": {"q": first["q"], "scan_rate": first["rate"], "scan_se": first["rate_se"],
+                                        "final_stage_rate": hat["rate"], "final_stage_se": hat["rate_se"],
+                                        "difference": first["rate"] - hat["rate"],
+                                        "combined_se": math.hypot(first["rate_se"], hat["rate_se"])},
+            "detections_without_audit": without_audit}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -577,7 +659,17 @@ def main() -> None:
     p = sub.add_parser("qw")
     for name in ("qw_archive", "qw_spec", "final_archive", "final_spec"):
         p.add_argument(name, type=Path)
+    p = sub.add_parser("qscan")
+    p.add_argument("archive", type=Path)
+    p.add_argument("spec", type=Path)
     args = ap.parse_args()
+    if args.cmd == "qscan":
+        out = qscan(args.archive, args.spec)
+        (HERE / "qscan_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps({k: out[k] for k in ("cannot_exclude", "clearly_below", "clearly_above", "point_rule_set",
+                                              "all_steps_rising", "crossings_on_rising_steps",
+                                              "cross_check_first_point", "detections_without_audit")}, indent=1))
+        return
     if args.cmd == "qw":
         out = qw_set(args.qw_archive, args.qw_spec, args.final_archive, args.final_spec)
         (HERE / "qw_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))

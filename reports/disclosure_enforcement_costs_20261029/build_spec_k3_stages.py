@@ -5,6 +5,7 @@ recovery runs (28.6 (c), (d)) and the (q, w) set (28.6 (e)).
     python -I -X utf8 build_spec_k3_stages.py stage2 [--recentre]
     python -I -X utf8 build_spec_k3_stages.py final
     python -I -X utf8 build_spec_k3_stages.py qw
+    python -I -X utf8 build_spec_k3_stages.py qscan
 
 The identified parameters come from identification_k3a.json (contract 28.5, recorded in the contract); the others
 stay at theta_0. Every scenario is the K3a theta_0 scenario (H3 B with F_K) with the domain fields of
@@ -39,9 +40,11 @@ ek = _load("estimate_k3")
 bs = _load("build_spec_k3")
 SEEDS = {"stage1": list(range(63001, 63006)), "stage2": list(range(64001, 64011)),
          "stage2_recentre": list(range(64011, 64021)), "final": list(range(65001, 65031)),
-         "recovery": list(range(66001, 66031)), "qw": list(range(67001, 67006)), "development": [38201, 38202]}
+         "recovery": list(range(66001, 66031)), "qw": list(range(67001, 67006)), "development": [38201, 38202],
+         "qscan": list(range(69001, 69031))}
 Q_GRID = (0.0025, 0.005, 0.01, 0.02, 0.04)
 W_GRID = (0.05, 0.1, 0.2, 0.4, 0.8)
+Q_SCAN = tuple(round(0.010 + 0.001 * i, 3) for i in range(11))       # contract 28.34
 
 
 def identified() -> list[str]:
@@ -83,15 +86,15 @@ def check(label: str, scenarios: list[dict]) -> None:
     theta0 = bs.points()["theta0"]
     for row in scenarios:
         moved = {k for k in row["domain"] if row["domain"][k] != theta0[k]}
-        allowed = {f for n in identified() for f in bs.FIELDS[n]} | ({"baseline_audit_probability", "wash_cost_ratio"}
-                                                                        if label == "qw" else set())
+        extra = {"qw": {"baseline_audit_probability", "wash_cost_ratio"}, "qscan": {"baseline_audit_probability"}}
+        allowed = {f for n in identified() for f in bs.FIELDS[n]} | extra.get(label, set())
         assert moved <= allowed, (row["name"], moved)
     print(f"derivation check: {len(scenarios)} scenarios move only the fields of {sorted(allowed)}")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["stage1", "stage2", "final", "qw"])
+    ap.add_argument("step", choices=["stage1", "stage2", "final", "qw", "qscan"])
     ap.add_argument("--recentre", action="store_true")
     args = ap.parse_args()
     names = identified()
@@ -118,6 +121,20 @@ def main() -> None:
         write("final", rows, SEEDS["final"], f"Stage K3 final stage (contract 28.6 (c)) at theta_hat {theta}.")
         write("recovery", [scenario("theta_hat", theta)], SEEDS["recovery"],
               f"Stage K3 recovery runs (contract 28.6 (d)) at theta_hat {theta}.")
+    elif args.step == "qscan":
+        est = json.loads(last_local_estimate().read_text(encoding="utf-8"))
+        theta = {n: round(v, 3) for n, v in est["theta_hat"].items()}
+        rows = [scenario(f"qs_q{q:.3f}".replace(".", "p"), theta, q=q) for q in Q_SCAN]
+        write("qscan", rows, SEEDS["qscan"], f"Stage K3 q scan at fixed w_hat (contract 28.34): q in {list(Q_SCAN)} "
+              f"at theta_hat {theta}, seeds 69001-69030, sampled archive.")
+        final = json.loads((ROOT / "configs/disclosure_stage_k3_final_v1.json").read_text(encoding="utf-8"))
+        (theta_hat_row,) = final["scenarios"]
+        for row in rows:
+            d = row["domain"]
+            moved = {k for k in set(d) | set(theta_hat_row["domain"]) if d.get(k) != theta_hat_row["domain"].get(k)}
+            assert moved <= {"baseline_audit_probability"}, (row["name"], moved)
+        print(f"derivation check: {len(rows)} points differ from the final-stage theta_hat scenario only in "
+              "baseline_audit_probability")
     else:
         est = json.loads(last_local_estimate().read_text(encoding="utf-8"))
         theta = {n: round(v, 3) for n, v in est["theta_hat"].items()}
