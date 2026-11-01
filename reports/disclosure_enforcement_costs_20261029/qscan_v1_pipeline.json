@@ -1,0 +1,1326 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/qscan_v1",
+  "runs": {
+    "qs_q0p010/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "qs_q0p010/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 66
+    },
+    "qs_q0p010/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 75
+    },
+    "qs_q0p010/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "qs_q0p010/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "qs_q0p010/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "qs_q0p010/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 80
+    },
+    "qs_q0p010/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 70
+    },
+    "qs_q0p010/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 111
+    },
+    "qs_q0p010/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "qs_q0p010/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "qs_q0p010/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "qs_q0p010/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 97
+    },
+    "qs_q0p010/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p010/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "qs_q0p010/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p010/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p010/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "qs_q0p010/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p010/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "qs_q0p010/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "qs_q0p010/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 72
+    },
+    "qs_q0p010/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "qs_q0p010/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "qs_q0p010/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "qs_q0p010/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "qs_q0p010/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 73
+    },
+    "qs_q0p010/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 75
+    },
+    "qs_q0p010/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 97
+    },
+    "qs_q0p010/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 81
+    },
+    "qs_q0p011/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "qs_q0p011/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 75
+    },
+    "qs_q0p011/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "qs_q0p011/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "qs_q0p011/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "qs_q0p011/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "qs_q0p011/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "qs_q0p011/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 72
+    },
+    "qs_q0p011/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p011/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "qs_q0p011/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "qs_q0p011/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "qs_q0p011/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 107
+    },
+    "qs_q0p011/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "qs_q0p011/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "qs_q0p011/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p011/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 96
+    },
+    "qs_q0p011/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "qs_q0p011/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p011/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "qs_q0p011/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p011/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 79
+    },
+    "qs_q0p011/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "qs_q0p011/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "qs_q0p011/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "qs_q0p011/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "qs_q0p011/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "qs_q0p011/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 76
+    },
+    "qs_q0p011/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p011/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 87
+    },
+    "qs_q0p012/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 96
+    },
+    "qs_q0p012/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "qs_q0p012/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 81
+    },
+    "qs_q0p012/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p012/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "qs_q0p012/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "qs_q0p012/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "qs_q0p012/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "qs_q0p012/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p012/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p012/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "qs_q0p012/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 94
+    },
+    "qs_q0p012/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p012/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p012/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 100
+    },
+    "qs_q0p012/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p012/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 101
+    },
+    "qs_q0p012/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p012/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p012/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "qs_q0p012/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "qs_q0p012/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "qs_q0p012/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 107
+    },
+    "qs_q0p012/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "qs_q0p012/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p012/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "qs_q0p012/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "qs_q0p012/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "qs_q0p012/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p012/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 90
+    },
+    "qs_q0p013/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p013/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "qs_q0p013/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "qs_q0p013/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 94
+    },
+    "qs_q0p013/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 96
+    },
+    "qs_q0p013/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 87
+    },
+    "qs_q0p013/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 94
+    },
+    "qs_q0p013/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "qs_q0p013/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 134
+    },
+    "qs_q0p013/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "qs_q0p013/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p013/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 101
+    },
+    "qs_q0p013/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 120
+    },
+    "qs_q0p013/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p013/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p013/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 120
+    },
+    "qs_q0p013/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 111
+    },
+    "qs_q0p013/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 106
+    },
+    "qs_q0p013/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p013/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "qs_q0p013/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p013/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "qs_q0p013/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p013/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p013/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p013/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 90
+    },
+    "qs_q0p013/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "qs_q0p013/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p013/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 116
+    },
+    "qs_q0p013/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 92
+    },
+    "qs_q0p014/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 110
+    },
+    "qs_q0p014/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p014/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 94
+    },
+    "qs_q0p014/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p014/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p014/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 89
+    },
+    "qs_q0p014/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p014/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "qs_q0p014/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 144
+    },
+    "qs_q0p014/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 100
+    },
+    "qs_q0p014/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "qs_q0p014/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p014/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p014/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p014/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p014/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 130
+    },
+    "qs_q0p014/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 113
+    },
+    "qs_q0p014/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 111
+    },
+    "qs_q0p014/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p014/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "qs_q0p014/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p014/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 95
+    },
+    "qs_q0p014/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p014/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 103
+    },
+    "qs_q0p014/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p014/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 94
+    },
+    "qs_q0p014/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "qs_q0p014/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p014/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 128
+    },
+    "qs_q0p014/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 102
+    },
+    "qs_q0p015/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p015/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 96
+    },
+    "qs_q0p015/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 99
+    },
+    "qs_q0p015/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 105
+    },
+    "qs_q0p015/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 108
+    },
+    "qs_q0p015/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "qs_q0p015/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 107
+    },
+    "qs_q0p015/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 92
+    },
+    "qs_q0p015/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 151
+    },
+    "qs_q0p015/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p015/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p015/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p015/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 132
+    },
+    "qs_q0p015/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 110
+    },
+    "qs_q0p015/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 121
+    },
+    "qs_q0p015/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 141
+    },
+    "qs_q0p015/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 121
+    },
+    "qs_q0p015/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 116
+    },
+    "qs_q0p015/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p015/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 100
+    },
+    "qs_q0p015/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p015/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 103
+    },
+    "qs_q0p015/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 129
+    },
+    "qs_q0p015/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 105
+    },
+    "qs_q0p015/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p015/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 110
+    },
+    "qs_q0p015/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p015/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 101
+    },
+    "qs_q0p015/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p015/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 109
+    },
+    "qs_q0p016/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 116
+    },
+    "qs_q0p016/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p016/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 107
+    },
+    "qs_q0p016/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 110
+    },
+    "qs_q0p016/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 116
+    },
+    "qs_q0p016/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 98
+    },
+    "qs_q0p016/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 111
+    },
+    "qs_q0p016/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 101
+    },
+    "qs_q0p016/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 167
+    },
+    "qs_q0p016/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 123
+    },
+    "qs_q0p016/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p016/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 107
+    },
+    "qs_q0p016/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 136
+    },
+    "qs_q0p016/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 113
+    },
+    "qs_q0p016/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 124
+    },
+    "qs_q0p016/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 155
+    },
+    "qs_q0p016/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p016/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 123
+    },
+    "qs_q0p016/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 132
+    },
+    "qs_q0p016/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p016/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 128
+    },
+    "qs_q0p016/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 103
+    },
+    "qs_q0p016/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 132
+    },
+    "qs_q0p016/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p016/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p016/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 117
+    },
+    "qs_q0p016/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 109
+    },
+    "qs_q0p016/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p016/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 124
+    },
+    "qs_q0p016/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 117
+    },
+    "qs_q0p017/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 124
+    },
+    "qs_q0p017/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p017/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p017/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 116
+    },
+    "qs_q0p017/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p017/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 103
+    },
+    "qs_q0p017/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 120
+    },
+    "qs_q0p017/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p017/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 175
+    },
+    "qs_q0p017/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 128
+    },
+    "qs_q0p017/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 102
+    },
+    "qs_q0p017/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p017/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 141
+    },
+    "qs_q0p017/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 117
+    },
+    "qs_q0p017/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 132
+    },
+    "qs_q0p017/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 160
+    },
+    "qs_q0p017/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p017/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 128
+    },
+    "qs_q0p017/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 136
+    },
+    "qs_q0p017/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 114
+    },
+    "qs_q0p017/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 138
+    },
+    "qs_q0p017/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 111
+    },
+    "qs_q0p017/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 139
+    },
+    "qs_q0p017/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p017/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 126
+    },
+    "qs_q0p017/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 118
+    },
+    "qs_q0p017/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p017/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p017/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 134
+    },
+    "qs_q0p017/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 119
+    },
+    "qs_q0p018/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 127
+    },
+    "qs_q0p018/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 109
+    },
+    "qs_q0p018/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 117
+    },
+    "qs_q0p018/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 120
+    },
+    "qs_q0p018/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p018/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 106
+    },
+    "qs_q0p018/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 129
+    },
+    "qs_q0p018/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 109
+    },
+    "qs_q0p018/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 183
+    },
+    "qs_q0p018/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 133
+    },
+    "qs_q0p018/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p018/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 123
+    },
+    "qs_q0p018/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 144
+    },
+    "qs_q0p018/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p018/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 140
+    },
+    "qs_q0p018/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 165
+    },
+    "qs_q0p018/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 135
+    },
+    "qs_q0p018/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 133
+    },
+    "qs_q0p018/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 142
+    },
+    "qs_q0p018/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 118
+    },
+    "qs_q0p018/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 145
+    },
+    "qs_q0p018/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 115
+    },
+    "qs_q0p018/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 140
+    },
+    "qs_q0p018/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p018/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 136
+    },
+    "qs_q0p018/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p018/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 113
+    },
+    "qs_q0p018/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p018/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 140
+    },
+    "qs_q0p018/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 120
+    },
+    "qs_q0p019/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 134
+    },
+    "qs_q0p019/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 119
+    },
+    "qs_q0p019/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 124
+    },
+    "qs_q0p019/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 126
+    },
+    "qs_q0p019/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 130
+    },
+    "qs_q0p019/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 105
+    },
+    "qs_q0p019/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 134
+    },
+    "qs_q0p019/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 112
+    },
+    "qs_q0p019/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 192
+    },
+    "qs_q0p019/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 143
+    },
+    "qs_q0p019/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 113
+    },
+    "qs_q0p019/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 127
+    },
+    "qs_q0p019/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 148
+    },
+    "qs_q0p019/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 124
+    },
+    "qs_q0p019/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 147
+    },
+    "qs_q0p019/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 168
+    },
+    "qs_q0p019/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 143
+    },
+    "qs_q0p019/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 137
+    },
+    "qs_q0p019/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 151
+    },
+    "qs_q0p019/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p019/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 147
+    },
+    "qs_q0p019/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 122
+    },
+    "qs_q0p019/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 144
+    },
+    "qs_q0p019/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 129
+    },
+    "qs_q0p019/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 145
+    },
+    "qs_q0p019/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 136
+    },
+    "qs_q0p019/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 118
+    },
+    "qs_q0p019/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 126
+    },
+    "qs_q0p019/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 149
+    },
+    "qs_q0p019/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 125
+    },
+    "qs_q0p020/69001": {
+      "price_cap_hits": 0,
+      "detections_total": 140
+    },
+    "qs_q0p020/69002": {
+      "price_cap_hits": 0,
+      "detections_total": 123
+    },
+    "qs_q0p020/69003": {
+      "price_cap_hits": 0,
+      "detections_total": 130
+    },
+    "qs_q0p020/69004": {
+      "price_cap_hits": 0,
+      "detections_total": 130
+    },
+    "qs_q0p020/69005": {
+      "price_cap_hits": 0,
+      "detections_total": 134
+    },
+    "qs_q0p020/69006": {
+      "price_cap_hits": 0,
+      "detections_total": 104
+    },
+    "qs_q0p020/69007": {
+      "price_cap_hits": 0,
+      "detections_total": 142
+    },
+    "qs_q0p020/69008": {
+      "price_cap_hits": 0,
+      "detections_total": 120
+    },
+    "qs_q0p020/69009": {
+      "price_cap_hits": 0,
+      "detections_total": 198
+    },
+    "qs_q0p020/69010": {
+      "price_cap_hits": 0,
+      "detections_total": 147
+    },
+    "qs_q0p020/69011": {
+      "price_cap_hits": 0,
+      "detections_total": 121
+    },
+    "qs_q0p020/69012": {
+      "price_cap_hits": 0,
+      "detections_total": 130
+    },
+    "qs_q0p020/69013": {
+      "price_cap_hits": 0,
+      "detections_total": 154
+    },
+    "qs_q0p020/69014": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p020/69015": {
+      "price_cap_hits": 0,
+      "detections_total": 153
+    },
+    "qs_q0p020/69016": {
+      "price_cap_hits": 0,
+      "detections_total": 173
+    },
+    "qs_q0p020/69017": {
+      "price_cap_hits": 0,
+      "detections_total": 147
+    },
+    "qs_q0p020/69018": {
+      "price_cap_hits": 0,
+      "detections_total": 145
+    },
+    "qs_q0p020/69019": {
+      "price_cap_hits": 0,
+      "detections_total": 152
+    },
+    "qs_q0p020/69020": {
+      "price_cap_hits": 0,
+      "detections_total": 127
+    },
+    "qs_q0p020/69021": {
+      "price_cap_hits": 0,
+      "detections_total": 155
+    },
+    "qs_q0p020/69022": {
+      "price_cap_hits": 0,
+      "detections_total": 126
+    },
+    "qs_q0p020/69023": {
+      "price_cap_hits": 0,
+      "detections_total": 145
+    },
+    "qs_q0p020/69024": {
+      "price_cap_hits": 0,
+      "detections_total": 132
+    },
+    "qs_q0p020/69025": {
+      "price_cap_hits": 0,
+      "detections_total": 150
+    },
+    "qs_q0p020/69026": {
+      "price_cap_hits": 0,
+      "detections_total": 140
+    },
+    "qs_q0p020/69027": {
+      "price_cap_hits": 0,
+      "detections_total": 125
+    },
+    "qs_q0p020/69028": {
+      "price_cap_hits": 0,
+      "detections_total": 133
+    },
+    "qs_q0p020/69029": {
+      "price_cap_hits": 0,
+      "detections_total": 153
+    },
+    "qs_q0p020/69030": {
+      "price_cap_hits": 1,
+      "detections_total": 126
+    }
+  },
+  "problems": []
+}
