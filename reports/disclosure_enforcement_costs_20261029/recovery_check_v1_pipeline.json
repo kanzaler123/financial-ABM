@@ -1,0 +1,14 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/recovery_check_v1",
+  "runs": {
+    "theta_hat/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 68
+    },
+    "theta_hat/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    }
+  },
+  "problems": []
+}

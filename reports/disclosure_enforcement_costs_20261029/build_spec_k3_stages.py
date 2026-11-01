@@ -48,6 +48,12 @@ def identified() -> list[str]:
     return json.loads((HERE / "identification_k3a.json").read_text(encoding="utf-8"))["identified"]
 
 
+def last_local_estimate() -> Path:
+    """The local estimate (c)-(e) start from: the recentred one when 28.6 (b) recentred (contract 28.27)."""
+    recentred = HERE / "stage2r_k3.json"
+    return recentred if recentred.exists() else HERE / "stage2_k3.json"
+
+
 def theta_of(u_kept: np.ndarray, names: list[str]) -> dict[str, float]:
     theta = {p.name: p.theta0 for p in ek.PARAMS}
     for name, u in zip(names, u_kept):
@@ -106,14 +112,14 @@ def main() -> None:
         write(label, rows, seeds, f"Stage K3 local design (contract 28.6 (b)): {16 * k} scrambled Sobol points "
               f"(seed 28905) in the box centre +- 0.15 (unit coordinates) over {names}, sampled archive.")
     elif args.step == "final":
-        est = json.loads((HERE / "stage2_k3.json").read_text(encoding="utf-8"))
+        est = json.loads(last_local_estimate().read_text(encoding="utf-8"))
         theta = {n: round(v, 3) for n, v in est["theta_hat"].items()}
         rows = [scenario("theta_hat", theta)]
         write("final", rows, SEEDS["final"], f"Stage K3 final stage (contract 28.6 (c)) at theta_hat {theta}.")
         write("recovery", [scenario("theta_hat", theta)], SEEDS["recovery"],
               f"Stage K3 recovery runs (contract 28.6 (d)) at theta_hat {theta}.")
     else:
-        est = json.loads((HERE / "stage2_k3.json").read_text(encoding="utf-8"))
+        est = json.loads(last_local_estimate().read_text(encoding="utf-8"))
         theta = {n: round(v, 3) for n, v in est["theta_hat"].items()}
         rows = [scenario(f"qw_q{q}_w{w}".replace(".", "p"), {**theta, "w": w}, q=q) for q in Q_GRID for w in W_GRID]
         write("qw", rows, SEEDS["qw"], f"Stage K3 (q, w) set (contract 28.6 (e)) around theta_hat {theta}.")

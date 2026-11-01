@@ -384,6 +384,139 @@ def stage2(archive: Path, spec_path: Path, centre: np.ndarray) -> dict:
             "best_design_point": rows[int(best[0])], "best_design_J": float(J[best[0]].min())}
 
 
+def local_surface(local_archive: Path, local_spec: Path, est: dict) -> tuple[Surface, np.ndarray, np.ndarray,
+                                                                             np.ndarray, np.ndarray]:
+    """The quadratic surrogate of the last local estimate (same points, same drop rule as stage2), its box, and the
+    design's unit coordinates and moments."""
+    rows, U, M = design_moments(local_archive, local_spec)
+    keep = np.isfinite(M).all(axis=(1, 2))
+    U, M = U[keep], M[keep]
+    return Surface(U, M, SIGMAS), np.array(est["box_lo"]), np.array(est["box_hi"]), U, M
+
+
+def run_point(spec_path: Path) -> tuple[dict, np.ndarray, list[int]]:
+    """theta and unit coordinates of the single scenario of a final or recovery spec (theta_hat to three decimals)."""
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    (sc,) = spec["scenarios"]
+    theta = theta_from_domain(sc["domain"])
+    u = np.array([next(p for p in PARAMS if p.name == n).to_unit(theta[n]) for n in identified_names()])
+    return theta, u, spec["seeds"]
+
+
+def profile(surface: Surface, j: int, lo: np.ndarray, hi: np.ndarray, sigma_free: bool, sigma: float,
+            m_data: np.ndarray, Omega_inv: np.ndarray, starts: np.ndarray, points: int = 61) -> dict:
+    """Contract 25.5 / 28.6 (c): J* = g' Omega^-1 g profiled over parameter j on 61 points of the local box, the
+    others (and sigma_m if free) minimised inside the box; the range with J*_prof - min J* <= 3.84."""
+    from scipy.optimize import minimize
+    k = len(lo)
+    grid = np.linspace(lo[j], hi[j], points)
+    others = [i for i in range(k) if i != j]
+    on_grid = np.flatnonzero(np.isclose(surface.sigmas, sigma))
+    # sigma_m fixed on a grid value: the spline across sigma_m passes through that grid value's quadratic exactly
+    fixed = surface.fits[int(on_grid[0])] if (not sigma_free and len(on_grid)) else None
+    out = []
+    for x in grid:
+        def f(z):
+            u = np.empty(k)
+            u[j] = x
+            u[others] = z[:k - 1]
+            m = fixed(u[None, :])[0] if fixed is not None else surface(u, z[k - 1] if sigma_free else sigma)
+            return float(criterion(m_data, Omega_inv, m))
+        bounds = [(lo[i], hi[i]) for i in others] + ([(surface.sigmas[0], surface.sigmas[-1])] if sigma_free else [])
+        best = math.inf
+        for s in starts:
+            z0 = np.append(s[others], s[k]) if sigma_free else s[others]
+            best = min(best, minimize(f, z0, method="L-BFGS-B", bounds=bounds).fun)
+        out.append(best)
+    out = np.array(out)
+    inside = grid[out - out.min() <= 3.84]
+    return {"grid_unit": grid.tolist(), "J_star": out.tolist(), "range_unit": [float(inside.min()), float(inside.max())],
+            "touches_box_edge": bool(inside.min() <= lo[j] + 1e-9 or inside.max() >= hi[j] - 1e-9)}
+
+
+def unit_to_theta_interval(name: str, lo_u: float, hi_u: float) -> list[float]:
+    p = next(p for p in PARAMS if p.name == name)
+    return [p.from_unit(min(max(lo_u, 0.0), 1.0)), p.from_unit(min(max(hi_u, 0.0), 1.0))]
+
+
+def final(local_archive: Path, local_spec: Path, est_path: Path, final_archive: Path, final_spec: Path,
+          mc_draws: int = 1_000_000) -> dict:
+    """Contract 28.6 (c) at theta_hat (three decimals): Omega = Omega_data + Omega_sim/30 (seed bootstrap of the 30
+    seeds, as in K3a); G from the local surrogate; sigma_m enters G only when its estimate is inside its grid
+    (contract 28.16: at sigma_m = 0 its derivative is 0); identification re-checked by the rule of 28.5; profile
+    intervals for every parameter."""
+    mk = _load("moments_k3")
+    est = json.loads(est_path.read_text(encoding="utf-8"))
+    names = identified_names()
+    m_data, Omega_data, W, cuts = data_target()
+    surface, lo, hi, U, M = local_surface(local_archive, local_spec, est)
+    theta, u, seeds = run_point(final_spec)
+    sigma = float(est["sigma_m_hat"])
+    with_sigma = not est["sigma_m_on_range_edge"]
+    stats = point_stats(final_archive, "theta_hat", seeds, sigma, mk, cuts)
+    m_final = mk.pooled_model_moments(stats)
+    cov_sim = mk.seed_bootstrap_cov(stats)                    # Omega_sim / 30
+    Omega = Omega_data + cov_sim
+    inf = inference(surface, u, sigma, lo, hi, m_data, W, Omega, m_final, with_sigma, mc_draws=mc_draws)
+    G = np.array(inf["G"])[:, :len(names)]
+    se_u = np.array(inf["se_unit"])[:len(names)]
+    params = {}
+    for j, n in enumerate(names):
+        p = next(p for p in PARAMS if p.name == n)
+        se = float(se_u[j] * p.scale(u[j]))
+        params[n] = {"estimate": theta[n], "u": float(u[j]), "se": se, "ci95": [theta[n] - 1.96 * se, theta[n] + 1.96 * se],
+                     "se_unit": float(se_u[j]), "ci_width_unit": float(2 * 1.96 * se_u[j])}
+    rule = identification_rule(G, W, Omega, names)
+    J_all = criterion(m_data, W, M)
+    best = np.argsort(np.nanmin(J_all, 1))[:10]
+    starts = np.vstack([np.append(u, sigma), np.column_stack([U[best], SIGMAS[np.nanargmin(J_all[best], 1)]])])
+    Omega_inv = np.linalg.inv(Omega)
+    profiles = {}
+    for j, n in enumerate(names):
+        pr = profile(surface, j, lo, hi, with_sigma, sigma, m_data, Omega_inv, starts)
+        pr["range_theta"] = unit_to_theta_interval(n, *pr["range_unit"])
+        profiles[n] = pr
+    weak = rule["dropped"]
+    return {"contract": "28.6 (c)", "estimate_from": est_path.name, "theta_hat": theta, "u_hat": u.tolist(),
+            "sigma_m": sigma, "sigma_m_in_G": with_sigma, "seeds": seeds, "moments_final": m_final.tolist(),
+            "moments_data": m_data.tolist(), "omega_sim_over_30_diag": np.diag(cov_sim).tolist(),
+            "parameters": params, "T": inf["T"], "p_value": inf["p_value"], "g": inf["g"], "band": inf["band"],
+            "in_band": inf["in_band"], "g_over_data_se": (np.array(inf["g"]) / np.sqrt(np.diag(Omega_data))).tolist(),
+            "G": inf["G"], "cov_unit": inf["cov_unit"], "identification_at_theta_hat": rule, "weakly_identified": weak,
+            "profiles": profiles, "local_box": {"lo": lo.tolist(), "hi": hi.tolist()}}
+
+
+def recovery(local_archive: Path, local_spec: Path, est_path: Path, rec_archive: Path, rec_spec: Path,
+             final_path: Path) -> dict:
+    """Contract 28.6 (d): three groups of 10 seeds at theta_hat as pseudo-data; Omega_data replaced by the group's
+    seed-bootstrap covariance (W its inverse diagonal); the same local surrogate and estimator. "Recovered" when every
+    parameter of every group lies inside the main 95% interval."""
+    mk = _load("moments_k3")
+    est = json.loads(est_path.read_text(encoding="utf-8"))
+    fin = json.loads(final_path.read_text(encoding="utf-8"))
+    names = identified_names()
+    _, _, _, cuts = data_target()
+    surface, lo, hi, U, M = local_surface(local_archive, local_spec, est)
+    theta, u, seeds = run_point(rec_spec)
+    sigma = float(est["sigma_m_hat"])
+    groups = []
+    for g in range(3):
+        stats = point_stats(rec_archive, "theta_hat", seeds[10 * g:10 * g + 10], sigma, mk, cuts)
+        m_pseudo = mk.pooled_model_moments(stats)
+        W_g = np.diag(1 / np.diag(mk.seed_bootstrap_cov(stats)))
+        J = criterion(m_pseudo, W_g, M)
+        best = np.argsort(np.nanmin(J, 1))[:10]
+        starts = np.column_stack([U[best], SIGMAS[np.nanargmin(J[best], 1)]])
+        u_g, s_g, J_g = minimise_surface(surface, starts, lo, hi, m_pseudo, W_g)
+        th = to_theta(u_g, names)
+        inside = {n: bool(fin["parameters"][n]["ci95"][0] <= th[n] <= fin["parameters"][n]["ci95"][1]) for n in names}
+        groups.append({"seeds": seeds[10 * g:10 * g + 10], "moments": m_pseudo.tolist(), "theta": th,
+                       "u": u_g.tolist(), "sigma_m": s_g, "J": J_g, "inside_main_ci": inside,
+                       "bias": {n: th[n] - fin["theta_hat"][n] for n in names}})
+    return {"contract": "28.6 (d)", "theta_hat": theta, "groups": groups,
+            "recovered": all(all(g["inside_main_ci"].values()) for g in groups)}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -396,7 +529,25 @@ def main() -> None:
     p.add_argument("archive", type=Path)
     p.add_argument("spec", type=Path)
     p.add_argument("--centre-from", type=Path, required=True, help="stage1_k3.json (u_best) or stage2_k3.json (u_hat)")
+    for cmd, extra in (("final", ("final_archive", "final_spec")), ("recovery", ("recovery_archive", "recovery_spec"))):
+        p = sub.add_parser(cmd)
+        p.add_argument("local_archive", type=Path)
+        p.add_argument("local_spec", type=Path)
+        p.add_argument("estimate", type=Path, help="stage2r_k3.json (or stage2_k3.json without recentring)")
+        for name in extra:
+            p.add_argument(name, type=Path)
     args = ap.parse_args()
+    if args.cmd == "final":
+        out = final(args.local_archive, args.local_spec, args.estimate, args.final_archive, args.final_spec)
+        (HERE / "final_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps({k: out[k] for k in ("theta_hat", "T", "p_value", "in_band", "weakly_identified")}, indent=1))
+        return
+    if args.cmd == "recovery":
+        out = recovery(args.local_archive, args.local_spec, args.estimate, args.recovery_archive, args.recovery_spec,
+                       HERE / "final_k3.json")
+        (HERE / "recovery_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        print(json.dumps({"recovered": out["recovered"], "groups": [g["theta"] for g in out["groups"]]}, indent=1))
+        return
     if args.cmd == "stage1":
         out = stage1(args.archive, args.spec)
         (HERE / "stage1_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
