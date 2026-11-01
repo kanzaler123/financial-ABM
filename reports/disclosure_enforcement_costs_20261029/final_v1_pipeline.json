@@ -1,0 +1,126 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/final_v1",
+  "runs": {
+    "theta_hat/65001": {
+      "price_cap_hits": 0,
+      "detections_total": 69
+    },
+    "theta_hat/65002": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "theta_hat/65003": {
+      "price_cap_hits": 0,
+      "detections_total": 64
+    },
+    "theta_hat/65004": {
+      "price_cap_hits": 0,
+      "detections_total": 90
+    },
+    "theta_hat/65005": {
+      "price_cap_hits": 0,
+      "detections_total": 66
+    },
+    "theta_hat/65006": {
+      "price_cap_hits": 0,
+      "detections_total": 83
+    },
+    "theta_hat/65007": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "theta_hat/65008": {
+      "price_cap_hits": 0,
+      "detections_total": 86
+    },
+    "theta_hat/65009": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "theta_hat/65010": {
+      "price_cap_hits": 0,
+      "detections_total": 72
+    },
+    "theta_hat/65011": {
+      "price_cap_hits": 0,
+      "detections_total": 69
+    },
+    "theta_hat/65012": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "theta_hat/65013": {
+      "price_cap_hits": 0,
+      "detections_total": 95
+    },
+    "theta_hat/65014": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "theta_hat/65015": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "theta_hat/65016": {
+      "price_cap_hits": 0,
+      "detections_total": 63
+    },
+    "theta_hat/65017": {
+      "price_cap_hits": 0,
+      "detections_total": 75
+    },
+    "theta_hat/65018": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "theta_hat/65019": {
+      "price_cap_hits": 0,
+      "detections_total": 93
+    },
+    "theta_hat/65020": {
+      "price_cap_hits": 0,
+      "detections_total": 64
+    },
+    "theta_hat/65021": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    },
+    "theta_hat/65022": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "theta_hat/65023": {
+      "price_cap_hits": 0,
+      "detections_total": 75
+    },
+    "theta_hat/65024": {
+      "price_cap_hits": 0,
+      "detections_total": 78
+    },
+    "theta_hat/65025": {
+      "price_cap_hits": 0,
+      "detections_total": 91
+    },
+    "theta_hat/65026": {
+      "price_cap_hits": 0,
+      "detections_total": 84
+    },
+    "theta_hat/65027": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "theta_hat/65028": {
+      "price_cap_hits": 0,
+      "detections_total": 82
+    },
+    "theta_hat/65029": {
+      "price_cap_hits": 0,
+      "detections_total": 85
+    },
+    "theta_hat/65030": {
+      "price_cap_hits": 0,
+      "detections_total": 88
+    }
+  },
+  "problems": []
+}
