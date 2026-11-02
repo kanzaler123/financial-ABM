@@ -20,8 +20,11 @@ Instruments act through distinct channels:
   ``audit_probability``. ``"value"`` and ``"jump"`` keep the expected number of
   audits, n * ``audit_probability``, and share it in proportion to market
   value, or half at random and half among firms whose report rose by more
-  than ``audit_jump_threshold`` since the previous audit. Firms plan with
-  their own probabilities only if ``audit_rule_public``;
+  than ``audit_jump_threshold`` since the previous audit. ``"initial_value"``
+  keeps the budget too and shares it in proportion to each firm's initial
+  value raised to ``audit_value_exponent``, so every firm's probability is
+  fixed for the run. Firms plan with their own probabilities only if
+  ``audit_rule_public``;
 * ``assurance_scope`` – which firms have their report checked by one of
   ``assurer_count`` assurance providers before every disclosure: none, all,
   only the large size class, or those that choose to buy it
@@ -57,7 +60,7 @@ from numpy.typing import NDArray
 from .domain import DomainSpec
 
 FIXED_FINE_BASES = ("case", "report")
-AUDIT_ALLOCATIONS = ("uniform", "value", "jump")
+AUDIT_ALLOCATIONS = ("uniform", "value", "jump", "initial_value")
 ASSURANCE_SCOPES = ("none", "voluntary", "large", "all")
 ASSURER_SELECTIONS = ("assigned", "firm")
 # Assurance options and their defaults; at the defaults they are left out of a regime's identity.
@@ -78,12 +81,14 @@ class PolicyRegime:
     fixed_fine: float = 0.0
     # "case": one fixed fine per detected case; "report": one per inflated report in it.
     fixed_fine_basis: str = "case"
-    # "uniform", "value" or "jump"; see audit_probabilities.
+    # "uniform", "value", "jump" or "initial_value"; see audit_probabilities.
     audit_allocation: str = "uniform"
     # Whether firms know the allocation; otherwise they plan with audit_probability.
     audit_rule_public: bool = True
     # Rise of a firm's report (true value plus inflation) since the previous audit that flags it.
     audit_jump_threshold: float = 0.125
+    # Power of initial value that "initial_value" shares audits by; zero audits every firm alike.
+    audit_value_exponent: float = 0.0
     # "none", "voluntary", "large" (the large size class) or "all"; see the module docstring.
     assurance_scope: str = "none"
     # "assigned": mandated firms are assigned at random once; "firm": they pick a provider every year.
@@ -120,6 +125,10 @@ class PolicyRegime:
             raise ValueError("audit_rule_public must be boolean")
         if not isfinite(self.audit_jump_threshold) or self.audit_jump_threshold <= 0:
             raise ValueError("audit_jump_threshold must be finite and positive")
+        if type(self.audit_value_exponent) not in (int, float) or not isfinite(self.audit_value_exponent):
+            raise ValueError("audit_value_exponent must be finite")
+        if self.audit_value_exponent and self.audit_allocation != "initial_value":
+            raise ValueError("audit_value_exponent is used only by the initial_value allocation")
         if not 0 <= self.audit_probability <= 1 or not 0 <= self.transparency <= 1:
             raise ValueError("audit_probability and transparency must be in [0, 1]")
         if self.penalty < 0 or self.subsidy < 0:
@@ -160,6 +169,8 @@ class PolicyRegime:
             payload.pop("audit_rule_public")
         if self.audit_allocation != "jump":
             payload.pop("audit_jump_threshold")
+        if self.audit_allocation != "initial_value":
+            payload.pop("audit_value_exponent")
         for name, value in ASSURANCE_DEFAULTS.items():
             if payload[name] == value:
                 payload.pop(name)
@@ -179,21 +190,46 @@ class PolicyRegime:
 
 def audit_probabilities(
     regime: PolicyRegime, values: NDArray[np.float64], flagged: NDArray[np.bool_] | None = None,
+    initial_values: NDArray[np.float64] | None = None,
 ) -> NDArray[np.float64]:
     """Each firm's audit probability; all allocations expect n * audit_probability audits.
 
     ``"value"`` shares them in proportion to market value ``values``. ``"jump"``
     gives every firm half the mean probability and shares the other half
     equally among the ``flagged`` firms, or among all firms when none is
-    flagged. A probability above one is capped and the excess goes to the
-    other firms by the same rule: in proportion to value, or equally to the
-    unflagged firms.
+    flagged. ``"initial_value"`` shares them in proportion to
+    ``initial_values ** audit_value_exponent``; with exponent zero every firm
+    gets exactly the mean probability. A probability above one is capped and
+    the excess goes to the other firms by the same rule: in proportion to value
+    or to the weights, or equally to the unflagged firms.
     """
     values = np.asarray(values, dtype=np.float64)
     size, mean = values.size, regime.audit_probability
     if regime.audit_allocation == "uniform":
         return np.full(size, mean)
     budget = size * mean
+    if regime.audit_allocation == "initial_value":
+        if initial_values is None:
+            raise ValueError("the initial_value allocation needs each firm's initial value")
+        if regime.audit_value_exponent == 0:
+            return np.full(size, mean)
+        initial = np.asarray(initial_values, dtype=np.float64)
+        if initial.shape != (size,) or not np.isfinite(initial).all() or np.any(initial <= 0):
+            raise ValueError("initial values must be one positive finite value per firm")
+        weights = initial**regime.audit_value_exponent
+        if not np.isfinite(weights).all() or np.any(weights <= 0):
+            raise ValueError("initial values raised to audit_value_exponent must be positive and finite")
+        # The capping of "value", with these weights in place of market value.
+        probability = np.ones(size)
+        free = np.ones(size, dtype=bool)
+        while free.any():
+            probability[free] = (budget - (size - free.sum())) * weights[free] / weights[free].sum()
+            over = free & (probability > 1.0)
+            if not over.any():
+                break
+            probability[over] = 1.0
+            free &= ~over
+        return probability
     if regime.audit_allocation == "value":
         probability = np.ones(size)
         free = np.ones(size, dtype=bool)

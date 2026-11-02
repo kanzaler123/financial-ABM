@@ -619,6 +619,8 @@ class DisclosureMarket(CrossSectionMarket):
         elif learner is not None or training or coverage_target or common_prepolicy_sha256 is not None:
             raise ValueError("learner and training are only valid for q_learning")
         super().__init__(config)
+        # Day-0 intrinsic values, which also set the size classes; the initial_value audit allocation weights them.
+        self.initial_intrinsic_value = self.firms.intrinsic_value.copy()
         self.domain = domain
         self.policy = policy
         self.learner = learner
@@ -975,7 +977,7 @@ class DisclosureMarket(CrossSectionMarket):
             if regime.audit_allocation == "jump" and self.report_after_audit is not None:
                 flagged = self._claimed_report() - self.report_after_audit > regime.audit_jump_threshold
                 self.audit_flag_history[period] = flagged
-            probability = audit_probabilities(regime, self.prices, flagged)
+            probability = audit_probabilities(regime, self.prices, flagged, initial_values=self.initial_intrinsic_value)
             self.audit_probability_history[period] = probability
             selected = draws < probability
         else:
@@ -1023,6 +1025,9 @@ class DisclosureMarket(CrossSectionMarket):
             planned = probability
         elif regime.audit_allocation == "jump" and regime.audit_rule_public:
             planned, first_planned, flag_room = self._jump_plan(day, regime, flagged)
+        elif regime.audit_allocation == "initial_value" and regime.audit_rule_public and regime.audit_value_exponent:
+            # With exponent zero every rate is the mean, so firms plan with it as under random audits.
+            planned = probability
         new_case_fine = None
         if regime.fixed_fine and regime.fixed_fine_basis == "report":
             # Every new inflated report carries its own fine whatever the stock it joins.

@@ -1,0 +1,39 @@
+{
+  "contract": "28.37",
+  "rerun": {
+    "archive": "final_check_v1/theta_hat/seed_38201/attempt_001",
+    "archived": "58591a4a427e34bf97ebc32d84c3e62912d9d887501e4c5992f485b6ddecc6d9",
+    "rerun": "58591a4a427e34bf97ebc32d84c3e62912d9d887501e4c5992f485b6ddecc6d9",
+    "identical": true,
+    "seconds": 136.7
+  },
+  "final": {
+    "spec": "configs/disclosure_stage_k3_final_v1.json",
+    "recorded_experiment_id": "5307d8e8c9831a99d6adbcab0f6141cf84013d5dff25b19576f695ccaef50f79",
+    "working_tree_experiment_id": "d6804bd8c23f531c3539e3caa7b47175cb25d883323aa0c74aaa52328a72fbc1",
+    "differing_fields": [
+      "experiment_id",
+      "source_hashes"
+    ],
+    "differing_source_files": [
+      "abm/disclosure/game.py",
+      "abm/disclosure/policy.py"
+    ],
+    "passed": true
+  },
+  "qscan": {
+    "spec": "configs/disclosure_stage_k3_qscan_v1.json",
+    "recorded_experiment_id": "f9475aceb44d1f3d46d305524a6fa0ebb77855db4d8ed5fe5c10173fb0483c98",
+    "working_tree_experiment_id": "49bddbe7b53ed9406200de865ca94344ba2d6b999215645d4614c5138e497f77",
+    "differing_fields": [
+      "experiment_id",
+      "source_hashes"
+    ],
+    "differing_source_files": [
+      "abm/disclosure/game.py",
+      "abm/disclosure/policy.py"
+    ],
+    "passed": true
+  },
+  "passed": true
+}
