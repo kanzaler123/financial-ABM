@@ -7,7 +7,9 @@ SeedSequence([seed, 2504]), the same as stage H) and computes m1-m9 with moments
 
   python estimate_k3.py identify <K3a archive>      # contract 28.5: Jacobian at theta_0 and the identification rule
 
-The later steps (28.6 (a)-(e)) add subcommands here before their specs are frozen.
+The later steps (28.6 (a)-(e)) add subcommands here before their specs are frozen; contract 28.37 adds
+
+  python estimate_k3.py sizeaudit <archive> <spec> [--check]   # the size-dependent audit scan at theta_hat
 """
 
 from __future__ import annotations
@@ -637,6 +639,218 @@ def qscan(archive: Path, spec_path: Path) -> dict:
             "detections_without_audit": without_audit}
 
 
+# -- contract 28.37: the size-dependent audit scan ------------------------------------------------------------------
+
+SIZE_GROUPS = {"large": 0, "mid": 1, "small": 2}
+
+
+def size_audit_cells(spec: dict) -> list[dict]:
+    """Name, arm and beta of each sizeaudit scenario. The scenario without a policy is random audits (beta = 0), shared
+    by both arms; one with the initial_value allocation at beta = 0 (development only) is a check cell."""
+    cells = []
+    for sc in spec["scenarios"]:
+        base = sc.get("policy", {}).get("baseline")
+        if base is None:
+            cells.append({"name": sc["name"], "arm": "both", "beta": 0.0})
+            continue
+        beta = float(base["audit_value_exponent"])
+        arm = ("public" if base.get("audit_rule_public", True) else "hidden") if beta else "check"
+        cells.append({"name": sc["name"], "arm": arm, "beta": beta})
+    return cells
+
+
+def bootstrap_m9(per_seed: dict[str, np.ndarray], mk, draws: int = 1000, seed: int = 28906) -> dict[str, np.ndarray]:
+    """Seed-bootstrap draws of each cell's pooled m9; per_seed[cell] is seeds x [cases small, firm-years small, cases
+    large, firm-years large]. The resampling is that of moments_k3.seed_bootstrap_cov (the same generator, one
+    integers() call per draw), so all cells, which share their seeds in one order, get the same resampled seeds."""
+    (count,) = {len(sums) for sums in per_seed.values()}
+    rng = np.random.default_rng(seed)
+    picks = [rng.integers(0, count, count) for _ in range(draws)]
+    return {name: np.array([mk.log_ratio(sums[pick]) for pick in picks]) for name, sums in per_seed.items()}
+
+
+def percentile_interval(draws: np.ndarray) -> dict:
+    """2.5% and 97.5% quantiles by the inverse empirical distribution (no interpolation, so infinite draws, where a
+    group has no detection, sort to the ends); NaN draws (no detection in either group) are left out and counted. The
+    standard error is the standard deviation of the finite draws. With every draw NaN there is no interval (None)."""
+    valid = draws[~np.isnan(draws)]
+    ci = ([float(x) for x in np.quantile(valid, [0.025, 0.975], method="inverted_cdf")] if valid.size else None)
+    finite = valid[np.isfinite(valid)]
+    return {"ci95": ci, "se": float(finite.std(ddof=1)) if finite.size > 1 else None,
+            "plus_inf_draws": int((valid == np.inf).sum()), "minus_inf_draws": int((valid == -np.inf).sum()),
+            "nan_draws": int(draws.size - valid.size)}
+
+
+def classify_m9(m9: float, ci: list[float], data_ci: list[float]) -> dict:
+    """Contract 28.37: the sign of m9 and its interval against the data interval; an undefined m9 is in no class."""
+    if not math.isfinite(m9) or ci is None:
+        return {"sign": "undefined", "data": "undefined", "mean_in_data_ci": False}
+    sign = "clearly_positive" if ci[0] > 0 else "clearly_negative" if ci[1] < 0 else "sign_undetermined"
+    data = "clearly_below" if ci[1] < data_ci[0] else "clearly_above" if ci[0] > data_ci[1] else "cannot_exclude"
+    return {"sign": sign, "data": data, "mean_in_data_ci": bool(data_ci[0] <= m9 <= data_ci[1])}
+
+
+def arm_path(betas: list[float], m9s: list[float], levels: dict[str, float]) -> dict:
+    """Each adjacent step along beta (from 0 downwards): does m9 rise; and, on rising steps only, the linear
+    interpolation of the beta at which m9 crosses each level."""
+    pairs = list(zip(betas, m9s))
+    steps = [{"from": a, "to": b, "rising": bool(math.isfinite(ma) and math.isfinite(mb) and mb > ma)}
+             for (a, ma), (b, mb) in zip(pairs, pairs[1:])]
+    crossings = {label: [a + (level - ma) / (mb - ma) * (b - a)
+                         for ((a, ma), (b, mb)), step in zip(zip(pairs, pairs[1:]), steps)
+                         if step["rising"] and ma < level <= mb]
+                 for label, level in levels.items()}
+    return {"steps": steps, "all_steps_rising": all(s["rising"] for s in steps),
+            "crossings_on_rising_steps": crossings}
+
+
+def threshold_cells(rows: list[dict]) -> list[str]:
+    """Contract 28.37: the cells (beta != 0) whose m9 is clearly positive and cannot be excluded from the data
+    interval; an arm reaches the threshold if it has one."""
+    return [r["name"] for r in rows if r["beta"] != 0 and r["sign"] == "clearly_positive"
+            and r["data"] == "cannot_exclude"]
+
+
+def size_audit(archive: Path, spec_path: Path) -> dict:
+    """Contract 28.37 at theta_hat: m9 at each beta and rule (30 seeds pooled), its seed-bootstrap percentile interval,
+    the sign and data-interval classes, the point rule, monotonicity and interpolated crossings per arm, the public
+    minus hidden difference and the threshold. Descriptive by-products per cell and size group: the mean audit rate
+    per period and the multipliers, audits, the share of audits that found inflation, the share of firm-days with
+    inflation, yearly detection rates beside K1's, the audit and hit-share terms of m9, m1-m9 at sigma_m = 0 and J,
+    price cap hits, detections without an audit, and the beta = 0 cross-check."""
+    from scipy.stats import t as student_t
+    mk = _load("moments_k3")
+    k1 = json.loads((HERE / "k1_size_correction.json").read_text(encoding="utf-8"))["main"]
+    data_ci = [float(x) for x in k1["log_ratio_small_over_large"]["T1_T2"]["ci95_log"]]
+    k1_rates = {"all": k1["pooled"]["T1_T2"], **{g: k1["by_size"][g]["T1_T2"] for g in SIZE_GROUPS}}
+    m_data, Omega_data, W, cuts = data_target()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    seeds, cells = spec["seeds"], size_audit_cells(spec)
+    q_bar = spec["scenarios"][0]["domain"]["baseline_audit_probability"]
+    tq = float(student_t.ppf(0.975, len(seeds) - 1))
+    stats = {c["name"]: point_stats(archive, c["name"], seeds, 0.0, mk, cuts) for c in cells}
+    per_seed = {name: np.array([s.ratio.sum(0) for s in st]) for name, st in stats.items()}
+    boot = bootstrap_m9(per_seed, mk)
+    rows, without_audit = [], 0
+    blocks = slice(mk.BLOCK_START, mk.BLOCK_START + mk.BLOCKS * mk.BLOCK_DAYS)
+    for cell in cells:
+        name, st = cell["name"], stats[cell["name"]]
+        targeted = cell["arm"] != "both"
+        m9 = mk.log_ratio(np.concatenate([s.ratio for s in st]))
+        interval = percentile_interval(boot[name])
+        g_all = ("all", *SIZE_GROUPS)
+        tally = {g: dict.fromkeys(("audits", "found", "inflating", "firm_days", "cases", "firm_years"), 0) for g in g_all}
+        rate = {g: [] for g in g_all}
+        caps, constant, budget_error = 0, True, 0.0
+        keys = ("inflation", "audit_selected", "detections", "market_size_class", "market_price_cap_hits")
+        for seed in seeds:
+            a = load_arrays(archive, name, seed, keys + (("audit_probability",) if targeted else ()))
+            caps += int(a["market_price_cap_hits"].sum())
+            size_class = a["market_size_class"]
+            pdays = np.arange(a["detections"].shape[0]) * 60
+            periods = (pdays >= mk.BLOCK_START) & ((pdays - mk.BLOCK_START) // mk.BLOCK_DAYS < mk.BLOCKS)
+            block = (pdays[periods] - mk.BLOCK_START) // mk.BLOCK_DAYS
+            inflating = a["inflation"][blocks] > 0
+            selected = a["audit_selected"][periods] == 1
+            found = a["detections"][periods] > 0
+            without_audit += int((found & ~selected).sum())
+            hit = np.array([found[block == b].any(axis=0) for b in range(mk.BLOCKS)])
+            if targeted:
+                q_rows = a["audit_probability"][1:]
+                constant &= bool((q_rows == q_rows[0]).all())
+                budget_error = max(budget_error, float(np.abs(q_rows.sum(axis=1) - q_bar * size_class.size).max()))
+                q = q_rows[0]
+            else:
+                q = np.full(size_class.size, q_bar)
+            for g in g_all:
+                cols = np.ones(size_class.size, dtype=bool) if g == "all" else size_class == SIZE_GROUPS[g]
+                rate[g].append(float(q[cols].mean()))
+                t = tally[g]
+                t["audits"] += int(selected[:, cols].sum())
+                t["found"] += int((found & selected)[:, cols].sum())
+                t["inflating"] += int(inflating[:, cols].sum())
+                t["firm_days"] += int(inflating[:, cols].size)
+                t["cases"] += int(hit[:, cols].sum())
+                t["firm_years"] += int(hit[:, cols].size)
+        cs, ys, cl, yl = per_seed[name].sum(0)
+        # The group tallies recount m9's cases from the same arrays.
+        assert (tally["small"]["cases"], tally["small"]["firm_years"], tally["large"]["cases"],
+                tally["large"]["firm_years"]) == (cs, ys, cl, yl), name
+        per_audit = {g: t["audits"] / t["firm_years"] for g, t in tally.items()}
+        hit_share = {g: (t["found"] / t["audits"] if t["audits"] else None) for g, t in tally.items()}
+        with np.errstate(divide="ignore"):
+            log_audits = float(np.log(per_audit["small"] / per_audit["large"])) if per_audit["large"] else math.inf
+            log_hits = (float(np.log(hit_share["small"] / hit_share["large"]))
+                        if hit_share["small"] and hit_share["large"] else None)
+        ratios = {"small_over_large": np.array(rate["small"]) / np.array(rate["large"]),
+                  "mid_over_large": np.array(rate["mid"]) / np.array(rate["large"])}
+        moments = mk.pooled_model_moments(st)
+        all_rates = yearly_rates(archive, name, seeds, mk)
+        se_all = float(all_rates.std(ddof=1) / math.sqrt(len(all_rates)))
+        rows.append({
+            **cell, "m9": m9, **interval, **classify_m9(m9, interval["ci95"], data_ci),
+            "cases": {"small": int(cs), "small_firm_years": int(ys), "large": int(cl), "large_firm_years": int(yl)},
+            "rate_per_period": {g: float(np.mean(v)) for g, v in rate.items()},
+            "yearly_audit_probability_of_mean_rate": {g: 1 - (1 - float(np.mean(v))) ** (252 / 60)
+                                                      for g, v in rate.items()},
+            "multipliers": {k: {"mean": float(v.mean()), "min": float(v.min()), "max": float(v.max())}
+                            for k, v in ratios.items()},
+            "rates_constant_over_periods": constant, "budget_max_abs_error": budget_error,
+            "audits": {g: t["audits"] for g, t in tally.items()}, "audits_per_firm_year": per_audit,
+            "audits_finding_inflation_share": hit_share,
+            "inflating_firm_day_share": {g: t["inflating"] / t["firm_days"] for g, t in tally.items()},
+            "yearly_detection_rate": {g: t["cases"] / t["firm_years"] for g, t in tally.items()},
+            "all_firm_rate_seed_mean": float(all_rates.mean()), "all_firm_rate_se": se_all,
+            "all_firm_rate_ci95": [float(all_rates.mean()) - tq * se_all, float(all_rates.mean()) + tq * se_all],
+            "m9_terms": {"log_audits_per_firm_year_ratio": log_audits, "log_hit_share_ratio": log_hits,
+                         "m9_minus_terms": (m9 - log_audits - log_hits) if log_hits is not None else None},
+            "moments_sigma0": moments.tolist(), "J": float(criterion(m_data, W, moments)), "price_cap_hits": caps})
+    shared = next(r for r in rows if r["arm"] == "both")
+    levels = {"zero": 0.0, "data_ci_low": data_ci[0], "data_ci_high": data_ci[1]}
+    arms = {}
+    for arm in ("public", "hidden"):
+        path = [shared] + sorted((r for r in rows if r["arm"] == arm), key=lambda r: -r["beta"])
+        own = path[1:]
+        reached = threshold_cells(own)
+        arms[arm] = {"cells": [r["name"] for r in path], "betas": [r["beta"] for r in path],
+                     "m9": [r["m9"] for r in path], **arm_path([r["beta"] for r in path], [r["m9"] for r in path], levels),
+                     "clearly_positive": [r["name"] for r in own if r["sign"] == "clearly_positive"],
+                     "cannot_exclude": [r["name"] for r in own if r["data"] == "cannot_exclude"],
+                     "point_rule": [r["name"] for r in own if r["mean_in_data_ci"]],
+                     "threshold_cells": reached, "threshold_reached": bool(reached)}
+    by_arm = {arm: {r["beta"]: r for r in rows if r["arm"] == arm} for arm in ("public", "hidden")}
+    differences = []
+    for beta in sorted(set(by_arm["public"]) & set(by_arm["hidden"]), reverse=True):
+        pub, hid = by_arm["public"][beta], by_arm["hidden"][beta]
+        with np.errstate(invalid="ignore"):
+            draws = boot[pub["name"]] - boot[hid["name"]]
+        differences.append({"beta": beta, "public_minus_hidden": pub["m9"] - hid["m9"], **percentile_interval(draws)})
+    final_m9 = json.loads((HERE / "final_k3.json").read_text(encoding="utf-8"))["moments_final"][8]
+    first = json.loads((HERE / "qscan_k3.json").read_text(encoding="utf-8"))["points"][0]
+    assert first["q"] == q_bar
+    return {"contract": "28.37", "spec": spec_path.name, "theta_hat": theta_from_domain(spec["scenarios"][0]["domain"]),
+            "seeds": seeds, "q_bar": q_bar, "bootstrap": {"draws": 1000, "seed": 28906},
+            "data": {"m9": float(m_data[8]), "se": float(math.sqrt(Omega_data[8, 8])), "ci95": data_ci},
+            "k1_rates_T1_T2": k1_rates, "t_quantile": tq, "cells": rows, "arms": arms,
+            "public_minus_hidden": differences,
+            "threshold": {arm: v["threshold_reached"] for arm, v in arms.items()},
+            "cross_check_beta0": {"m9": shared["m9"], "final_stage_m9": final_m9, "qscan_q0p010_m9": first["m9"],
+                                  "minus_final_stage": shared["m9"] - final_m9,
+                                  "minus_qscan_q0p010": shared["m9"] - first["m9"]},
+            "detections_without_audit": without_audit, "price_cap_hits_total": sum(r["price_cap_hits"] for r in rows)}
+
+
+def nonfinite_paths(node, path: str = "") -> list[str]:
+    """Paths of the non-finite numbers in a nested result (for the development check, which prints no number)."""
+    if isinstance(node, dict):
+        return [p for k, v in node.items() for p in nonfinite_paths(v, f"{path}/{k}")]
+    if isinstance(node, list):
+        return [p for i, v in enumerate(node) for p in nonfinite_paths(v, f"{path}[{i}]")]
+    if isinstance(node, float) and not math.isfinite(node):
+        return [path]
+    return []
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -662,7 +876,29 @@ def main() -> None:
     p = sub.add_parser("qscan")
     p.add_argument("archive", type=Path)
     p.add_argument("spec", type=Path)
+    p = sub.add_parser("sizeaudit")
+    p.add_argument("archive", type=Path)
+    p.add_argument("spec", type=Path)
+    p.add_argument("--check", action="store_true",
+                   help="development archive: report field names and non-finite paths only, print no value, write nothing")
     args = ap.parse_args()
+    if args.cmd == "sizeaudit":
+        out = size_audit(args.archive, args.spec)
+        if args.check:
+            print(json.dumps({"cells": [c["name"] for c in out["cells"]], "cell_fields": sorted(out["cells"][0]),
+                              "top_fields": sorted(out), "nonfinite_paths": nonfinite_paths(out),
+                              "detections_without_audit_zero": out["detections_without_audit"] == 0}, indent=1))
+            return
+        (HERE / "sizeaudit_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))
+        for c in out["cells"]:
+            print(f"{c['name']:15s} beta {c['beta']:5.2f}  m9 {c['m9']:7.3f}  95% [{c['ci95'][0]:7.3f}, {c['ci95'][1]:7.3f}]"
+                  f"  se {c['se']}  {c['sign']:18s} {c['data']:15s} point {c['mean_in_data_ci']}"
+                  f"  large cases {c['cases']['large']}")
+        print(json.dumps({k: out[k] for k in ("threshold", "public_minus_hidden", "cross_check_beta0",
+                                              "detections_without_audit", "price_cap_hits_total")}, indent=1))
+        print(json.dumps({arm: {k: v[k] for k in ("all_steps_rising", "crossings_on_rising_steps", "threshold_cells")}
+                          for arm, v in out["arms"].items()}, indent=1))
+        return
     if args.cmd == "qscan":
         out = qscan(args.archive, args.spec)
         (HERE / "qscan_k3.json").write_bytes((json.dumps(out, indent=2) + "\n").encode("utf-8"))

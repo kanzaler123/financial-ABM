@@ -1,0 +1,181 @@
+{
+  "contract": "28.37",
+  "synthetic_seed": 28908,
+  "bootstrap_seed": 28906,
+  "data_ci": [
+    1.052664586430521,
+    1.7798659311792209
+  ],
+  "cells": {
+    "A": {
+      "rates": [
+        0.04,
+        0.01
+      ],
+      "true_m9": 1.3862943611198906,
+      "m9": 1.3609765531356008,
+      "ci95": [
+        1.1278114433603719,
+        1.651522267736341
+      ],
+      "se": 0.13392497545076162,
+      "sign": "clearly_positive",
+      "data": "cannot_exclude",
+      "mean_in_data_ci": true,
+      "large_cases": 50
+    },
+    "B": {
+      "rates": [
+        0.025,
+        0.04
+      ],
+      "true_m9": -0.4700036292457356,
+      "m9": -0.5067828807490322,
+      "ci95": [
+        -0.6626104566998636,
+        -0.3392538795830899
+      ],
+      "se": 0.08064897410967392,
+      "sign": "clearly_negative",
+      "data": "clearly_below",
+      "mean_in_data_ci": false,
+      "large_cases": 192
+    },
+    "C": {
+      "rates": [
+        0.05,
+        0.002
+      ],
+      "true_m9": 3.2188758248682006,
+      "m9": 3.5498910220263555,
+      "ci95": [
+        2.996426476983467,
+        4.445262224031037
+      ],
+      "se": 0.40372002810381136,
+      "sign": "clearly_positive",
+      "data": "clearly_above",
+      "mean_in_data_ci": false,
+      "large_cases": 7
+    },
+    "D": {
+      "rates": [
+        0.03,
+        0.03
+      ],
+      "true_m9": 0.0,
+      "m9": 0.05916027831271272,
+      "ci95": [
+        -0.09508344814027683,
+        0.2267086174787058
+      ],
+      "se": 0.08318556644517322,
+      "sign": "sign_undetermined",
+      "data": "clearly_below",
+      "mean_in_data_ci": false,
+      "large_cases": 134
+    },
+    "E": {
+      "rates": [
+        0.03,
+        0.0
+      ],
+      "true_m9": Infinity,
+      "m9": Infinity,
+      "ci95": [
+        Infinity,
+        Infinity
+      ],
+      "se": null,
+      "sign": "undefined",
+      "data": "undefined",
+      "mean_in_data_ci": false,
+      "large_cases": 0
+    }
+  },
+  "path": {
+    "steps": [
+      {
+        "from": 0.0,
+        "to": -0.25,
+        "rising": true
+      },
+      {
+        "from": -0.25,
+        "to": -0.5,
+        "rising": true
+      },
+      {
+        "from": -0.5,
+        "to": -0.75,
+        "rising": true
+      },
+      {
+        "from": -0.75,
+        "to": -1.0,
+        "rising": false
+      },
+      {
+        "from": -1.0,
+        "to": -1.25,
+        "rising": true
+      },
+      {
+        "from": -1.25,
+        "to": -1.5,
+        "rising": true
+      }
+    ],
+    "all_steps_rising": false,
+    "crossings_on_rising_steps": {
+      "zero": [
+        -0.25
+      ],
+      "data_ci_low": [
+        -0.6886102443460504
+      ],
+      "data_ci_high": [
+        -1.1888516475497837
+      ]
+    }
+  },
+  "checks": {
+    "bootstrap_matches_seed_bootstrap_cov": true,
+    "A_m9": true,
+    "A_draws": true,
+    "A_ci95": true,
+    "A_classes_by_hand": true,
+    "A_classes_as_built": true,
+    "A_point_rule": true,
+    "B_m9": true,
+    "B_draws": true,
+    "B_ci95": true,
+    "B_classes_by_hand": true,
+    "B_classes_as_built": true,
+    "B_point_rule": true,
+    "C_m9": true,
+    "C_draws": true,
+    "C_ci95": true,
+    "C_classes_by_hand": true,
+    "C_classes_as_built": true,
+    "C_point_rule": true,
+    "D_m9": true,
+    "D_draws": true,
+    "D_ci95": true,
+    "D_classes_by_hand": true,
+    "D_classes_as_built": true,
+    "D_point_rule": true,
+    "E_m9": true,
+    "E_draws": true,
+    "E_ci95": true,
+    "E_classes_by_hand": true,
+    "E_classes_as_built": true,
+    "threshold_cells": true,
+    "paired_difference_of_identical_cells_is_zero": true,
+    "all_nan_draws_no_interval": true,
+    "rising_steps": true,
+    "all_steps_rising_false": true,
+    "crossings": true
+  },
+  "passed": true
+}

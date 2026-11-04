@@ -33,6 +33,7 @@ BLOCKS = {
     "recovery": list(range(66001, 66031)),
     "q_w_set": list(range(67001, 67006)),
     "q_scan": list(range(69001, 69031)),                       # contract 28.34
+    "size_audit_scan": list(range(70001, 70031)),              # contract 28.37
 }
 
 

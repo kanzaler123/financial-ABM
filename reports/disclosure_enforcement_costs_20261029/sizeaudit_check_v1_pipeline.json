@@ -1,0 +1,169 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/sizeaudit_check_v1",
+  "runs": {
+    "sa_b0p00/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 68
+    },
+    "sa_b0p00/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "sa_pub_b0p00/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 68
+    },
+    "sa_pub_b0p00/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 77
+    },
+    "sa_pub_bm1p50/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 33
+    },
+    "sa_pub_bm1p50/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 32
+    },
+    "sa_hid_bm1p50/38201": {
+      "price_cap_hits": 0,
+      "detections_total": 35
+    },
+    "sa_hid_bm1p50/38202": {
+      "price_cap_hits": 0,
+      "detections_total": 41
+    }
+  },
+  "problems": [
+    [
+      "sa_pub_bm1p50",
+      0.0,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.05,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.1,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.15,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.2,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.25,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.3,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.35,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.4,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.45,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.5,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.55,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_pub_bm1p50",
+      0.6,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.0,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.05,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.1,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.15,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.2,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.25,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.3,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.35,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.4,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.45,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.5,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.55,
+      "m9 undefined (no detection in a size group)"
+    ],
+    [
+      "sa_hid_bm1p50",
+      0.6,
+      "m9 undefined (no detection in a size group)"
+    ]
+  ]
+}
