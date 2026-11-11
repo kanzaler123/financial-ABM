@@ -1,0 +1,9 @@
+{
+  "archive": "reports/disclosure_enforcement_costs_20261029/sizeaudit_v1",
+  "runs": 390,
+  "problems": [],
+  "detections_without_audit": 0,
+  "targeted_runs": 360,
+  "max_budget_error": 4.440892098500626e-16,
+  "bitwise_pairs": 0
+}
