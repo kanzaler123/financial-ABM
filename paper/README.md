@@ -1,5 +1,7 @@
 # Working paper
 
+**Correction notice — 16 November 2026:** the committed paper and its result tables are historical outputs. The [research corrections](../docs/review_corrections_20261116.md) supersede the affected H2/I auxiliary profile intervals and H3 equal-budget interpretation. Corrected empirical intervals still require the original local archives. The assurance implementation now records fees and provider effort separately and pairs check draws by calendar day; its historical policy results have not been rerun under this corrected protocol. No PDF or historical numerical table has been silently replaced.
+
 `main.tex` is the English working paper on the stage F experiment (contract Section 20), its exploratory supplements, the targeted-audit experiment (contract Section 21), the assurance experiment (contract Section 22), the learning-firm redo (contract Section 23) and the joint robustness test (contract Section 24). The version of 20 October 2026 is the one first posted on SSRN; the version of 23 October 2026 adds the assurance experiment, the learning-firm redo and the joint robustness test, and describes the mean-reversion rates as data-motivated sensitivity values rather than upper bounds. Red bracketed text in the PDF marks placeholders; none remain.
 
 Build from this directory:

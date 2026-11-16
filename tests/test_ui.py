@@ -6,17 +6,12 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from abm.config import load_stage1_config
-from abm.desktop import (
-    MarketMonitorWindow,
-    ReplayController,
-    TelemetryModel,
-    _application,
-    live_worker,
-)
 from abm.harness import run_stage1
+from abm.run_service import controlled_run_worker as live_worker
 from abm.telemetry import (
     NonBlockingQueueSink,
     TelemetryEvent,
@@ -67,6 +62,10 @@ def _client(tmp_path):
 
 
 def test_replay_window_renders_all_stage1_metrics(tmp_path) -> None:
+    pytest.importorskip("PySide6")
+    pytest.importorskip("pyqtgraph")
+    from abm.desktop import MarketMonitorWindow, _application
+
     config = replace(
         load_stage1_config(CONFIG_PATH),
         population_size=40,
@@ -214,6 +213,10 @@ def test_visualizer_sink_does_not_change_simulation_hash() -> None:
 
 
 def test_live_and_replay_models_have_identical_daily_metrics(tmp_path) -> None:
+    pytest.importorskip("PySide6")
+    pytest.importorskip("pyqtgraph")
+    from abm.desktop import TelemetryModel
+
     config = replace(
         load_stage1_config(CONFIG_PATH),
         population_size=100,
@@ -233,6 +236,10 @@ def test_live_and_replay_models_have_identical_daily_metrics(tmp_path) -> None:
 
 
 def test_replay_controller_supports_pause_resume_step_and_speed() -> None:
+    pytest.importorskip("PySide6")
+    pytest.importorskip("pyqtgraph")
+    from abm.desktop import ReplayController
+
     controller = ReplayController(tuple(_event(index) for index in range(1, 6)))
 
     assert controller.advance() == ()

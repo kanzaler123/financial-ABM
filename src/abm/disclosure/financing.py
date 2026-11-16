@@ -66,16 +66,21 @@ def _firm_rate_factors(
     discount = np.exp(-times[:, None] * rate[None, :] / TRADING_DAYS_PER_YEAR)
     first_discount = np.exp(-rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR)
     repeat_discount = np.exp(-rate * period_days / TRADING_DAYS_PER_YEAR)
+    denominator = 1.0 - (1.0 - later) * repeat_discount
     if first is None:
         survival = np.power(1.0 - later[None, :], audits[:, None])
-        fine = later * first_discount / (1.0 - (1.0 - later) * repeat_discount)
+        # No later audit means no eventual fine, including at zero discount
+        # where the geometric-series expression would otherwise be 0 / 0.
+        fine = np.divide(later * first_discount, denominator,
+                         out=np.zeros_like(rate), where=later > 0)
     else:
         first = np.broadcast_to(np.asarray(first, dtype=np.float64), rate.shape)
         survival = np.where(audits[:, None] > 0,
                             (1.0 - first)[None, :] * np.power(1.0 - later[None, :], np.maximum(audits - 1, 0)[:, None]),
                             1.0)
-        fine = first_discount * (first + (1.0 - first) * repeat_discount * later
-                                 / (1.0 - (1.0 - later) * repeat_discount))
+        later_fine = np.divide((1.0 - first) * repeat_discount * later, denominator,
+                               out=np.zeros_like(rate), where=later > 0)
+        fine = first_discount * (first + later_fine)
     real = real_visible @ discount / TRADING_DAYS_PER_YEAR
     wash = np.sum(survival * wash_visible[:, None] * discount, axis=0) / TRADING_DAYS_PER_YEAR
     return real, wash, fine

@@ -223,6 +223,10 @@ class AttributeState:
 
 ASSURANCE_ARRAYS = ("assurer_assignment", "assurance_checked_inflated", "assurance_corrections",
                     "assurer_quality", "assurer_inflation_share", "assurer_liability_events")
+# Version 1 shared the assignment and check stream. Different mandated populations
+# consumed different permutations, so same-seed checks did not stay paired. Existing
+# evidence keeps that protocol; new assurance runs must be regenerated under v2.
+ASSURANCE_PROTOCOL = "independent_assignment_and_calendar_checks_v2"
 # An assurance year: providers set their quality and firms pick providers once every this many decision periods.
 ASSURANCE_YEAR_PERIODS = 4
 
@@ -236,6 +240,7 @@ class AssuranceState:
     """
 
     rng: np.random.Generator
+    check_seed: int
     count: int
     client_of: IntArray
     quality: FloatArray
@@ -249,7 +254,9 @@ class AssuranceState:
     @classmethod
     def create(cls, seed: int, count: int, n_firms: int, decisions: int) -> "AssuranceState":
         return cls(
-            rng=np.random.default_rng(np.random.SeedSequence([seed, 2])), count=count,
+            # Keep the original assignments, but never consume the check stream here.
+            rng=np.random.default_rng(np.random.SeedSequence([seed, 2])),
+            check_seed=seed, count=count,
             client_of=np.full(n_firms, -1, dtype=np.int64), quality=np.zeros(count), share=np.zeros(count),
             signed_by=np.full(n_firms, -1, dtype=np.int64), year_checks=np.zeros(count, dtype=np.int64),
             year_inflated=np.zeros(count, dtype=np.int64),
@@ -266,6 +273,10 @@ class AssuranceState:
     def firm_quality(self) -> FloatArray:
         """Each firm's chance that a check finds its inflation: its provider's quality, or 0."""
         return np.where(self.client_of >= 0, self.quality[np.maximum(self.client_of, 0)], 0.0)
+
+    def check_draws(self, day: int, n_firms: int) -> FloatArray:
+        """Same firm's draw on the same day, even when scopes or start dates differ."""
+        return np.random.default_rng(np.random.SeedSequence([self.check_seed, 2, 1, day])).random(n_firms)
 
     def client_share(self, inflation: FloatArray) -> FloatArray:
         """Share of each provider's clients whose report carries inflation (0 without clients)."""
@@ -555,6 +566,11 @@ class DisclosureResult:
     assurer_liability_events: IntArray | None = None
     # Per day and firm, recorded only when reversion has permanent levels: the anchors mu_i.
     reversion_anchor: FloatArray | None = None
+    # Commitments on the check day, per day and firm. Fees transfer from firms to
+    # providers (and affect firm value next day); provider effort is a resource cost.
+    # None keeps old archives loadable and means unknown for old assurance runs.
+    assurance_fee: FloatArray | None = None
+    assurance_effort_cost: FloatArray | None = None
 
     def fingerprint(self) -> str:
         digest = hashlib.sha256(self.market.fingerprint().encode("ascii"))
@@ -573,6 +589,7 @@ class DisclosureResult:
             self.assurer_assignment, self.assurance_checked_inflated, self.assurance_corrections,
             self.assurer_quality, self.assurer_inflation_share, self.assurer_liability_events,
             self.reversion_anchor,
+            self.assurance_fee, self.assurance_effort_cost,
         ):
             if array is None:
                 continue
@@ -628,6 +645,8 @@ class DisclosureMarket(CrossSectionMarket):
         identity = {
             "config": config.to_dict(), "domain": domain.to_dict(), "policy": self.policy.to_dict(),
         }
+        if policy.intervention is not None and policy.intervention.assurance_scope != "none":
+            identity["assurance_protocol"] = ASSURANCE_PROTOCOL
         if learner is not None:
             identity["learning"] = {"training": training, "table_fingerprint": table_fingerprint(learner),
                                     "epsilon": learner.epsilon, "learning_rate": learner.learning_rate,
@@ -713,6 +732,8 @@ class DisclosureMarket(CrossSectionMarket):
         # Created only with assurance, so its random stream leaves every other run unchanged.
         self.assurance = (AssuranceState.create(config.seed, policy.intervention.assurer_count, firms, decisions)
                           if assured else None)
+        self.assurance_fee_history = np.zeros((days, firms)) if assured else None
+        self.assurance_effort_cost_history = np.zeros((days, firms)) if assured else None
         self.applied_resource_cost_history = None
         self.applied_fine_history = None
         self.applied_subsidy_history = None
@@ -894,7 +915,7 @@ class DisclosureMarket(CrossSectionMarket):
         if (day % period_days != delay or regime.assurance_scope == "none" or assurance.origin is None
                 or decision_day < assurance.origin):
             return
-        draws = assurance.rng.random(self.config.n_firms)
+        draws = assurance.check_draws(day, self.config.n_firms)
         state = self.attributes
         checked = assurance.client_of >= 0
         inflated = checked & (state.inflation > 0)
@@ -910,6 +931,10 @@ class DisclosureMarket(CrossSectionMarket):
         period = decision_day // period_days
         assurance.history["assurance_checked_inflated"][period] = inflated
         assurance.history["assurance_corrections"][period] = corrected
+        self.assurance_fee_history[day, checked] = regime.assurance_fee
+        self.assurance_effort_cost_history[day, checked] = (
+            regime.assurer_effort_cost * assurance.firm_quality()[checked] ** 2
+        )
         self.pending_value_change[checked] -= regime.assurance_fee
 
     def _assurance_year(self, day: int, regime: PolicyRegime, values) -> None:
@@ -1235,7 +1260,7 @@ class DisclosureMarket(CrossSectionMarket):
         growth = wealth / self.window_wealth - 1.0
         self.window_wealth = wealth
         impact = investors.investor_type == IMPACT_INVESTOR
-        if impact.all() or not impact.any():
+        if cfg.imitation_update_fraction == 0 or impact.all() or not impact.any():
             return
         advantage = float(growth[impact].mean() - growth[~impact].mean())
         count = max(1, int(round(cfg.imitation_update_fraction * investors.size)))
@@ -1306,6 +1331,8 @@ class DisclosureMarket(CrossSectionMarket):
                 *((name, None if self.assurance is None else self.assurance.history[name])
                   for name in ASSURANCE_ARRAYS),
                 ("reversion_anchor", self.anchor_history),
+                ("assurance_fee", self.assurance_fee_history),
+                ("assurance_effort_cost", self.assurance_effort_cost_history),
             )},
         )
 
