@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -79,17 +80,43 @@ def rebuild_run(run_dir: str | Path, output_dir: str | Path):
 
 
 def record_run_failure(harness, config, output_dir: str | Path, error: Exception) -> None:
-    from .stage3 import Stage3Harness
+    """Keep a terminal failure record without manufacturing a success summary."""
+    from .runner import resolve_code_revision
 
-    if not isinstance(harness, Stage3Harness):
-        return
     destination = Path(output_dir)
     destination.mkdir(parents=True, exist_ok=True)
-    manifest = replace(harness.manifest, ended_at=datetime.now(timezone.utc),
-                       failures=(f"{type(error).__name__}: {error}",))
+    original_manifest = getattr(harness, "manifest", None)
+    if original_manifest is None:
+        original_manifest = build_run_manifest(
+            config=config.to_dict(), data_files={}, random_seed=config.seed,
+            code_revision=resolve_code_revision(), schema_version=config.schema_version,
+        )
+    ended_at = datetime.now(timezone.utc)
+    message = f"{type(error).__name__}: {error}"
+    current_day = getattr(harness, "next_day_index", 0)
+    telemetry_events = getattr(harness, "telemetry_events", ())
+    manifest = replace(original_manifest, ended_at=ended_at,
+                       failures=(*original_manifest.failures, message))
     (destination / "run_manifest.json").write_text(
         json.dumps(manifest.to_dict(), ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8",
     )
     (destination / "config.json").write_text(
         json.dumps(config.to_dict(), ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8",
     )
+    (destination / "failure.json").write_text(
+        json.dumps({"state": "failed", "current_day": current_day,
+                    "trading_days": config.trading_days,
+                    "telemetry_events": len(telemetry_events),
+                    "error": message, "ended_at": ended_at.isoformat()},
+                   ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8",
+    )
+    journal = getattr(harness, "event_log", None)
+    archived_events = destination / "events.jsonl"
+    if not archived_events.exists():
+        if journal is not None and Path(journal).is_file():
+            shutil.copyfile(journal, archived_events)
+        else:
+            with archived_events.open("w", encoding="utf-8") as stream:
+                for event in telemetry_events:
+                    stream.write(json.dumps(event.to_dict(), ensure_ascii=False,
+                                            separators=(",", ":"), allow_nan=False) + "\n")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import queue
 from dataclasses import dataclass
 from pathlib import Path
@@ -95,6 +96,95 @@ class NonBlockingQueueSink:
         return True
 
 
+@dataclass(slots=True)
+class ObserverQueue:
+    """A process queue whose unread display frames may be discarded at shutdown.
+
+    Readers hold a shared lock while receiving a frame. The producer marks the
+    channel finished under the same lock before abandoning its feeder thread,
+    so a later reader cannot block on a partly transmitted final frame. Only
+    lossy telemetry/status use this transport; completion stays reliable.
+    """
+
+    channel: Any
+    read_lock: Any
+    finished: Any
+
+    @classmethod
+    def create(cls, context: Any, maxsize: int) -> "ObserverQueue":
+        return cls(context.Queue(maxsize=maxsize), context.Lock(), context.Event())
+
+    def put_nowait(self, value: Any) -> None:
+        if self.finished.is_set():
+            raise queue.Full
+        self.channel.put_nowait(value)
+
+    def get_nowait(self) -> Any:
+        with self.read_lock:
+            if self.finished.is_set():
+                raise queue.Empty
+            return self.channel.get_nowait()
+
+    def finish(self) -> None:
+        with self.read_lock:
+            self.finished.set()
+            self.channel.cancel_join_thread()
+            self.channel.close()
+
+    def close(self) -> None:
+        self.channel.close()
+
+
+def finish_observer_queue(channel: Any | None) -> None:
+    """Release only a best-effort channel, never the completion queue."""
+    if isinstance(channel, ObserverQueue):
+        channel.finish()
+    elif channel is not None and hasattr(channel, "cancel_join_thread"):
+        # Compatibility with callers supplying a plain multiprocessing.Queue.
+        # Runtime observers use ObserverQueue to avoid reading discarded frames.
+        channel.cancel_join_thread()
+        channel.close()
+
+
+@dataclass(slots=True)
+class TelemetryJournalCursor:
+    """Byte cursor for one sequential observer, without caching event history.
+
+    A new observer or a backwards replay may scan once. Subsequent polls only
+    parse appended complete lines. Offsets are bytes, so an unfinished UTF-8
+    character is left unread until the writer completes its JSONL record.
+    """
+
+    _identity: tuple[int, int] | None = None
+    _offset: int = 0
+    _last_sequence: int = -1
+
+    def read(
+        self, journal: Path, *, after_sequence: int, limit: int | None,
+    ) -> tuple[TelemetryEvent, ...]:
+        events: list[TelemetryEvent] = []
+        with journal.open("rb") as stream:
+            info = os.fstat(stream.fileno())
+            identity = (info.st_dev, info.st_ino)
+            if (identity != self._identity or info.st_size < self._offset
+                    or after_sequence < self._last_sequence):
+                self._offset = 0
+                self._last_sequence = -1
+            self._identity = identity
+            stream.seek(self._offset)
+            while line := stream.readline():
+                if not line.endswith(b"\n"):
+                    break
+                event = TelemetryEvent.from_dict(json.loads(line))
+                self._offset = stream.tell()
+                self._last_sequence = event.sequence_no
+                if event.sequence_no > after_sequence:
+                    events.append(event)
+                    if limit is not None and len(events) == limit:
+                        break
+        return tuple(events)
+
+
 TELEMETRY_COLUMNS = (
     "price",
     "return",
@@ -185,6 +275,7 @@ def read_telemetry(
     *,
     after_sequence: int = -1,
     limit: int | None = None,
+    journal_cursor: TelemetryJournalCursor | None = None,
 ) -> tuple[TelemetryEvent, ...]:
     """Read a replay range without rerunning the market."""
     if after_sequence < -1:
@@ -231,17 +322,8 @@ def read_telemetry(
             journal = source.parent / f".{source.name}.events.jsonl"
         if not journal.is_file():
             raise FileNotFoundError(f"no telemetry store found in {source}")
-        events = []
-        with journal.open(encoding="utf-8") as stream:
-            for line in stream:
-                if not line.endswith("\n"):
-                    break
-                event = TelemetryEvent.from_dict(json.loads(line))
-                if event.sequence_no > after_sequence:
-                    events.append(event)
-                    if limit is not None and len(events) == limit:
-                        break
-        return tuple(events)
+        cursor = journal_cursor if journal_cursor is not None else TelemetryJournalCursor()
+        return cursor.read(journal, after_sequence=after_sequence, limit=limit)
     return tuple(
         TelemetryEvent(
             run_id=row[0],

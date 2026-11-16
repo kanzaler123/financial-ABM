@@ -21,6 +21,7 @@ from .stage2_view import Stage2Panel
 from .run_service import controlled_run_worker
 from .runner import resolve_code_revision
 from .telemetry import (
+    ObserverQueue,
     TelemetryEvent,
     VisualizerConfig,
     read_telemetry,
@@ -138,6 +139,7 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         command_queue: Any | None = None,
         completion_queue: Any | None = None,
         replay_events: tuple[TelemetryEvent, ...] = (),
+        live_run_dir: Path | None = None,
     ):
         super().__init__()
         self.mode = mode
@@ -145,6 +147,7 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
         self.telemetry_queue = telemetry_queue
         self.command_queue = command_queue
         self.completion_queue = completion_queue
+        self.live_run_dir = live_run_dir
         self.model = TelemetryModel()
         self.replay = (
             ReplayController(replay_events) if mode == "replay" else None
@@ -427,6 +430,11 @@ class MarketMonitorWindow(QtWidgets.QMainWindow):
                             f"LIVE · worker error: {completion['error']}"
                         )
                     else:
+                        if self.live_run_dir is not None:
+                            # Display queues are lossy, including at shutdown.
+                            # Replace the preview with the complete saved run.
+                            self.model = TelemetryModel()
+                            self.ingest(read_telemetry(self.live_run_dir))
                         self.status_label.setText(
                             f"LIVE · complete · {completion['fingerprint'][:12]}"
                         )
@@ -495,7 +503,7 @@ def run_live_window(
     if run_dir.exists():
         raise FileExistsError(run_dir)
     context = multiprocessing.get_context("spawn")
-    telemetry_queue = context.Queue(maxsize=visualizer_config.queue_size)
+    telemetry_queue = ObserverQueue.create(context, visualizer_config.queue_size)
     command_queue = context.Queue(maxsize=64)
     completion_queue = context.Queue(maxsize=4)
     worker = context.Process(
@@ -517,10 +525,14 @@ def run_live_window(
         telemetry_queue=telemetry_queue,
         command_queue=command_queue,
         completion_queue=completion_queue,
+        live_run_dir=run_dir,
     )
     window.show()
     exit_code = application.exec()
     worker.join()
+    for channel in (telemetry_queue, command_queue, completion_queue):
+        channel.close()
+    worker.close()
     return exit_code
 
 

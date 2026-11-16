@@ -1,22 +1,19 @@
 """Stage H (research contract section 25): permanent-plus-transitory dynamics and the sampled archive."""
 
 import dataclasses
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 from abm.disclosure import runner
 from abm.disclosure.config import TRADING_DAYS_PER_YEAR, MarketConfig
-from abm.disclosure.domain import DomainSpec, load_domain
+from abm.disclosure.domain import DomainSpec
 from abm.disclosure.game import IMPROVE, AttributeState, DisclosureMarket, expected_natural_path, real_persistence
-
-MAIN = "configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json"
-pytestmark = pytest.mark.skipif(not Path(MAIN).exists(), reason="the CSI 300 domain config holds licensed Huazheng scores and is not in the repository (.gitignore)")
+from disclosure_fixtures import synthetic_quantile_domain
 
 
 def _domain(**changes):
-    return dataclasses.replace(load_domain(MAIN), **{"natural_decay": 0.0, **changes})
+    return synthetic_quantile_domain(**{"natural_decay": 0.0, **changes})
 
 
 def _state(domain, size=50_000, seed=7):
@@ -26,7 +23,7 @@ def _state(domain, size=50_000, seed=7):
 
 
 def test_new_options_validate_and_stay_out_of_default_dicts():
-    base = load_domain(MAIN)
+    base = synthetic_quantile_domain()
     assert "reversion_permanent_share" not in base.to_dict() and "reversion_improvement" not in base.to_dict()
     with pytest.raises(ValueError, match="requires natural_reversion"):
         dataclasses.replace(base, reversion_permanent_share=0.3)
@@ -137,7 +134,7 @@ def test_market_records_anchors_and_sampled_archive(tmp_path):
 
 
 def test_sampled_archive_of_a_default_run_keeps_the_compact_fingerprint(tmp_path):
-    domain = load_domain(MAIN)
+    domain = synthetic_quantile_domain()
     compact = runner.run_and_archive(_config(300), domain, tmp_path / "c", archive="compact")
     sampled = runner.run_and_archive(_config(300), domain, tmp_path / "s", archive="sampled")
     assert compact["result_fingerprint"] == sampled["result_fingerprint"]

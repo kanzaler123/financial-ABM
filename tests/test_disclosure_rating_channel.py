@@ -3,30 +3,26 @@ rate, the firms' marginal saving, NPV decisions against brute force, the realize
 financing factors, and exact equality with the price-only contract when the slope is zero."""
 
 from dataclasses import replace
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 from abm.disclosure import MarketConfig
 from abm.disclosure.config import TRADING_DAYS_PER_YEAR
-from abm.disclosure.domain import load_domain
 from abm.disclosure.financing import financing_signal_factors
 from abm.disclosure.game import IMPROVE, INFLATE, DisclosureMarket, npv_choices
 from abm.disclosure.policy import PolicySchedule
+from disclosure_fixtures import synthetic_quantile_domain
 
 from test_disclosure_reversion_targeting import (
-    ASSURED, DECISION, INFLATE_CAP, MAIN, PERSISTENCE, Q, RATE, TAU, TIMING, brute_npv, chosen, direct_factors,
+    ASSURED, DECISION, INFLATE_CAP, PERSISTENCE, Q, RATE, TAU, TIMING, brute_npv, chosen, direct_factors,
 )
-
-if not Path(MAIN).exists():
-    pytest.skip("the CSI 300 domain config holds licensed Huazheng scores and is not in the repository (.gitignore)", allow_module_level=True)
 
 SLOPE = 25.75e-4                      # the first guess of lambda*, 25.75 bp per SD per year
 SMALL = MarketConfig(n_investors=60, n_firms=12, trading_days=400, burn_in_days=120, initial_impact_share=.5,
                      taste_median=.2)
 RATED = replace(SMALL, financing_rating_slope=SLOPE)
-DOMAIN = replace(load_domain(MAIN), **Q)
+DOMAIN = synthetic_quantile_domain(**Q)
 
 
 def price_term(market):

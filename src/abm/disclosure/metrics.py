@@ -267,6 +267,12 @@ def compute_metrics(
             metrics["efficiency"]["beneficial_raw_gain_per_resource_cost"] = float(domain.direction * gain_raw.sum() / resource_cost)
         metrics["raw_scale"] = ("empirical_quantile link: raw changes are differences of linked raw scores per firm; "
                                 "SD metrics are in latent goodness units.")
+    if (result.assurer_assignment is not None or result.assurance_fee is not None
+            or result.assurance_effort_cost is not None):
+        beneficial_raw_gain = (float(domain.direction * (domain.to_raw(true[end]) - domain.to_raw(baseline)).sum())
+                               if domain.observation_link != "linear" else float(domain.initial_sd * gain.sum()))
+        _add_assurance_costs(metrics, result, start=start, end=end, gain_sd=float(gain.sum()),
+                             beneficial_raw_gain=beneficial_raw_gain)
     financing_fields = (result.financing_rate, result.financing_cost, result.financing_value_adjustment)
     if all(value is None for value in financing_fields):
         metrics["financing"] = {"status": "not_recorded"}
@@ -297,3 +303,65 @@ def compute_metrics(
     except ValueError as error:
         raise ValueError("metric computation produced a non-finite value") from error
     return metrics
+
+
+def _add_assurance_costs(
+    metrics: dict, result: DisclosureResult, *, start: int, end: int,
+    gain_sd: float, beneficial_raw_gain: float,
+) -> None:
+    """Separate firm payments from provider effort, including check-day commitments.
+
+    The fee is a transfer from the firm to the provider: it enters the firm's
+    private outflow once, but never the resource denominator. Only the provider's
+    effort joins firms' action costs there. Regulator costs are not modelled, so
+    this denominator is not a complete social-cost or welfare measure.
+    """
+    costs, efficiency = metrics["costs"], metrics["efficiency"]
+    firm_resource_cost = costs["resource_cost"]
+    private_without_fee = costs["private_net_outflow"]
+    costs.update({
+        "firm_resource_cost": firm_resource_cost,
+        "private_net_outflow_excluding_assurance_fee": private_without_fee,
+        "resource_cost_scope": "Firm action costs plus provider effort; excludes fee/fine/subsidy transfers and unmodelled regulator costs.",
+        "assurance_cost_basis": "Checks in (start_day, end_day]; fees affect firm value the following day, effort is incurred at the check.",
+    })
+    fee, effort = result.assurance_fee, result.assurance_effort_cost
+    if fee is None and effort is None:
+        # Earlier assurance archives did not retain these ledgers. Loading them
+        # is supported, but treating unknown payments as zero would repeat the bug.
+        costs.update({
+            "assurance_costs_status": "not_recorded",
+            "assurance_fee_transfer": None, "assurance_effort_cost": None,
+            "resource_cost": None, "private_net_outflow": None,
+            "resource_cost_fraction_initial_cap": None,
+            "private_net_outflow_fraction_initial_cap": None,
+            "carry_in_assurance_fee": None, "unapplied_final_day_assurance_fee": None,
+        })
+        efficiency.update({
+            "decay_adjusted_sd_per_resource_cost": None,
+            "beneficial_raw_gain_per_resource_cost": None,
+            "undefined_reason": "assurance_costs_not_recorded",
+        })
+        return
+    if any(value is None or value.shape != result.true_goodness.shape
+           or not np.isfinite(value).all() or (value < 0).any() for value in (fee, effort)):
+        raise ValueError("assurance cost histories must both be finite nonnegative day-by-firm arrays")
+    fee_total = float(fee[start + 1:end + 1].sum())
+    effort_total = float(effort[start + 1:end + 1].sum())
+    resource_cost = firm_resource_cost + effort_total
+    private_outflow = private_without_fee + fee_total
+    initial_cap = costs["initial_market_cap"]
+    costs.update({
+        "assurance_costs_status": "recorded",
+        "assurance_fee_transfer": fee_total, "assurance_effort_cost": effort_total,
+        "resource_cost": resource_cost, "private_net_outflow": private_outflow,
+        "resource_cost_fraction_initial_cap": resource_cost / initial_cap,
+        "private_net_outflow_fraction_initial_cap": private_outflow / initial_cap,
+        "carry_in_assurance_fee": float(fee[start].sum()),
+        "unapplied_final_day_assurance_fee": float(fee[end].sum()),
+    })
+    efficiency.update({
+        "decay_adjusted_sd_per_resource_cost": gain_sd / resource_cost if resource_cost > 0 else None,
+        "beneficial_raw_gain_per_resource_cost": beneficial_raw_gain / resource_cost if resource_cost > 0 else None,
+        "undefined_reason": "zero_resource_cost" if resource_cost == 0 else None,
+    })

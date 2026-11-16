@@ -10,7 +10,7 @@ from typing import Any, Literal, Mapping
 
 from .runner import resolve_code_revision
 from .stage2 import create_market_harness, simulation_config_from_dict
-from .telemetry import NonBlockingQueueSink
+from .telemetry import NonBlockingQueueSink, finish_observer_queue
 
 RunState = Literal["starting", "running", "paused", "completed", "failed"]
 
@@ -73,6 +73,7 @@ def controlled_run_worker(
     """Run one simulation without allowing observers to affect its state."""
     sink = NonBlockingQueueSink(telemetry_queue)
     harness = None
+    config = None
     try:
         destination = Path(output_dir)
         if destination.exists():
@@ -161,7 +162,7 @@ def controlled_run_worker(
             _publish_status(status_queue, status.to_dict())
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
-        if harness is not None:
+        if config is not None:
             from .reproduction import record_run_failure
 
             try:
@@ -171,7 +172,7 @@ def controlled_run_worker(
         failure = RunStatus(
             "failed",
             harness.next_day_index if harness is not None else 0,
-            int(config_payload.get("trading_days", 0)),
+            config.trading_days if config is not None else 0,
             published_frames=sink.published_count,
             dropped_frames=sink.dropped_count,
             error=error,
@@ -179,3 +180,9 @@ def controlled_run_worker(
         completion_queue.put(failure)
         if status_queue is not None:
             _publish_status(status_queue, failure)
+    finally:
+        # These channels may contain more data than their pipe can hold when a
+        # window closes. Their feeder threads must not keep a completed worker
+        # alive. The archive and the separate completion queue remain lossless.
+        finish_observer_queue(telemetry_queue)
+        finish_observer_queue(status_queue)

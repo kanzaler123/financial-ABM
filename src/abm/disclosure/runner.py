@@ -19,7 +19,7 @@ from ..platform_tuning import disable_power_throttling
 from ..tabular import CompanyQLearner
 from .config import TRADING_DAYS_PER_YEAR, MarketConfig, load_market_config
 from .domain import DomainSpec, load_domain
-from .game import DisclosureMarket, DisclosureResult
+from .game import ASSURANCE_PROTOCOL, DisclosureMarket, DisclosureResult
 from .harness import CrossSectionResult
 from .learning import action_kinds, load_frozen, save_frozen, table_fingerprint
 from .metrics import compute_metrics
@@ -376,6 +376,11 @@ def run_and_archive(
     destination.mkdir(parents=True, exist_ok=False)
     identity = run_identity(config, domain, policy, learning=learning)
     manifest = {**identity, "purpose": purpose, "status": "running"}
+    if policy.intervention is not None and policy.intervention.assurance_scope != "none":
+        # Source hashes already version the run identity. Keep this explanatory
+        # field outside it so existing frozen experiments retain their identity
+        # schema and archived trials can still be collected/rendered unchanged.
+        manifest["assurance_protocol"] = ASSURANCE_PROTOCOL
     write_json(destination / "manifest.json", manifest)
     started = time.perf_counter()
     market = None

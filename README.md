@@ -41,7 +41,21 @@ Two further results frame this:
 Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below, and in the [paper](paper/main.pdf).
 
 > [!NOTE]
-> **Research in progress.** This page and the paper report the main experiments (stages F, E.1, E.2 and the joint robustness test). Their conclusions are conditional on the model's assumptions, and the magnitudes depend on how long real improvement lasts, which these experiments did not calibrate, so they are reported as a range. Stage H has since estimated it from a quarterly rating panel and re-run the experiments at the estimate; those results are not yet on this page or in the paper's main text. Stages I and J, an in-sample financing premium and investors' response to ratings, are in the sections below and in the paper's appendix (version of 29 October 2026 in [`paper/`](paper/main.pdf); the version on SSRN is that of 24 October 2026). Later stages are in the [roadmap](#roadmap).
+> **Research status and corrections (16 November 2026).** The findings above are archived experiments, conditional on their assumptions. Stage H is now summarised below; stages I and J also expose calibration gaps. The [review corrections](docs/review_corrections_20261116.md) document a mislabeled H3 audit-budget comparison, an auxiliary profile-interval error, and implementation changes that require new runs before updating the affected historical numbers. Archived evidence and the dated paper PDFs are preserved. The paper in [`paper/`](paper/main.pdf) remains the version of 29 October 2026; its main text has not incorporated H3, and the SSRN version remains that of 24 October 2026.
+
+## Calibration status
+
+**Policy directions and effect sizes need separate judgments.** The [H2 estimation](reports/disclosure_persistence_estimation_20261026/README.md) rejected all three tested rating-dynamics forms. The closest form, Q, also failed the pre-specified parameter-recovery check. The [H3 rerun](reports/disclosure_stage_h3_20261027/README.md) retained the main directions but substantially reduced several effects. These are archived point estimates, not recomputations with the repaired code:
+
+| Contrast: equal-weighted true change | Original stage F setting | H3: closest fitted dynamics | H3: improvements permanent |
+|---|---:|---:|---:|
+| Information minus penalty | +0.205 SD | +0.003 SD | +0.077 SD |
+| Penalty minus baseline | +0.125 SD | +0.014 SD | +0.021 SD |
+| Information minus baseline | +0.331 SD | +0.017 SD | +0.097 SD |
+
+The persistence of deliberate improvement is not identified by the rating panel. The original experiments' policy doses are not matched on implementation cost. The [stage I report](reports/disclosure_stage_i_20261027/README.md) finds that matching the in-sample financing association disrupts rating persistence; the [stage J report](reports/disclosure_investor_response_20261028/README.md) finds stronger model investor responses than the measured counterparts, with observation-window differences still to resolve. Joint empirical calibration remains open. The auxiliary H2/I3 profile intervals must be recomputed using the corrected objective minimum before being used to quantify identification uncertainty.
+
+The multi-asset market conserves cash and shares but allows the market maker's cash to become negative; it does not impose a market-maker borrowing limit. Conservation checks therefore do not establish counterparty solvency or validate liquidity-crisis predictions.
 
 ## Quick start
 
@@ -58,9 +72,13 @@ python -m abm.disclosure.experiments --spec configs/disclosure_quickstart_v1.jso
 
 The run takes about 10–30 seconds: three policies (baseline, transparency 0.6, a proportional fine) on a small market of 40 firms and 4 seeds. Open `runs/quickstart/report.md` for paired contrasts with intervals and `policy_effects.png` for the chart.
 
+Inspect **Trials failing core validation** as well as **Completed trials**. Completion can include price-guard hits; these are retained in the development example and must not be read as empirical validation.
+
 **Change one thing and see it move.** In [`configs/disclosure_quickstart_v1.json`](configs/disclosure_quickstart_v1.json), set scenario `I` to `"transparency": 0.3` and run again with `--output runs/quickstart_tau03`. Transparency is now below the threshold: the information policy's gain over baseline falls from about +0.37 SD to about +0.07 SD, and the fine now does better. The quickstart uses the bundled, uncalibrated ESG domain at small scale, so it demonstrates the pipeline; it does not reproduce stage F.
 
 Developers: `python -m pip install -c requirements-lock.txt -e ".[all,dev]"` then `python -m pytest`. The single-asset Stage 1–3 application (web and desktop observatory, SEC 8-K information factors) is described in the [Chinese README](README.zh-CN.md) and [OPERATIONS.md](OPERATIONS.md).
+
+For the empirical estimation scripts, install `python -m pip install -c requirements-lock.txt -e ".[empirical]"`; this includes pandas and openpyxl. Licensed inputs remain separate. Public mechanism tests use synthetic data and do not require those inputs. See the [correction workflow](docs/review_corrections_20261116.md) to recompute H2/I3 auxiliary intervals and H3 equal-budget contrasts into new outputs.
 
 ## Build on it
 
@@ -194,9 +212,8 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
 - [x] Joint robustness test: mean reversion of true levels and one fine per false report together, pre-registered on new seeds (contract §24, 2026-10-23)
 - [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081) (version of 24 October 2026); version of 29 October 2026 in [`paper/`](paper/main.pdf)
-- [ ] How long real ESG changes last: estimate it from a quarterly rating panel and re-run the key comparisons at the estimate (stage H)
-- [ ] The financing benefit of ESG ratings, estimated from Chinese listed firms' accounts (stage I)
-- [ ] How investors respond to rating changes (stage J)
+- [x] Rating persistence estimated and key comparisons rerun (stage H); all tested forms rejected, recovery check failed, auxiliary profile intervals awaiting correction from the original archives
+- [ ] Joint empirical calibration of rating persistence, financing incentives and investor responses; H/I/J analyses are completed, their fit limitations remain open
 - [ ] Enforcement intensity, greenwashing proxies and cost parameters from data (stage K)
 - [ ] Global sensitivity analysis (stage L)
 - [ ] Pre-registered out-of-sample tests: the 2020 increase in Securities Law fines and the 2024 exchange sustainability-reporting guidelines (stage M)
