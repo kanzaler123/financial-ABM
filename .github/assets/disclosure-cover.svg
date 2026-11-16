@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
-<title id="title">Financial ABM · Policy meets markets. Who greenwashes, and why?</title>
-<desc id="desc">政策与市场双轮驱动下的 ESG 转型：一个可审计的多智能体人工市场。右侧企业球为结构示意，不是实时数据。A multi-agent artificial market for ESG transition and greenwashing; the firm sphere on the right is a structural schematic, not live data.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc" xml:lang="en">
+<title id="title">Financial ABM · Disclosure policy research</title>
+<desc id="desc">An auditable artificial market for disclosure policy research. Investors and firms respond to incentives, information and enforcement. The firm sphere on the right is a structural schematic, not live data.</desc>
 <style>.d{font-family:Bahnschrift,"DIN Alternate","DIN Next LT Pro",Barlow,"Segoe UI",-apple-system,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}.s{font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}.m{font-family:"JetBrains Mono","Cascadia Mono","SF Mono",Menlo,Consolas,monospace}.micro{font-size:10.5px;font-weight:600;letter-spacing:1.5px;fill:#52514e}.idx{font-size:10px;font-weight:600;fill:#898781}.tag{font-size:9.5px;font-weight:600;letter-spacing:.5px;fill:#52514e}</style>
 <defs><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1" fill="#0b0b0b" fill-opacity=".08"/></pattern><radialGradient id="glow"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="globe" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#f1effb"/><stop offset="1" stop-color="#dcd6f6"/></radialGradient><filter id="shadow" x="-5%" y="-10%" width="110%" height="130%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#1e1c3c" flood-opacity=".08"/></filter></defs>
 <rect x=".5" y=".5" width="1199" height="539" rx="14" fill="#f3f2ed" stroke="#dad8d0"/>
@@ -16,11 +16,11 @@
 <rect x="1068" y="15" width="100" height="26" rx="13" fill="#0b0b0b"/>
 <text class="d" x="1118" y="32" font-size="12" font-weight="700" fill="#fcfcfb" text-anchor="middle">Live desk ↗</text>
 <circle cx="44" cy="102" r="7" fill="#0ca30c" fill-opacity=".14"/><circle cx="44" cy="102" r="3.5" fill="#0ca30c"/>
-<text class="d" x="56" y="106" font-size="11" font-weight="600" letter-spacing="1.8" fill="#52514e">STAGE F · GREENWASHING POLICY DESK</text>
+<text class="d" x="56" y="106" font-size="11" font-weight="600" letter-spacing="1.8" fill="#52514e">DISCLOSURE POLICY · AGENT-BASED RESEARCH</text>
 <text class="d" x="38" y="160" font-size="40" font-weight="600" letter-spacing="-.5" fill="#0b0b0b">Policy meets markets.</text>
 <rect x="38" y="197" width="504" height="14" rx="2" fill="#2a78d6" fill-opacity=".16"/>
 <text class="d" x="38" y="208" font-size="40" font-weight="600" letter-spacing="-.5" textLength="502" lengthAdjust="spacing" fill="#0b0b0b">Who greenwashes, and why?</text>
-<text class="s" x="40" y="248" font-size="16" fill="#0b0b0b">政策与市场双轮驱动下的 ESG 转型：一个可审计的多智能体人工市场</text>
+<text class="s" x="40" y="248" font-size="16" fill="#0b0b0b">An auditable artificial market for disclosure policy research.</text>
 <text class="s" x="40" y="276" font-size="13.5" fill="#52514e">Heterogeneous investors and firms trade, learn and evolve; policy is the</text>
 <text class="s" x="40" y="296" font-size="13.5" fill="#52514e">controlled variable, and every result cites its evidence.</text>
 <rect x="40.5" y="318.5" width="121" height="22" rx="11" fill="#fcfcfb" stroke="#dad8d0"/>
@@ -79,7 +79,7 @@
 <text class="d micro" x="80" y="458.5">INVESTORS</text>
 <circle cx="287" cy="454.5" r="4" fill="#1baf7a"/>
 <text class="d" x="49" y="488" font-size="15.5" font-weight="600" fill="#0b0b0b">PM / II imitate, shares evolve</text>
-<text class="s" x="49" y="507" font-size="12.5" fill="#52514e">两类投资者相互模仿、占比演化</text>
+<text class="s" x="49" y="507" font-size="12.5" fill="#52514e">Returns reshape the investor mix.</text>
 <rect x="319.5" y="430.5" width="275" height="90" rx="12" fill="#fcfcfb" stroke="#dad8d0" filter="url(#shadow)"/>
 <rect x="335.5" y="446.5" width="22" height="16" rx="4" fill="#fcfcfb" stroke="#dad8d0"/>
 <text class="m idx" x="346.5" y="458" text-anchor="middle">02</text>
@@ -88,19 +88,19 @@
 <circle cx="562" cy="454.5" r="4" fill="#eb6834"/>
 <circle cx="574" cy="454.5" r="4" fill="#898781"/>
 <text class="d" x="336" y="488" font-size="15.5" font-weight="600" fill="#0b0b0b">Improve · inflate · maintain</text>
-<text class="s" x="336" y="507" font-size="12.5" fill="#52514e">真实改善、漂绿与维持的博弈</text>
+<text class="s" x="336" y="507" font-size="12.5" fill="#52514e">Costs and incentives shape each choice.</text>
 <rect x="606.5" y="430.5" width="275" height="90" rx="12" fill="#fcfcfb" stroke="#dad8d0" filter="url(#shadow)"/>
 <rect x="622.5" y="446.5" width="22" height="16" rx="4" fill="#fcfcfb" stroke="#dad8d0"/>
 <text class="m idx" x="633.5" y="458" text-anchor="middle">03</text>
 <text class="d micro" x="654" y="458.5">POLICY</text>
 <circle cx="861" cy="454.5" r="4" fill="#6250d6"/>
 <text class="d" x="623" y="488" font-size="15.5" font-weight="600" fill="#0b0b0b">Information vs penalty</text>
-<text class="s" x="623" y="507" font-size="12.5" fill="#52514e">信息型 vs 惩罚型政策</text>
+<text class="s" x="623" y="507" font-size="12.5" fill="#52514e">Track how firms respond to each lever.</text>
 <rect x="893.5" y="430.5" width="275" height="90" rx="12" fill="#fcfcfb" stroke="#dad8d0" filter="url(#shadow)"/>
 <rect x="909.5" y="446.5" width="22" height="16" rx="4" fill="#fcfcfb" stroke="#dad8d0"/>
 <text class="m idx" x="920.5" y="458" text-anchor="middle">04</text>
 <text class="d micro" x="941" y="458.5">EVIDENCE</text>
 <circle cx="1148" cy="454.5" r="4" fill="#0b0b0b"/>
 <text class="d" x="910" y="488" font-size="15.5" font-weight="600" fill="#0b0b0b">Frozen contract · SHA-256</text>
-<text class="s" x="910" y="507" font-size="12.5" fill="#52514e">设定先于结果 · 证据可追溯</text>
+<text class="s" x="910" y="507" font-size="12.5" fill="#52514e">Trace each result to its run and settings.</text>
 </svg>

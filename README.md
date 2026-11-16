@@ -1,3 +1,5 @@
+<p align="center"><strong>English (default)</strong> · <a href="README.zh-CN.md" lang="zh-CN">Simplified Chinese</a></p>
+
 <p align="center">
   <img src=".github/assets/disclosure-cover.svg" alt="Financial ABM policy desk: policy meets markets. Who greenwashes, and why? A multi-agent artificial market for ESG transition and greenwashing. The firm sphere on the right is a structural schematic, not live data." width="100%">
 </p>
@@ -9,7 +11,7 @@
 
 <p align="center">
   <b>Turn a regulator's dial and watch 200 firms decide: improve for real, or greenwash?</b><br>
-  An open-source agent-based market where investors, firms and a regulator learn and react, built to compare ESG policies that were never tried.
+  An open-source artificial market for studying how investor preferences, firm decisions and regulatory policies shape ESG disclosure.
 </p>
 
 <p align="center">
@@ -17,12 +19,22 @@
   <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 29 October 2026</a>
 </p>
 
-<p align="center"><a href="paper/main.pdf"><b>Read the paper</b></a> · <a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a> · <a href="README.zh-CN.md"><b>中文</b></a></p>
+<p align="center"><a href="paper/main.pdf"><b>Read the paper</b></a> · <a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="#calibration-status"><b>Research status</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a></p>
 
 <p align="center">
   <a href="https://kanzaler123.github.io/financial-ABM/"><img src=".github/assets/policy-desk-demo.gif" alt="The policy desk as transparency rises from 0.10 to 0.70: orange firms, which inflate their reports, thin out and disappear near the threshold, and the sphere turns blue, improving for real." width="88%"></a><br>
   <sub>Transparency rises from 0.10 to 0.70; orange firms (greenwashing) thin out and vanish near the threshold. Simplified replay in the browser, not a research result. <a href="https://kanzaler123.github.io/financial-ABM/">Open it and move the levers yourself.</a></sub>
 </p>
+
+## Project map
+
+| Component | What it does | Start here |
+|---|---|---|
+| **Disclosure research model** | Runs multi-asset Python experiments with investors, firms, audits and assurance providers | [Quick start](#quick-start) · [Model source](src/abm/disclosure/) |
+| **Browser policy desk** | Explains firm decisions and replays simplified dynamics; the page labels its assumptions and links to the archived research | [Live desk](https://kanzaler123.github.io/financial-ABM/) · [Offline preview](#offline-policy-desk) |
+| **Single-asset market application** | Provides the Stage 1–3 market, local web and desktop interfaces, and archived-run replay | [Local interfaces](#local-interfaces) · [Operating guide (Chinese)](OPERATIONS.md) |
+
+The browser desk and the single-asset application's interfaces are separate tools. The full disclosure experiments run through the Python commands below. See [Documentation](#documentation) for research methods, evidence and operating references.
 
 ## What we found
 
@@ -47,7 +59,7 @@ Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Ta
 
 **Policy directions and effect sizes need separate judgments.** The [H2 estimation](reports/disclosure_persistence_estimation_20261026/README.md) rejected all three tested rating-dynamics forms. The closest form, Q, also failed the pre-specified parameter-recovery check. The [H3 rerun](reports/disclosure_stage_h3_20261027/README.md) retained the main directions but substantially reduced several effects. These are archived point estimates, not recomputations with the repaired code:
 
-| Contrast: equal-weighted true change | Original stage F setting | H3: closest fitted dynamics | H3: improvements permanent |
+| Contrast: equal-weighted true change | Original stage F setting | H3: closest tested dynamics (Q; fit rejected) | H3: improvements permanent |
 |---|---:|---:|---:|
 | Information minus penalty | +0.205 SD | +0.003 SD | +0.077 SD |
 | Penalty minus baseline | +0.125 SD | +0.014 SD | +0.021 SD |
@@ -61,11 +73,25 @@ The multi-asset market conserves cash and shares but allows the market maker's c
 
 **No install:** open the [live policy desk](https://kanzaler123.github.io/financial-ABM/), move a lever, then use **Copy a link to this policy** to share exactly what you see.
 
-**Run the model** (Python 3.12+; a few minutes including install):
+**Run the model** with Python 3.12 or newer. First, clone the repository and create an environment:
 
 ```sh
+git clone https://github.com/kanzaler123/financial-ABM.git
+cd financial-ABM
 python -m venv .venv
-# Windows: .venv\Scripts\activate    macOS / Linux: source .venv/bin/activate
+```
+
+Activate that environment using the command for your shell:
+
+| Shell | Command |
+|---|---|
+| macOS / Linux | `source .venv/bin/activate` |
+| Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
+| Windows Command Prompt | `.venv\Scripts\activate.bat` |
+
+Then install the experiment dependencies and run the public example from the repository root:
+
+```sh
 python -m pip install -c requirements-lock.txt -e ".[plot,research]"
 python -m abm.disclosure.experiments --spec configs/disclosure_quickstart_v1.json --output runs/quickstart --workers 2
 ```
@@ -76,7 +102,7 @@ Inspect **Trials failing core validation** as well as **Completed trials**. Comp
 
 **Change one thing and see it move.** In [`configs/disclosure_quickstart_v1.json`](configs/disclosure_quickstart_v1.json), set scenario `I` to `"transparency": 0.3` and run again with `--output runs/quickstart_tau03`. Transparency is now below the threshold: the information policy's gain over baseline falls from about +0.37 SD to about +0.07 SD, and the fine now does better. The quickstart uses the bundled, uncalibrated ESG domain at small scale, so it demonstrates the pipeline; it does not reproduce stage F.
 
-Developers: `python -m pip install -c requirements-lock.txt -e ".[all,dev]"` then `python -m pytest`. The single-asset Stage 1–3 application (web and desktop observatory, SEC 8-K information factors) is described in the [Chinese README](README.zh-CN.md) and [OPERATIONS.md](OPERATIONS.md).
+Developers: `python -m pip install -c requirements-lock.txt -e ".[all,dev]"` then `python -m pytest`. The [contribution guide](CONTRIBUTING.md) explains the research rules and optional dependency groups. For the single-asset Stage 1–3 web and desktop application, see [Local interfaces](#local-interfaces).
 
 For the empirical estimation scripts, install `python -m pip install -c requirements-lock.txt -e ".[empirical]"`; this includes pandas and openpyxl. Licensed inputs remain separate. Public mechanism tests use synthetic data and do not require those inputs. See the [correction workflow](docs/review_corrections_20261116.md) to recompute H2/I3 auxiliary intervals and H3 equal-budget contrasts into new outputs.
 
@@ -87,11 +113,58 @@ For the empirical estimation scripts, install `python -m pip install -c requirem
 - **Start small.** [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup, the research rules and where to begin; issues labelled [`good first issue`](https://github.com/kanzaler123/financial-ABM/labels/good%20first%20issue) are scoped for newcomers.
 - **Cite it:** for the results, the paper: Lin, E. (2026), *Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market*, [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081); for the code, [CITATION.cff](CITATION.cff).
 
+## Local interfaces
+
+The web and desktop interfaces run the **Stage 1–3 single-asset market**. Use the disclosure experiment command in [Quick start](#quick-start) for the multi-asset policy study. Run the following commands from the repository root with your virtual environment activated.
+
+### Web interface
+
+Requires Node.js 22.12 or newer:
+
+```sh
+python -m pip install -c requirements-lock.txt -e ".[plot,web]"
+cd web
+npm ci
+npm run build
+cd ..
+python -m abm.web --open
+```
+
+The service opens at `http://127.0.0.1:8765`. Select a configuration and a new run name in the interface; completed runs are saved under `runs/`. Use the **EN** button for the English interface.
+
+### Desktop interface
+
+Start a live run using the bundled Stage 2 configuration:
+
+```sh
+python -m pip install -c requirements-lock.txt -e ".[plot,desktop]"
+python -m abm.desktop --mode live --config configs/stage2.json --run-dir runs/stage2_live
+```
+
+After the run completes, replay its saved events:
+
+```sh
+python -m abm.desktop --mode replay --run-dir runs/stage2_live
+```
+
+Use a new output directory for each live run. Replay reads an existing archive. The [operating guide (Chinese)](OPERATIONS.md) covers batch runs, configuration and reproduction in more detail.
+
+### Offline policy desk
+
+The static policy desk uses committed assets and evidence and needs no model dependencies:
+
+```sh
+python showcase/build.py --output _site
+python -m http.server 8080 --bind 127.0.0.1 --directory _site
+```
+
+Open `http://127.0.0.1:8080`. The default language is English, with a separate Chinese option. The market-foundation exhibit is at `/stage1/`.
+
 ## The question
 
-Most ESG research asks backward-looking correlation questions: do high-ESG firms earn more, or borrow more cheaply? Those methods struggle to explain **how** a transition happens, and they cannot compare policies that were never tried.
+This project asks how firms choose between real improvement and greenwashing, and how investor preferences, financing incentives and regulation change that choice.
 
-This project builds an artificial financial market in which heterogeneous investors and firms interact, learn and evolve, and then treats policy as a controlled variable:
+The method is an artificial financial market in which heterogeneous investors and firms interact, with policy settings varied in controlled comparisons. Its conclusions depend on the model's assumptions. The central question is:
 
 > **Under joint pressure from policy and markets, how efficient is the ESG transition, and what path does it take?**
 
@@ -106,20 +179,20 @@ This project builds an artificial financial market in which heterogeneous invest
 |---|---|---|
 | **Profit-maximizing investors (PM)** | part of 1,000 investors | Mean–variance allocation; ESG has no utility value |
 | **Impact investors (II)** | part of 1,000 investors | Utility includes a taste for *reported* ESG. Investors imitate the better-performing type each quarter, so the II share evolves |
-| **Firms** | 200, in large / mid / small tiers | Each period: **real improvement** (costly, delayed), **greenwashing** (cheap, fast, may be audited) or **maintain**. NPV-rational or Q-learning modes |
+| **Firms** | 200, in large / mid / small tiers | Each period: **real improvement** (costly, delayed), **greenwashing** (cheap, fast, may be audited) or **maintain**. Main experiments use NPV decisions; the separate Q-learning mode has not passed acceptance |
 | **Regulator** | 1 | Transparency, audit probability, fines and subsidies; policies can switch on any date |
 | **Market maker and noise flow** | — | Multi-asset quasi order book with price impact, volatility-dependent depth, and daily cash and share conservation |
 
 The disclosure game, a true attribute versus a reported attribute, is not specific to ESG. **A domain is a JSON file**; the core code contains no domain vocabulary, and a test enforces that. Bundled domains: [ESG](configs/domains/esg.json), [AI-washing](configs/domains/ai_washing.json), [WBA social](configs/domains/wba_social_2023.json).
 
-**Game-theoretic benchmarks.** Each layer maps to a classic game: firm vs regulator (inspection game), firm vs investors (signaling: pooling vs separating), investor population (evolutionary game and replicator dynamics), regulator as a Stackelberg leader. The simulation tests whether boundedly rational, learning agents reach these equilibria, and where they get stuck.
+**Game-theoretic benchmarks.** Inspection games, signaling games, evolutionary dynamics and Stackelberg leadership provide theoretical reference points for firm incentives, investor evolution and policy design. The main experiments use NPV firms; learning firms are evaluated separately. The targeted-audit experiments compare predefined rules and do not solve for an optimal regulatory policy.
 
 ## Stage F findings
 
 > Confirmatory experiment (2026-10-15): 59 scenarios × 30 paired seeds (41001–41030), 1,770 worlds at contract scale (1,000 investors, 200 firms, 3,500 trading days). The design, seeds and primary questions were written into the [research contract, §20](docs/disclosure_research_contract.md) and committed before the run (`2b08f65`). Firms use the continuous NPV rule. Every conclusion is conditional on the model's assumptions.
 
 1. **Robust ordering: information > penalty > baseline.** This is a ranking at the tested doses (transparency 0.6 against a 4× fixed fine), which are not matched on expected fine or implementation cost; it does not mean information policy is better at equal cost. It holds at both ends of natural decay (0 and 0.2 SD/year), under both initialization controls and under the “equal cost” control, in which firms’ improvement cost does not vary with size. Exploratory checks run after stage F ([robustness report (Chinese)](reports/disclosure_robustness_20261018/README.md)) find the same ordering under mean reversion of true levels, one fixed fine per false report, and wash costs that differ across firms; under mean reversion, however, information beats penalty by only +0.003 to +0.006 SD. A pre-registered confirmatory test on new seeds ([joint robustness report (Chinese)](reports/disclosure_joint_robustness_20261023/README.md), contract §24) changed mean reversion and per-report fines together, with and without firm-specific wash costs: the ordering held in all four settings (all eight Holm-corrected contrasts were positive), but information beat penalty by only +0.004 to +0.012 SD, the same order as under mean reversion alone.
-2. **Magnitudes are a range.** Over the policy window (days 1200–3500), the information policy raises the true level over baseline by +0.04 to +0.33 SD, the penalty policy by +0.005 to +0.13 SD, and information beats penalty by +0.035 to +0.21 SD. The ends correspond to a natural decay of 0 and 0.2 SD/year without effort. That parameter is uncalibrated; pinning it down needs a verified rating panel (plan stage H). The range covers uniform decay only: under mean reversion at two speeds suggested by the (unverified) Huazheng panel, used as sensitivity values rather than estimates or bounds, information beats baseline by +0.02 to +0.03 SD and penalty by close to 0, both below the lower end. With one fine per false report added, information beats baseline by +0.04 to +0.06 SD and penalty by +0.004 to +0.012 SD. Items 3–6 below exist only for the main setting (0.2 SD/year), so their magnitudes are the upper end.
+2. **Magnitudes are a range.** Over the policy window (days 1200–3500), the information policy raises the true level over baseline by +0.04 to +0.33 SD, the penalty policy by +0.005 to +0.13 SD, and information beats penalty by +0.035 to +0.21 SD. The ends correspond to a natural decay of 0 and 0.2 SD/year without effort. That parameter was uncalibrated in stage F. Stage H subsequently estimated rating dynamics and reran the policy contrasts, but all tested dynamics were rejected; see [Calibration status](#calibration-status). The range covers uniform decay only: under mean reversion at two speeds suggested by the then-unverified Huazheng panel, used as sensitivity values rather than estimates or bounds, information beats baseline by +0.02 to +0.03 SD and penalty by close to 0, both below the lower end. With one fine per false report added, information beats baseline by +0.04 to +0.06 SD and penalty by +0.004 to +0.012 SD. Items 3–6 below exist only for the main setting (0.2 SD/year), so their magnitudes are the upper end.
 3. **Policy works only through market preference.** Impact investors' preference raises the full 14-year true level by +0.79 SD [+0.74, +0.85]. Without it, firms neither improve nor greenwash, and none of the three policies has any effect. This holds for the financing contract of stage F, in which the financing rate responds to the rating only through the share price; with a direct rating channel in the debt rate (stage I), the financing incentive no longer depends on investor taste.
 4. **Transparency has a threshold.** When every firm has the same wash cost and real improvement lasts, greenwashing decisions stop entirely above τ* ≈ 0.57 and fines no longer matter; Proposition 2's threshold prediction held in all 16 grid cells. Undetected inflation accumulated before the switch does not disappear by itself. When wash costs differ across firms, each firm has its own threshold and greenwashing falls step by step with transparency (still 7% of decisions at 0.6); when true levels revert to the mean, the threshold rises to about 0.8.
 5. **Fixed fines have diminishing marginal deterrence.** Going from no fine to CNY 10 million cuts the share of greenwashing decisions from 91% to 22%; under one fine per detected case, doubling, quadrupling and multiplying it by eight only reaches 16%, 13% and 13%, because a firm with an undetected case adds new inflation to that case and faces no new fixed fine. If every false report is fined separately, the 8× fine cuts the share to 0.8%; each doubling still adds less than the one before.
@@ -153,6 +226,8 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - All five of this experiment's primary questions are supported (Holm p ≤ 1.1 × 10⁻¹¹); this does not by itself validate every mechanism described above. The magnitudes are for the main setting (0.2 SD/year of decay); without decay every effect is small and keeps its sign. Only the two rules tested were compared; no rule was optimised.
 
 ## Assurance providers (stage E.2)
+
+**Archived results.** The numbers below use the original assurance protocol. The [November 2026 corrections](docs/review_corrections_20261116.md#4-implementation-corrections-and-reproducibility) change cost accounting and the pairing of check draws. These historical effects and intervals have not yet been rerun under that protocol.
 
 > Confirmatory experiment (2026-10-21), pre-registered in the [research contract, §22](docs/disclosure_research_contract.md) and committed before implementation and runs (`307168c`): 18 scenarios × 30 new paired seeds (43001–43030), 540 worlds, all completed. Four strategic providers inspect clients' reports before publication and correct the inflation they find; each sets its quality once a year as a best response to its liability, which it pays when the regulator later catches inflation in a report it inspected. Liability doses are multiples of a CNY 5 million benchmark, the upper limit of the band for providers with no or low business income in Securities Law Art. 213(3); the model assumes the provision applies to ESG assurance and makes no judgement on whether it does. Fees and effort costs are assumptions. Intervals are paired 95% intervals not adjusted for multiple comparisons; the Holm correction applies to the p-values of the five primary questions. Full tables: [stage E.2 report (Chinese)](reports/disclosure_assurance_20261021/README.md).
 
@@ -222,6 +297,20 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 ## Research standards
 
 Key settings are fixed in a [research contract](docs/disclosure_research_contract.md) before any policy experiment that uses them. Failures are kept, not deleted. Evidence directories are stored byte for byte, so the recorded SHA-256 values can be checked directly. Every empirical parameter cites its source and evidence level. Vendor data (Huazheng, Eastmoney and others) has no open redistribution licence and is not included; collection scripts and hash manifests are.
+
+## Documentation
+
+This README is the default English entry point. The [Simplified Chinese README](README.zh-CN.md) has its own text and cover. Research archives retain their original language; the language labels below identify those references before you open them.
+
+| Reference | Language | Purpose |
+|---|---|---|
+| [Working paper](paper/README.md) | English | Paper source, version history and build instructions |
+| [Review corrections](docs/review_corrections_20261116.md) | English | Statistical corrections, implementation changes and pending recomputations |
+| [Contribution guide](CONTRIBUTING.md) | English, with a short Chinese summary | Development setup, research rules and contribution scope |
+| [Research contract](docs/disclosure_research_contract.md) | Chinese, with an English correction addendum | Fixed designs, assumptions and acceptance criteria |
+| [Documentation index](docs/README.md) | Primarily Chinese | Links to plans, technical notes and archived research |
+| [Operating guide](OPERATIONS.md) | Chinese | Detailed instructions for the single-asset application |
+| [Showcase maintenance](showcase/README.md) | Chinese | Static build, source data and visual assets |
 
 ---
 
