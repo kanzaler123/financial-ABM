@@ -1,0 +1,176 @@
+{
+  "experiment_id": "37e690d0be9efd09c05aea3030d1f545349b50c743916c0e8165d40607776a01",
+  "purpose": "development",
+  "complete_trials": 106,
+  "planned_trials": 106,
+  "trials_failing_core_validation": 0,
+  "primary_questions": {
+    "P1": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P2": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P3": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P4": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P5": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P6": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P7": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P8": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    }
+  },
+  "sensitivity_points": [
+    "lambda0",
+    "lambda_lo",
+    "lambda_star",
+    "lambda_hi"
+  ],
+  "sensitivity_replicates": [],
+  "sensitivity_exploratory": [
+    "lambda_fe"
+  ],
+  "sensitivity_contrasts": {
+    "P1": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P2": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P3": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P4": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P5": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P6": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P7": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    },
+    "P8": {
+      "n_by_point": {
+        "lambda0": 2,
+        "lambda_fe": 2,
+        "lambda_lo": 2,
+        "lambda_star": 2,
+        "lambda_hi": 2
+      },
+      "segments": 3,
+      "segments_with_paired_interval": 3,
+      "reading_computed": true
+    }
+  },
+  "auxiliary_runner_comparisons": 32,
+  "described_scenarios": 53,
+  "assured_scenarios_with_laxest_share": [
+    "ALL_F1",
+    "ALL_F16",
+    "ALL_R1",
+    "ALL_R16",
+    "LRG_F16",
+    "LRG_R16",
+    "l0_ALL_F16",
+    "l0_ALL_R16",
+    "lfe_ALL_F16",
+    "lfe_ALL_R16",
+    "lhi_ALL_F16",
+    "lhi_ALL_R16",
+    "llo_ALL_F16",
+    "llo_ALL_R16"
+  ],
+  "table_lines": 197
+}

@@ -1,0 +1,61 @@
+{
+  "experiment_id": "5554e5c9f770e372616303930f69d574dbed4e19bbdeab9032d074c023748a38",
+  "purpose": "development",
+  "complete_trials": 48,
+  "planned_trials": 48,
+  "trials_failing_core_validation": 0,
+  "primary_questions": {
+    "P1": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P2": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P3": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P4": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P5": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P6": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P7": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    },
+    "P8": {
+      "n": 2,
+      "seeds_left_out": 0,
+      "holm_computed": true
+    }
+  },
+  "auxiliary_runner_comparisons": 16,
+  "auxiliary_share_contrasts": 7,
+  "described_scenarios": 24,
+  "assured_scenarios_with_laxest_share": [
+    "ALL_F1",
+    "ALL_F16",
+    "ALL_R1",
+    "ALL_R16",
+    "LRG_F16",
+    "LRG_R16"
+  ],
+  "table_lines": 81
+}

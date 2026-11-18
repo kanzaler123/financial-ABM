@@ -1,0 +1,94 @@
+{
+  "archive": "reports/disclosure_stage_i_20261027/check_v2",
+  "experiment_id": "37e690d0be9efd09c05aea3030d1f545349b50c743916c0e8165d40607776a01",
+  "purpose": "development",
+  "complete_trials": 106,
+  "blocks": {
+    "main": {
+      "P3": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P5": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P8": {
+        "n_share": 2,
+        "n_split": 2,
+        "seeds_left_out": 0
+      }
+    },
+    "l0_": {
+      "P3": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P5": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P8": {
+        "n_share": 2,
+        "n_split": 2,
+        "seeds_left_out": 0
+      }
+    },
+    "lfe_": {
+      "P3": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P5": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P8": {
+        "n_share": 2,
+        "n_split": 2,
+        "seeds_left_out": 0
+      }
+    },
+    "lhi_": {
+      "P3": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P5": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P8": {
+        "n_share": 2,
+        "n_split": 2,
+        "seeds_left_out": 0
+      }
+    },
+    "llo_": {
+      "P3": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P5": {
+        "n_share": 2,
+        "n_split": null,
+        "seeds_left_out": 0
+      },
+      "P8": {
+        "n_share": 2,
+        "n_split": 2,
+        "seeds_left_out": 0
+      }
+    }
+  },
+  "table_lines": 176
+}

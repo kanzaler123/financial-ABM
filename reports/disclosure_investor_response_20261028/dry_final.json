@@ -1,0 +1,291 @@
+{
+  "family": [
+    "J1",
+    "J2",
+    "J4"
+  ],
+  "not_done": {
+    "J3": "fund holdings and fund information not obtained (contract 27.17)",
+    "J2_half_yearly": "needs the fund holdings (contract 27.4, 27.17)"
+  },
+  "primary": {
+    "J1": {},
+    "J2": {},
+    "J4": {}
+  },
+  "J1": {
+    "pit": {
+      "main": {
+        "df": 11,
+        "dates": 12,
+        "obs": 56743
+      },
+      "events": 56756,
+      "firms": 5060,
+      "robustness": {
+        "pooled_two_way": {
+          "df": 11,
+          "obs": 56743,
+          "fe_cells": 540,
+          "clusters": {
+            "Scode": 5058,
+            "date": 12
+          }
+        },
+        "treatment_dns_per_sd": {
+          "df": 11,
+          "dates": 12,
+          "obs": 56743
+        },
+        "upgrades_and_downgrades": {
+          "up": {
+            "df": 11
+          },
+          "down": {
+            "df": 11
+          }
+        },
+        "without_2024_04": {
+          "df": 10,
+          "dates": 11,
+          "obs": 52051
+        },
+        "only_2024_04_cross_section_hc1": {
+          "df": 4641,
+          "obs": 4692
+        },
+        "month_plus_1": {
+          "df": 11,
+          "dates": 12,
+          "obs": 56743
+        },
+        "month_plus_2": {
+          "df": 11,
+          "dates": 12,
+          "obs": 56743
+        },
+        "months_plus_3_to_6": {
+          "df": 11,
+          "dates": 12,
+          "obs": 56572
+        },
+        "value_weighted": {
+          "df": 11,
+          "dates": 12,
+          "obs": 56743
+        }
+      }
+    },
+    "prelaunch": {
+      "main": {
+        "df": 34,
+        "dates": 35,
+        "obs": 70412
+      },
+      "events": 70425,
+      "firms": 2729
+    },
+    "restated": {
+      "main": {
+        "df": 15,
+        "dates": 16,
+        "obs": 56376
+      },
+      "events": 56389,
+      "firms": 4246
+    },
+    "difference_pit_minus_prelaunch": {
+      "df": 44
+    }
+  },
+  "J2": {
+    "pit": {
+      "main": {
+        "df": 4951,
+        "obs": 13871,
+        "fe_cells": 135,
+        "clusters": {
+          "Scode": 4952
+        }
+      },
+      "firm_years": 13874,
+      "firms": 4953,
+      "years": [
+        2023,
+        2024,
+        2025
+      ],
+      "robustness": {
+        "treatment_dns_per_sd": {
+          "df": 4951,
+          "obs": 13871,
+          "fe_cells": 135,
+          "clusters": {
+            "Scode": 4952
+          }
+        },
+        "without_2024": {
+          "df": 4951,
+          "obs": 9224,
+          "fe_cells": 90,
+          "clusters": {
+            "Scode": 4952
+          }
+        }
+      }
+    },
+    "prelaunch": {
+      "main": {
+        "df": 2587,
+        "obs": 15934,
+        "fe_cells": 356,
+        "clusters": {
+          "Scode": 2588
+        }
+      },
+      "firm_years": 15936,
+      "firms": 2588,
+      "years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017
+      ]
+    },
+    "restated": {
+      "main": {
+        "df": 3943,
+        "obs": 13917,
+        "fe_cells": 180,
+        "clusters": {
+          "Scode": 3944
+        }
+      },
+      "firm_years": 13920,
+      "firms": 3945,
+      "years": [
+        2019,
+        2020,
+        2021,
+        2022
+      ]
+    },
+    "difference_pit_minus_prelaunch": {
+      "df": 4030
+    }
+  },
+  "J4": {
+    "pit": {
+      "main": {
+        "df": 2651,
+        "obs": 6160,
+        "fe_cells": 133,
+        "clusters": {
+          "Scode": 2652
+        },
+        "firm_years": 6163,
+        "firms": 2653,
+        "years": [
+          2022,
+          2023,
+          2024
+        ]
+      },
+      "robustness": {
+        "brokers3": {
+          "df": 2261,
+          "obs": 5236,
+          "fe_cells": 131,
+          "clusters": {
+            "Scode": 2262
+          },
+          "firm_years": 5240,
+          "firms": 2262,
+          "years": [
+            2022,
+            2023,
+            2024
+          ]
+        },
+        "days90": {
+          "df": 2501,
+          "obs": 5744,
+          "fe_cells": 131,
+          "clusters": {
+            "Scode": 2502
+          },
+          "firm_years": 5749,
+          "firms": 2503,
+          "years": [
+            2022,
+            2023,
+            2024
+          ]
+        },
+        "unadjusted": {
+          "df": 2651,
+          "obs": 6158,
+          "fe_cells": 133,
+          "clusters": {
+            "Scode": 2652
+          },
+          "firm_years": 6161,
+          "firms": 2653,
+          "years": [
+            2022,
+            2023,
+            2024
+          ]
+        }
+      }
+    },
+    "prelaunch": {
+      "main": {
+        "df": 2477,
+        "obs": 11286,
+        "fe_cells": 384,
+        "clusters": {
+          "Scode": 2478
+        },
+        "firm_years": 11301,
+        "firms": 2480,
+        "years": [
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017
+        ]
+      }
+    },
+    "restated": {
+      "main": {
+        "df": 2312,
+        "obs": 5705,
+        "fe_cells": 176,
+        "clusters": {
+          "Scode": 2313
+        },
+        "firm_years": 5706,
+        "firms": 2314,
+        "years": [
+          2018,
+          2019,
+          2020,
+          2021
+        ]
+      }
+    },
+    "difference_pit_minus_prelaunch": {
+      "df": 4705
+    }
+  }
+}

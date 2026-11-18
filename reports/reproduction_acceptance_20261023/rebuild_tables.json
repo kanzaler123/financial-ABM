@@ -1,0 +1,150 @@
+{
+  "python": "3.12.9",
+  "platform": "win32",
+  "targets": [
+    {
+      "target": "stage_f_confirmatory",
+      "table": "reports/disclosure_stage_f_20261014/confirmatory_v1_tables.md",
+      "source": "reports/disclosure_stage_f_20261014/confirmatory_v1_analysis.json",
+      "committed_sha256": "8fcf1b827cf4199037c179474b8ae72b9fb5ac5b04b357913ec5db76d336a8a0",
+      "rebuilt_sha256": "8fcf1b827cf4199037c179474b8ae72b9fb5ac5b04b357913ec5db76d336a8a0",
+      "committed_crlf": true,
+      "rebuilt_crlf": true,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "stage_f_development",
+      "table": "reports/disclosure_stage_f_20261014/development_v1_tables.md",
+      "source": "reports/disclosure_stage_f_20261014/development_v1_analysis.json",
+      "committed_sha256": "501af4a6a222c70cead04050cedbfcaee591b5ea44f957f90516e48d03053f6f",
+      "rebuilt_sha256": "501af4a6a222c70cead04050cedbfcaee591b5ea44f957f90516e48d03053f6f",
+      "committed_crlf": true,
+      "rebuilt_crlf": true,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "decay_grid",
+      "table": "reports/disclosure_decay_grid_20261016/grid_v1_tables.md",
+      "source": "reports/disclosure_decay_grid_20261016/grid_v1_analysis.json",
+      "committed_sha256": "22c3723ab2525916f73ce40822bcce4a2b2cc44f34dcbac08c4aa854d62a1168",
+      "rebuilt_sha256": "22c3723ab2525916f73ce40822bcce4a2b2cc44f34dcbac08c4aa854d62a1168",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "feedback_counterfactual",
+      "table": "reports/disclosure_feedback_counterfactual_20261016/tables.md",
+      "source": "reports/disclosure_feedback_counterfactual_20261016/analysis.json",
+      "committed_sha256": "507cf090fe968c68909f3f4d5aaecafd4f60402bbead7af778a9812467434ae9",
+      "rebuilt_sha256": "507cf090fe968c68909f3f4d5aaecafd4f60402bbead7af778a9812467434ae9",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "feedback_strong",
+      "table": "reports/disclosure_feedback_strong_20261016/tables.md",
+      "source": "reports/disclosure_feedback_strong_20261016/analysis.json",
+      "committed_sha256": "0d1b8f7a4f2c72f78cadf3264d92b0ae93c8fe29598c1a8bfc0c964e2f7ebe5b",
+      "rebuilt_sha256": "0d1b8f7a4f2c72f78cadf3264d92b0ae93c8fe29598c1a8bfc0c964e2f7ebe5b",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "feedback_channels",
+      "table": "reports/disclosure_feedback_channels_20261017/tables.md",
+      "source": "reports/disclosure_feedback_channels_20261017/analysis.json",
+      "committed_sha256": "9dd88b3b3d34ca1d52473ffec97ad7056777d5cbae055c437d485143b7bb9127",
+      "rebuilt_sha256": "9dd88b3b3d34ca1d52473ffec97ad7056777d5cbae055c437d485143b7bb9127",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "feedback_channels_main",
+      "table": "reports/disclosure_feedback_channels_main_20261017/tables.md",
+      "source": "reports/disclosure_feedback_channels_main_20261017/analysis.json",
+      "committed_sha256": "6735cb2e1cf880ca531578e0053e35838a807882e638e88346c63b4f53862d8e",
+      "rebuilt_sha256": "6735cb2e1cf880ca531578e0053e35838a807882e638e88346c63b4f53862d8e",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "robustness",
+      "table": "reports/disclosure_robustness_20261018/robust_v1_tables.md",
+      "source": "reports/disclosure_robustness_20261018/robust_v1_analysis.json",
+      "committed_sha256": "4d839a3965b46244638af0110ab6d33915b3ea593dc8d75e724d43485fed4c87",
+      "rebuilt_sha256": "4d839a3965b46244638af0110ab6d33915b3ea593dc8d75e724d43485fed4c87",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "targeted_audits",
+      "table": "reports/disclosure_targeted_audits_20261020/audits_v1_tables.md",
+      "source": "reports/disclosure_targeted_audits_20261020/audits_v1_analysis.json",
+      "committed_sha256": "0f80694fad36864d081d9c997226eee81f8e346736eed1dd1db7f319ef4e89a9",
+      "rebuilt_sha256": "0f80694fad36864d081d9c997226eee81f8e346736eed1dd1db7f319ef4e89a9",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "assurance",
+      "table": "reports/disclosure_assurance_20261021/assurance_v1_tables.md",
+      "source": "reports/disclosure_assurance_20261021/assurance_v1_analysis.json",
+      "committed_sha256": "bc8e9465517930c162abee5f434381c488536de2997f4c71482829e0f193aa9c",
+      "rebuilt_sha256": "bc8e9465517930c162abee5f434381c488536de2997f4c71482829e0f193aa9c",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "learning_redo",
+      "table": "reports/disclosure_learning_redo_20261021/redo_v1_tables.md",
+      "source": "reports/disclosure_learning_redo_20261021/redo_v1_analysis.json",
+      "committed_sha256": "e5da21ebf59f9dd58a8438ccde098e13ada9037e5db2c3c5a591a937034a422e",
+      "rebuilt_sha256": "e5da21ebf59f9dd58a8438ccde098e13ada9037e5db2c3c5a591a937034a422e",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    },
+    {
+      "target": "joint_robustness",
+      "table": "reports/disclosure_joint_robustness_20261023/joint_v1_tables.md",
+      "source": "reports/disclosure_joint_robustness_20261023/joint_v1_analysis.json",
+      "committed_sha256": "ab4df26862641009f54a5f23eb900433baa48141731df8641fd093a8782e9a05",
+      "rebuilt_sha256": "ab4df26862641009f54a5f23eb900433baa48141731df8641fd093a8782e9a05",
+      "committed_crlf": false,
+      "rebuilt_crlf": false,
+      "byte_identical": true,
+      "identical_after_crlf_to_lf": true,
+      "status": "identical"
+    }
+  ]
+}

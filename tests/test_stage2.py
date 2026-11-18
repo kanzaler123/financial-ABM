@@ -322,6 +322,8 @@ def test_serial_and_spawn_parallel_runs_have_identical_results():
 
 
 def test_native_five_node_live_and_replay_filters_match(tmp_path):
+    pytest.importorskip("PySide6")
+    pytest.importorskip("pyqtgraph")
     from abm.desktop import MarketMonitorWindow, _application
     from abm.stage2 import Stage2Harness
     from abm.telemetry import VisualizerConfig, write_telemetry, read_telemetry

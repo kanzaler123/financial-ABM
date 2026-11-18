@@ -1,0 +1,395 @@
+{
+  "purpose": "calibration of financing_rating_slope at s0 = 0.05 (research contract section 26.20 (d), (e)); calibration seeds only",
+  "setting": {
+    "spec": "configs/disclosure_stage_h3_v1.json",
+    "spec_sha256_lf": "598a306ffa749d02592f710681c88f5dfaa49fe41869cf761538604510836b3d",
+    "experiment_id_current_source": "4586225f1c0e60c40e490333d48270bcad71fed566558655fa03cd243ce10ac5",
+    "experiment_id_grid": "12fe871ed3a81d1b7f3ace185fa8c01385612bd0e908b9330b792050612cd8eb",
+    "scenario": "B",
+    "overrides": {
+      "trading_days": 1200,
+      "burn_in_days": 600,
+      "financing_spread": 0.05,
+      "financing_rating_slope": "per point"
+    }
+  },
+  "seeds": [
+    56001,
+    56002,
+    56003
+  ],
+  "rho_price_s0_bp": 2.2122212140464956,
+  "targets_bp": {
+    "lambda_star": 27.958972180295422,
+    "lambda_lo": 23.4085454265767,
+    "lambda_hi": 32.50939893401414,
+    "lambda_fe": 11.887026065216372
+  },
+  "first_guess_bp": {
+    "lambda_star": 25.75,
+    "lambda_lo": 21.2,
+    "lambda_hi": 30.3,
+    "lambda_fe": 9.675
+  },
+  "started": "2026-10-27 14:04:28 +0800",
+  "summary": {
+    "lambda_star": {
+      "spread": 0.05,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 28.056384081996324,
+        "p5": 27.26467254215965,
+        "p25": 27.723369696576988,
+        "p75": 28.43477457513447,
+        "p95": 29.145217816026207,
+        "median_days_600_on": 28.08077951810133,
+        "median_by_seed": [
+          27.990632280935642,
+          27.93716766439429,
+          28.382822617482404
+        ]
+      },
+      "passthrough_median": 0.011044894022227063,
+      "quote_response_m_median": 0.021486824887349362,
+      "exposure_share_median": 0.4912165107979534,
+      "benefit_B_bp_of_value_median": 13.816150805871075,
+      "yield_slope_bp_median": -19.082886310115317,
+      "log_price_premium_slope_median": 0.03722804685429753,
+      "slope": 0.002575,
+      "slope_bp": 25.75,
+      "rho_price_bp": {
+        "median": 2.306384081996323,
+        "p5": 1.514672542159651,
+        "p95": 3.3952178160262068
+      },
+      "contract_rate_decision_days": {
+        "min": 0.03126303380000519,
+        "p5": 0.03604892461332682,
+        "median": 0.04154424425243794,
+        "p95": 0.048437599425316516,
+        "max": 0.060684333484954736
+      },
+      "contract_rate_initial": {
+        "min": 0.03486191463419689,
+        "p5": 0.03768180134162093,
+        "median": 0.04158393314171527,
+        "p95": 0.04574996192274008,
+        "max": 0.04960365230748377
+      },
+      "public_signal_cross_sectional_sd": {
+        "median": 0.6734281550146117,
+        "min": 0.5230485342985678,
+        "max": 0.9915476858639922
+      }
+    },
+    "lambda_lo": {
+      "spread": 0.05,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 23.506534456574464,
+        "p5": 22.717145284304973,
+        "p25": 23.16987915348398,
+        "p75": 23.889987277705515,
+        "p95": 24.60787513694538,
+        "median_days_600_on": 23.531791053087403,
+        "median_by_seed": [
+          23.437572376933417,
+          23.388781594868515,
+          23.82548702023036
+        ]
+      },
+      "passthrough_median": 0.011043451133205566,
+      "quote_response_m_median": 0.021487284646233167,
+      "exposure_share_median": 0.4910284984996404,
+      "benefit_B_bp_of_value_median": 11.578210637027759,
+      "yield_slope_bp_median": -19.256796670352745,
+      "log_price_premium_slope_median": 0.037812073433656196,
+      "slope": 0.00212,
+      "slope_bp": 21.2,
+      "rho_price_bp": {
+        "median": 2.3065344565744663,
+        "p5": 1.5171452843049738,
+        "p95": 3.4078751369453824
+      },
+      "contract_rate_decision_days": {
+        "min": 0.031347784518771384,
+        "p5": 0.03626326826884408,
+        "median": 0.04154319269996278,
+        "p95": 0.04820441040845315,
+        "max": 0.059709805621401976
+      },
+      "contract_rate_initial": {
+        "min": 0.03606430771177893,
+        "p5": 0.03838592317575522,
+        "median": 0.04159855207525037,
+        "p95": 0.04502844761535623,
+        "max": 0.04820119465056269
+      },
+      "public_signal_cross_sectional_sd": {
+        "median": 0.6852967843492734,
+        "min": 0.5429575300925844,
+        "max": 0.9915476858639922
+      }
+    },
+    "lambda_hi": {
+      "spread": 0.05,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 32.60834348668632,
+        "p5": 31.813947729889307,
+        "p25": 32.2784437323731,
+        "p75": 32.985680559153614,
+        "p95": 33.69085801373805,
+        "median_days_600_on": 32.63314257924148,
+        "median_by_seed": [
+          32.545583441318506,
+          32.48725662841983,
+          32.94010327627885
+        ]
+      },
+      "passthrough_median": 0.011045526421956522,
+      "quote_response_m_median": 0.02153785490694196,
+      "exposure_share_median": 0.49129895906284543,
+      "benefit_B_bp_of_value_median": 16.063626243369505,
+      "yield_slope_bp_median": -19.256695279370632,
+      "log_price_premium_slope_median": 0.03727769008702787,
+      "slope": 0.00303,
+      "slope_bp": 30.3,
+      "rho_price_bp": {
+        "median": 2.3083434866863177,
+        "p5": 1.5139477298893056,
+        "p95": 3.3908580137380495
+      },
+      "contract_rate_decision_days": {
+        "min": 0.03055337847793741,
+        "p5": 0.03580148826476674,
+        "median": 0.04154093262309296,
+        "p95": 0.04876187686284177,
+        "max": 0.0616202342685269
+      },
+      "contract_rate_initial": {
+        "min": 0.03365952155661485,
+        "p5": 0.03697767950748663,
+        "median": 0.04156931420818017,
+        "p95": 0.04647147623012392,
+        "max": 0.051006109964404855
+      },
+      "public_signal_cross_sectional_sd": {
+        "median": 0.662966355435932,
+        "min": 0.506728970408265,
+        "max": 0.9915476858639922
+      }
+    },
+    "lambda_fe": {
+      "spread": 0.05,
+      "worlds": 3,
+      "failed_worlds": 0,
+      "price_cap_hits": 1,
+      "observations": 12000,
+      "rho_bp": {
+        "median": 11.95495246792671,
+        "p5": 11.176648165786668,
+        "p25": 11.620492195665161,
+        "p75": 12.35489033502625,
+        "p95": 13.095316285228147,
+        "median_days_600_on": 11.969310018851148,
+        "median_by_seed": [
+          11.882165369409703,
+          11.853353969574636,
+          12.26263382842709
+        ]
+      },
+      "passthrough_median": 0.011044288281127548,
+      "quote_response_m_median": 0.0211650801318052,
+      "exposure_share_median": 0.4911375633042231,
+      "benefit_B_bp_of_value_median": 5.908632044939468,
+      "yield_slope_bp_median": -19.772635924887464,
+      "log_price_premium_slope_median": 0.03988227160750456,
+      "slope": 0.0009675,
+      "slope_bp": 9.675,
+      "rho_price_bp": {
+        "median": 2.2799524679267087,
+        "p5": 1.5016481657866683,
+        "p95": 3.420316285228147
+      },
+      "contract_rate_decision_days": {
+        "min": 0.03153076112289796,
+        "p5": 0.03677744480543439,
+        "median": 0.04150979403446008,
+        "p95": 0.04781993886942328,
+        "max": 0.05726419936327193
+      },
+      "contract_rate_initial": {
+        "min": 0.039109929737962006,
+        "p5": 0.04016944056880968,
+        "median": 0.04163558135195192,
+        "p95": 0.043200875660938914,
+        "max": 0.04464881564044941
+      },
+      "public_signal_cross_sectional_sd": {
+        "median": 0.7450763929630178,
+        "min": 0.6160841080834184,
+        "max": 0.9915476858639922
+      }
+    }
+  },
+  "verification": {
+    "slope_bp": 25.75,
+    "rho_total_median_bp": 28.056384081996324,
+    "within_10pct": true
+  },
+  "runs": [
+    {
+      "spread": 0.05,
+      "seed": 56001,
+      "slope": 0.0009675,
+      "status": "complete",
+      "fingerprint": "76a3566982b52758672b5eb24b242b017bfcc9924a2a34f473e2338e42fdf984",
+      "seconds": 48.16000350005925,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l9.675bp_seed56001.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56002,
+      "slope": 0.0009675,
+      "status": "complete",
+      "fingerprint": "e9be26c3839cf7099536b911ad3779f762314fc63a94924cd22e34ff677bfaec",
+      "seconds": 47.95966459996998,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l9.675bp_seed56002.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56003,
+      "slope": 0.0009675,
+      "status": "complete",
+      "fingerprint": "010d7392118486179ae7915662f2e70a48c3d810c29782930fb7dfe824489633",
+      "seconds": 47.28501150000375,
+      "price_cap_hits": 1,
+      "arrays": "calibration_v2/s0.05_l9.675bp_seed56003.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56001,
+      "slope": 0.00212,
+      "status": "complete",
+      "fingerprint": "9bd6a9a3557b3b3e8d84ff2ee292758a873fe53c4d56b000e24e567df20809d8",
+      "seconds": 47.69240609998815,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l21.2bp_seed56001.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56002,
+      "slope": 0.00212,
+      "status": "complete",
+      "fingerprint": "79aea350de63fe59d5ea165e8219f0adbd0b895d75e7af9721ad358437acf392",
+      "seconds": 48.461427100002766,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l21.2bp_seed56002.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56003,
+      "slope": 0.00212,
+      "status": "complete",
+      "fingerprint": "cbc6024d0fe0c3e54872761a65aaa9cf54bf7fa5c808cb501a1739af8173f0b6",
+      "seconds": 48.1060218999628,
+      "price_cap_hits": 1,
+      "arrays": "calibration_v2/s0.05_l21.2bp_seed56003.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56001,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "e1cae239fdce4467bda7e3f32a38189f3012a75b6f4157567391875cf1c63887",
+      "seconds": 48.232582300086506,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l25.75bp_seed56001.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56002,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "c032d6481205edea4470a4320c7f9c6f08f356b54485997d3859aaf5b64a9d52",
+      "seconds": 48.09926909999922,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l25.75bp_seed56002.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56003,
+      "slope": 0.002575,
+      "status": "complete",
+      "fingerprint": "c59a87c40bc03927a2174f7ca8ef688c26d9ab50ad31df88d59f889bf233a46a",
+      "seconds": 48.05491710000206,
+      "price_cap_hits": 1,
+      "arrays": "calibration_v2/s0.05_l25.75bp_seed56003.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56001,
+      "slope": 0.00303,
+      "status": "complete",
+      "fingerprint": "4efbb6a986c3d628188cdfffd12cc511e186e9ece4b8cf4f925ba0ea50b67fab",
+      "seconds": 48.221855900017545,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l30.3bp_seed56001.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56002,
+      "slope": 0.00303,
+      "status": "complete",
+      "fingerprint": "f244767c9ec86bbf77ee0e5d5e952c4fdeb9f87d68e7f0a4566a78bd9355423c",
+      "seconds": 48.38699029991403,
+      "price_cap_hits": 0,
+      "arrays": "calibration_v2/s0.05_l30.3bp_seed56002.npz",
+      "decision_days": 20
+    },
+    {
+      "spread": 0.05,
+      "seed": 56003,
+      "slope": 0.00303,
+      "status": "complete",
+      "fingerprint": "75e52e5e28b79a80a29df844a4e5e095dba10d99b18f742ba03c972d719192f7",
+      "seconds": 47.997982100001536,
+      "price_cap_hits": 1,
+      "arrays": "calibration_v2/s0.05_l30.3bp_seed56003.npz",
+      "decision_days": 20
+    }
+  ],
+  "lambda_star_adopted_bp": 25.75,
+  "financing_rating_slope": {
+    "lambda_star": 0.002575,
+    "lambda_lo": 0.00212,
+    "lambda_hi": 0.00303,
+    "lambda_fe": 0.0009675
+  },
+  "rerun_rule_26_20": "confirmatory rerun at lambda*",
+  "finished": "2026-10-27 14:05:17 +0800",
+  "script_sha256": "3005ba48b1ae13c2f6db90c348294a9b11e4612bca17c8ffc4a101f93780b22c",
+  "grid_file_sha256": "0c34d629652506e9147837110e7bc801c838eb2191c9956eea1ca480c6bef28a"
+}

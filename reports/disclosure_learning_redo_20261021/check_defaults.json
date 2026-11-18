@@ -1,0 +1,37 @@
+{
+  "trials": {
+    "d2/B/validation/seed_31401/q_learning": {
+      "archived": "0f040e164de398a55fe02c9ff6d02a74f271cb48edc71787edebf19580cbf710",
+      "rerun": "0f040e164de398a55fe02c9ff6d02a74f271cb48edc71787edebf19580cbf710",
+      "archived_table": "78c2aa0af5c344ff8647b2af787c3d3bc5139f3aa85e4aa747c5338eb21d1512",
+      "rerun_table": "78c2aa0af5c344ff8647b2af787c3d3bc5139f3aa85e4aa747c5338eb21d1512",
+      "identical": true
+    },
+    "d2/B/validation/seed_31401/npv_discrete": {
+      "archived": "ccc5cbfc1e6bfb59b7faf47e1fc5661b0ebeccb6f5ccfc6efe3e165818231f04",
+      "rerun": "ccc5cbfc1e6bfb59b7faf47e1fc5661b0ebeccb6f5ccfc6efe3e165818231f04",
+      "identical": true
+    },
+    "d2/B/training/seed_31501": {
+      "archived": "848f8d70570934ebba8732cd6894e1681a30d144e2463f3036fb8951210d626d",
+      "rerun": "848f8d70570934ebba8732cd6894e1681a30d144e2463f3036fb8951210d626d",
+      "archived_table": "295d85dd2feb2ac440a8d201670bd9e19737c60d2703613a5960f9988d746768",
+      "rerun_table": "295d85dd2feb2ac440a8d201670bd9e19737c60d2703613a5960f9988d746768",
+      "identical": true
+    },
+    "d2/baseline/training/seed_31201": {
+      "archived": "26f5e949bac4fa61c4e3dc14dde96d688afd7e6170ae0850a2b50f4888f9a830",
+      "rerun": "26f5e949bac4fa61c4e3dc14dde96d688afd7e6170ae0850a2b50f4888f9a830",
+      "archived_table": "1a2dd40201d0bb79fffbef9ee7db5651f8114f03106dec1cd2fafd34b76c06a2",
+      "rerun_table": "1a2dd40201d0bb79fffbef9ee7db5651f8114f03106dec1cd2fafd34b76c06a2",
+      "identical": true
+    },
+    "stage_f_development/B/seed_33001": {
+      "experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "archived": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "rerun": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "identical": true
+    }
+  },
+  "all_identical": true
+}

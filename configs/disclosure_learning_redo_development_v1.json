@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "name": "disclosure_learning_redo_development_v1",
+  "purpose": "development",
+  "contract": "docs/disclosure_research_contract.md section 23",
+  "domain": "configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "domain_sha256": "c3dd482401afcab2633d57fd58c3945e956435d4daf44ad1e2bfcccb441ef907",
+  "config": {
+    "seed": 20261012,
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "size_class_shares": [
+      0.1,
+      0.3,
+      0.6
+    ],
+    "intrinsic_value_log_sd": 0.9151544344205937,
+    "cash_flow_yield": 0.05,
+    "fundamental_drift": 0.04,
+    "fundamental_volatility": 0.159,
+    "fundamental_common_correlation": 0.4,
+    "investor_wealth_log_sd": 1.0,
+    "investor_float_share": 0.8,
+    "initial_equity_share": 0.7,
+    "initial_market_volatility": 0.18,
+    "initial_asset_volatility": 0.27,
+    "max_equity_share": 1.0,
+    "risk_aversion_mean": 3.0,
+    "risk_aversion_sd": 0.5,
+    "risk_aversion_min": 0.5,
+    "decision_interval_median": 20.0,
+    "decision_interval_log_sd": 0.5,
+    "decision_interval_max": 120,
+    "choice_intensity_median": 2.0,
+    "choice_intensity_log_sd": 0.5,
+    "rebalance_speed": 0.5,
+    "risk_free_rate": 0.025,
+    "mispricing_reversion": 0.15,
+    "variance_ewma_decay": 0.94,
+    "allocation_variance_decay": 0.99,
+    "news_pass_through": 0.9,
+    "price_impact": 1.0,
+    "liquidity_fraction": 0.3,
+    "liquidity_volatility_sensitivity": 3.03,
+    "liquidity_stress_threshold": 0.8,
+    "minimum_liquidity_fraction": 0.3,
+    "depth_resilience": 0.15,
+    "reference_variance_decay": 0.995,
+    "permanent_impact_fraction": 0.486,
+    "transient_impact_decay": 0.974,
+    "order_flow_memory": 0.3,
+    "max_log_return": 0.3,
+    "transaction_cost_rate": 0.001,
+    "noise_flow_scale": 0.002,
+    "noise_common_correlation": 0.8,
+    "noise_persistence": 0.5,
+    "noise_inventory_reversion": 0.05,
+    "noise_float_share": 0.05,
+    "noise_volatility_exponent": 1.77,
+    "market_maker_cash_multiple": 1.0,
+    "market_maker_inventory_skew": 0.01,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "taste_log_sd": 0.5,
+    "imitation_interval": 60,
+    "imitation_intensity": 100.0,
+    "imitation_update_fraction": 0.1,
+    "imitation_rule": "pairwise",
+    "firm_decision_interval": 60,
+    "firm_policy": "q_learning",
+    "firm_action_fractions": [
+      0.04,
+      0.2,
+      1.0
+    ],
+    "firm_learning_context": "signal_tercile",
+    "firm_learning_rate_power": 0.85,
+    "firm_cost_budget_fraction": 0.01,
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05
+  },
+  "versions": {
+    "A": "signal_tercile",
+    "V": "improvement_stock"
+  },
+  "switch_day": 1201,
+  "scenarios": {
+    "B": {},
+    "I": {
+      "transparency": 0.6
+    },
+    "F": {
+      "fixed_fine": 0.00018245963214655838
+    },
+    "IF": {
+      "transparency": 0.6,
+      "fixed_fine": 0.00018245963214655838
+    }
+  },
+  "replicates": [
+    {
+      "replicate": 1,
+      "prepolicy_training_seeds": [
+        37001,
+        37002,
+        37003
+      ],
+      "postpolicy_training_seeds": [
+        37201,
+        37202
+      ]
+    },
+    {
+      "replicate": 2,
+      "prepolicy_training_seeds": [
+        37101,
+        37102,
+        37103
+      ],
+      "postpolicy_training_seeds": [
+        37301,
+        37302
+      ]
+    }
+  ],
+  "check_seeds": [
+    37401
+  ],
+  "validation_seeds": [
+    37501,
+    37502
+  ],
+  "reserved_seeds": [
+    20261101,
+    20261102,
+    20261103,
+    20261104,
+    20261105,
+    20261106,
+    20261107,
+    20261108,
+    20261109,
+    20261110,
+    20261111,
+    20261112,
+    20261113,
+    20261114,
+    20261115,
+    20261116,
+    20261117,
+    20261118,
+    20261119,
+    20261120,
+    20261121,
+    20261122,
+    20261123,
+    20261124,
+    20261125,
+    20261126,
+    20261127,
+    20261128,
+    20261129,
+    20261130
+  ],
+  "coverage_target": 20,
+  "archive": "compact",
+  "npv_rules": [
+    "npv_discrete",
+    "npv"
+  ],
+  "prepolicy_validation_rules": [
+    "q_learning"
+  ],
+  "postpolicy_validation_rules": [
+    "q_learning"
+  ],
+  "window": {
+    "start_day": 1200,
+    "end_day": 3500
+  }
+}

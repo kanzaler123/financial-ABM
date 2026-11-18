@@ -27,6 +27,9 @@ linear link; true values drawn above it stay latent.
 ``natural_reversion`` replaces a pure downward drift by reversion towards the
 cross-sectional mean with stationary dispersion, so the attribute has no
 aggregate trend but individual firms drift back towards the middle.
+``reversion_permanent_share`` splits the attribute into a permanent firm
+level and a reverting part; ``reversion_improvement`` says which of the two
+real improvement joins.
 ``wash_cost_log_sd`` gives each firm its own wash cost ratio.
 """
 
@@ -106,6 +109,13 @@ class DomainSpec:
     # (mean-preserving lognormal, like real_cost_log_sd). Zero gives every
     # firm the same ratio.
     wash_cost_log_sd: float = 0.0
+    # Under natural_reversion, the share of the cross-sectional variance that is
+    # a permanent firm level mu_i; only the rest, g_i - mu_i, reverts and is
+    # shocked (research contract section 25.2). Zero is pure reversion.
+    reversion_permanent_share: float = 0.0
+    # Under natural_reversion, whether real improvement joins the reverting part
+    # ("transitory", like a shock) or the permanent level ("permanent").
+    reversion_improvement: str = "transitory"
 
     def __post_init__(self) -> None:
         if not self.name or not self.attribute_label:
@@ -122,9 +132,15 @@ class DomainSpec:
             raise ValueError("initial_mean must lie within the raw bounds")
         for name in ("natural_decay", "real_cost_log_sd", "cost_level_elasticity",
                      "baseline_penalty", "baseline_subsidy", "baseline_fixed_fine",
-                     "natural_reversion", "wash_cost_log_sd"):
+                     "natural_reversion", "wash_cost_log_sd", "reversion_permanent_share"):
             if getattr(self, name) < 0:
                 raise ValueError(f"{name} must be nonnegative")
+        if self.reversion_permanent_share >= 1:
+            raise ValueError("reversion_permanent_share must be below 1")
+        if self.reversion_improvement not in ("transitory", "permanent"):
+            raise ValueError("reversion_improvement must be 'transitory' or 'permanent'")
+        if (self.reversion_permanent_share or self.reversion_improvement != "transitory") and not self.natural_reversion:
+            raise ValueError("a permanent level or permanent improvement requires natural_reversion")
         for name in ("real_cost_scale", "wash_cost_ratio", "max_change_per_period"):
             if getattr(self, name) <= 0:
                 raise ValueError(f"{name} must be positive")
@@ -242,6 +258,8 @@ class DomainSpec:
             and (item.name != "signal_saturation" or self.signal_saturation)
             and (item.name != "natural_reversion" or self.natural_reversion)
             and (item.name != "wash_cost_log_sd" or self.wash_cost_log_sd)
+            and (item.name != "reversion_permanent_share" or self.reversion_permanent_share)
+            and (item.name != "reversion_improvement" or self.reversion_improvement != "transitory")
         }
 
     @classmethod

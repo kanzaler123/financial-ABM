@@ -1,0 +1,47 @@
+{
+  "json_files": 57424,
+  "unreadable": 0,
+  "distinct_seed_values": 5058,
+  "overlap": [],
+  "unique_within_design": true,
+  "blocks": {
+    "calibration": [
+      56001,
+      56003,
+      3
+    ],
+    "development": [
+      38101,
+      38102,
+      2
+    ],
+    "confirmatory": [
+      57001,
+      57030,
+      30
+    ]
+  },
+  "used_nearby": {
+    "calibration": [
+      55221,
+      56368,
+      56713
+    ],
+    "development": [
+      37101,
+      37102,
+      37103,
+      37201,
+      37202,
+      37301,
+      37302,
+      37401,
+      37501,
+      37502
+    ],
+    "confirmatory": [
+      56368,
+      56713
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "spec": "../../configs/disclosure_learning_redo_development_v1.json",
+  "output": "dev_v1",
+  "confirmatory": false,
+  "checks": {
+    "completion": {
+      "pass": true,
+      "missing": [],
+      "tables": 20
+    },
+    "frozen_tables": {
+      "pass": true,
+      "problems": []
+    },
+    "windows": {
+      "pass": true,
+      "runs": 48,
+      "problems": []
+    },
+    "prefix_identity": {
+      "pass": true,
+      "pairs": 36,
+      "differing": [],
+      "switch_period": 21
+    },
+    "replays": {
+      "pass": true,
+      "replays": 32,
+      "problems": []
+    },
+    "coverage_gate_computed": {
+      "pass": true,
+      "status_counts": {
+        "FAIL": 20
+      }
+    }
+  },
+  "all_pass": true
+}

@@ -1,0 +1,53 @@
+{
+  "trials": {
+    "B_33001": {
+      "experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "archived": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "rerun": "42c9a7084b3934d7b4f973baddc0044223ba16229ac0732abadd2ba44c856540",
+      "identical": true
+    },
+    "I_33001": {
+      "experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "archived": "00a9952be1db77829241a7d8f42b7f2623e0d33682f4c74a0150366e996a7a5b",
+      "rerun": "00a9952be1db77829241a7d8f42b7f2623e0d33682f4c74a0150366e996a7a5b",
+      "identical": true
+    },
+    "F_33001": {
+      "experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "archived": "29ad95fc8d8c7220d52d7f234e1b366386149541f3167da06c35d31f57a11801",
+      "rerun": "29ad95fc8d8c7220d52d7f234e1b366386149541f3167da06c35d31f57a11801",
+      "identical": true
+    },
+    "decay0_B_33001": {
+      "experiment_id": "61e724cd1adec97ff321cd731973e429768e13ad0bf88cea92b5f29f1057190f",
+      "archived": "8b1fa36716052dafe0185e4eacb2379f1d29a676a0fda9a11cf94bee32f4b011",
+      "rerun": "8b1fa36716052dafe0185e4eacb2379f1d29a676a0fda9a11cf94bee32f4b011",
+      "identical": true
+    },
+    "V_34001": {
+      "experiment_id": "ae5386ac9078571fec398a56dcfcb798271e13c19feca4b76e20fdc56ceaac18",
+      "archived": "4c18ab963ffe6f1d9d1c1fdacbc7c3f61850da45ddd1e88c50310989f30f23e1",
+      "rerun": "4c18ab963ffe6f1d9d1c1fdacbc7c3f61850da45ddd1e88c50310989f30f23e1",
+      "identical": true
+    },
+    "ALL_F16_35001": {
+      "experiment_id": "3a98d1f16abd4b63ef0bd562288428f587fe9fd6035eab9c5576dd9fdc7a4a84",
+      "archived": "8d02cc06d5ca56d3e82ed83724291fc2803e1875cd857ccb8f664d775475123c",
+      "rerun": "8d02cc06d5ca56d3e82ed83724291fc2803e1875cd857ccb8f664d775475123c",
+      "identical": true
+    },
+    "rev0p32_B_33001": {
+      "experiment_id": "f29cf7364f2a6d0906564773598bf1deb4e5b9fdf703ac7b58b48f1a5049eeb4",
+      "archived": "d7535b12b1a03ec794996bbf073a3d4306062bf91a86853c18172d9ff89de2a0",
+      "rerun": "d7535b12b1a03ec794996bbf073a3d4306062bf91a86853c18172d9ff89de2a0",
+      "identical": true
+    },
+    "rrw0p5_B_33001": {
+      "experiment_id": "f29cf7364f2a6d0906564773598bf1deb4e5b9fdf703ac7b58b48f1a5049eeb4",
+      "archived": "1a12c159327984142e4fe9854983bccfe7bd9b981021cc3075b1bfa8b5549518",
+      "rerun": "1a12c159327984142e4fe9854983bccfe7bd9b981021cc3075b1bfa8b5549518",
+      "identical": true
+    }
+  },
+  "all_identical": true
+}

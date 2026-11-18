@@ -27,13 +27,27 @@ python -m pip install -c requirements-lock.txt -e ".[all,dev]"
 python -m pytest
 ```
 
-`[all]` includes the desktop GUI (PySide6). If you only work on the disclosure model, `".[plot,research,dev]"` is enough.
+`[all]` includes the desktop GUI (PySide6) and the empirical-data dependencies.
+For the test suite without the desktop GUI, install `".[plot,research,web,dev]"`;
+only the Qt-specific tests then skip, while worker, telemetry and web tests still run.
+For empirical estimation scripts, also install `".[empirical]"` (pandas and openpyxl).
+The persistence and rating-channel mechanism tests use a public synthetic domain,
+independently of licensed observations. The remaining vendor-backed showcase
+comparison reports its skip explicitly when its source data is unavailable.
 
 Check that the model runs (10–30 seconds):
 
 ```sh
 python -m abm.disclosure.experiments --spec configs/disclosure_quickstart_v1.json --output runs/quickstart --workers 2
 ```
+
+Check both completion and the validation results in the report. The quickstart
+retains price-guard failures as diagnostic evidence; it is a development example,
+not a calibrated acceptance run. Do not select new seeds to hide failed checks.
+
+The [November 2026 review corrections](docs/review_corrections_20261116.md)
+describe the statistical errata, their new recomputation entry point, and the
+historical results that still require access to the original archives.
 
 For the in-browser desk you need Node.js 22 as well:
 

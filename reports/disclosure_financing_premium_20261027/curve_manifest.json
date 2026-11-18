@@ -1,0 +1,144 @@
+{
+  "source": "财政部-中国国债收益率曲线 (MOF China government bond yield curve), compiled by CCDC",
+  "page": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/showHistory",
+  "downloaded": "2026-10-27 08:08:22 +0800",
+  "directory": "data/raw/chinabond_mof_curve_20261027",
+  "files": [
+    {
+      "year": 2009,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2009-01-01&&endDate=2009-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2009年01月01日--2009年12月31日.xlsx",
+      "file": "mof_cgb_curve_2009.xlsx",
+      "bytes": 17367,
+      "sha256": "88935625c0d9ad501d405f2777028f91c7238ba1c96da2aeb0833e642f5e8968"
+    },
+    {
+      "year": 2010,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2010-01-01&&endDate=2010-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2010年01月01日--2010年12月31日.xlsx",
+      "file": "mof_cgb_curve_2010.xlsx",
+      "bytes": 17840,
+      "sha256": "09c9847c158381e693d3e5e16fc44a391c31d20b4ef64359c781859882dba332"
+    },
+    {
+      "year": 2011,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2011-01-01&&endDate=2011-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2011年01月01日--2011年12月31日.xlsx",
+      "file": "mof_cgb_curve_2011.xlsx",
+      "bytes": 18237,
+      "sha256": "951920aa04210095c99b1fc9900fc1242c590bac592b12b1467aadafe8d0689d"
+    },
+    {
+      "year": 2012,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2012-01-01&&endDate=2012-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2012年01月01日--2012年12月31日.xlsx",
+      "file": "mof_cgb_curve_2012.xlsx",
+      "bytes": 17555,
+      "sha256": "19f4f214bbecca84616c676ca363ec96b59ac78b3d7926fca08a859550b68b83"
+    },
+    {
+      "year": 2013,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2013-01-01&&endDate=2013-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2013年01月01日--2013年12月31日.xlsx",
+      "file": "mof_cgb_curve_2013.xlsx",
+      "bytes": 18036,
+      "sha256": "04a21b5a3f27595205e5387c5fb441d48832740471e0d8277c6fa711c7c5812c"
+    },
+    {
+      "year": 2014,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2014-01-01&&endDate=2014-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2014年01月01日--2014年12月31日.xlsx",
+      "file": "mof_cgb_curve_2014.xlsx",
+      "bytes": 18408,
+      "sha256": "3f6797fbb86f9dd22b468f732ca3a667961a4a8fadd12d779a39ef7b66e8f044"
+    },
+    {
+      "year": 2015,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2015-01-01&&endDate=2015-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2015年01月01日--2015年12月31日.xlsx",
+      "file": "mof_cgb_curve_2015.xlsx",
+      "bytes": 18094,
+      "sha256": "4678dde453d8a26db4ea0e194aa3bbd65b60e9e4fff469f29ce124dc6a72f6a5"
+    },
+    {
+      "year": 2016,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2016-01-01&&endDate=2016-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2016年01月01日--2016年12月31日.xlsx",
+      "file": "mof_cgb_curve_2016.xlsx",
+      "bytes": 17922,
+      "sha256": "2b173af03a59266b0d641b0348f708e7eaff25c5036e1f05e6a0ed5f23fcb665"
+    },
+    {
+      "year": 2017,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2017-01-01&&endDate=2017-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2017年01月01日--2017年12月31日.xlsx",
+      "file": "mof_cgb_curve_2017.xlsx",
+      "bytes": 18010,
+      "sha256": "a4c4d56165341b190614d2e55beb938d158a88d563f9d2689f91f72e745990bd"
+    },
+    {
+      "year": 2018,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2018-01-01&&endDate=2018-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2018年01月01日--2018年12月31日.xlsx",
+      "file": "mof_cgb_curve_2018.xlsx",
+      "bytes": 18238,
+      "sha256": "6f3f9534776fd876ec740f33864a09f62a80c5c23b9e5ef8350744c2e2a9f35d"
+    },
+    {
+      "year": 2019,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2019-01-01&&endDate=2019-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2019年01月01日--2019年12月31日.xlsx",
+      "file": "mof_cgb_curve_2019.xlsx",
+      "bytes": 17697,
+      "sha256": "58bb2f0d43c5ec884107b3b3c9608909e254d5329f0cddbb6ef37cfa828dd03c"
+    },
+    {
+      "year": 2020,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2020-01-01&&endDate=2020-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2020年01月01日--2020年12月31日.xlsx",
+      "file": "mof_cgb_curve_2020.xlsx",
+      "bytes": 18764,
+      "sha256": "120340c4fb4b66c2d87058aeedaf7f446150b444c86468b81a6e74950d4a81af"
+    },
+    {
+      "year": 2021,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2021-01-01&&endDate=2021-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2021年01月01日--2021年12月31日.xlsx",
+      "file": "mof_cgb_curve_2021.xlsx",
+      "bytes": 17690,
+      "sha256": "6344b6a6d8f8f85a7b373e2f6637dd3a6fbb7be6330bdee16580acc83be41984"
+    },
+    {
+      "year": 2022,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2022-01-01&&endDate=2022-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2022年01月01日--2022年12月31日.xlsx",
+      "file": "mof_cgb_curve_2022.xlsx",
+      "bytes": 17685,
+      "sha256": "d2f1b6d64486c21fd310cc6f7e04283a67b747b1e5830e2a210e47a33994a715"
+    },
+    {
+      "year": 2023,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2023-01-01&&endDate=2023-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2023年01月01日--2023年12月31日.xlsx",
+      "file": "mof_cgb_curve_2023.xlsx",
+      "bytes": 17514,
+      "sha256": "3d2077f93e7ed1352826ea49028330601616ab38e214a76ca8d70fb579c3e9f3"
+    },
+    {
+      "year": 2024,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2024-01-01&&endDate=2024-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2024年01月01日--2024年12月31日.xlsx",
+      "file": "mof_cgb_curve_2024.xlsx",
+      "bytes": 17941,
+      "sha256": "dfe3790ec44b02344fdf99ed086955dbbb76bdf1a9ad4e8dfa2c9ca2a79733c5"
+    },
+    {
+      "year": 2025,
+      "url": "https://yield.chinabond.com.cn/cbweb-mn/pgxh/historyDownload?startDate=2025-01-01&&endDate=2025-12-31&&gjqx=0",
+      "server_file_name": "财政部-中国国债收益率曲线历史数据2025年01月01日--2025年12月31日.xlsx",
+      "file": "mof_cgb_curve_2025.xlsx",
+      "bytes": 17093,
+      "sha256": "1e3153ba97f62c6feb668ad9fe368671f516791ebfc24dc2a8bbba9973e1bb6e"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "name": "disclosure_stage_i_feasibility_v3",
+  "purpose": "estimation",
+  "archive": "sampled",
+  "_note": "Stage I v3 (research contract section 26.24): feasibility check F0 (26.24 (c)). The stage I v2 baseline B at lambda* = 0.002575 (financing_spread 0.05), sampled archive (public signal every 63 trading days from day 1260). No comparison, no hypothesis test.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    58901,
+    58902,
+    58903,
+    58904,
+    58905
+  ],
+  "scenarios": [
+    {
+      "name": "u_d0",
+      "domain": {
+        "natural_decay": 0.0
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "u_d0p1",
+      "domain": {
+        "natural_decay": 0.1
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "r_k0p05",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.05
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "q_k0p05_s0p9",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.05,
+        "reversion_permanent_share": 0.9
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "q_k0p1_s0p7",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.1,
+        "reversion_permanent_share": 0.7
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    },
+    {
+      "name": "q_k0p505_s0p423",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_rating_slope": 0.002575
+      }
+    }
+  ],
+  "comparisons": [],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

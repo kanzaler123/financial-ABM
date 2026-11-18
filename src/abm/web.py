@@ -10,6 +10,7 @@ import multiprocessing
 import queue
 import re
 import secrets
+import threading
 import webbrowser
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -24,7 +25,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .config import Stage1Config
 from .run_service import controlled_run_worker
 from .stage2 import load_simulation_config, simulation_config_from_dict
-from .telemetry import TelemetryEvent, read_telemetry
+from .telemetry import ObserverQueue, TelemetryEvent, TelemetryJournalCursor, read_telemetry
 
 SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 COMMANDS = {"pause", "resume", "step", "speed"}
@@ -32,6 +33,7 @@ ARTIFACTS = {
     "config": "config.json",
     "summary": "summary.json",
     "manifest": "run_manifest.json",
+    "failure": "failure.json",
     "daily-audit": "daily_audit.jsonl",
     "learning-audit": "learning_audit.json",
     "state-arrays": "state_arrays.npz",
@@ -63,8 +65,13 @@ class ActiveRun:
     published_frames: int = 0
     dropped_frames: int = 0
     error: str | None = None
+    _refresh_lock: Any = field(default_factory=threading.Lock, repr=False)
 
     def refresh(self) -> None:
+        with self._refresh_lock:
+            self._refresh_locked()
+
+    def _refresh_locked(self) -> None:
         while True:
             try:
                 self.events.append(
@@ -99,6 +106,8 @@ class ActiveRun:
             self.error = f"worker exited without completion (exit code {self.process.exitcode})"
 
     def _apply(self, update: Mapping[str, Any]) -> None:
+        if self.state in ("completed", "failed") and update.get("state") not in ("completed", "failed"):
+            return
         self.state = str(update.get("state", self.state))
         self.current_day = int(update.get("current_day", self.current_day))
         self.fingerprint = update.get("fingerprint") or self.fingerprint
@@ -151,31 +160,48 @@ class RunRegistry:
                 continue
             summary_path = child / "summary.json"
             config_path = child / "config.json"
-            if not summary_path.is_file() or not config_path.is_file():
+            if not config_path.is_file():
                 continue
             try:
-                summary = json.loads(summary_path.read_text(encoding="utf-8"))
                 config = json.loads(config_path.read_text(encoding="utf-8"))
-                if not isinstance(summary, dict) or not isinstance(config, dict):
+                if not isinstance(config, dict):
                     continue
                 manifest_path = child / "run_manifest.json"
-                failures = (json.loads(manifest_path.read_text(encoding="utf-8")).get("failures", [])
-                            if manifest_path.is_file() else [])
+                manifest = (json.loads(manifest_path.read_text(encoding="utf-8"))
+                            if manifest_path.is_file() else {})
+                if not isinstance(manifest, dict):
+                    continue
+                failures = manifest.get("failures", [])
+                if not isinstance(failures, list) or any(not isinstance(item, str) for item in failures):
+                    continue
+                if not failures and not summary_path.is_file():
+                    # An incomplete archive alone is not evidence of failure.
+                    continue
+                summary = (json.loads(summary_path.read_text(encoding="utf-8"))
+                           if summary_path.is_file() else {})
+                failure_path = child / "failure.json"
+                failure = (json.loads(failure_path.read_text(encoding="utf-8"))
+                           if failures and failure_path.is_file() else {})
+                if not isinstance(summary, dict) or not isinstance(failure, dict):
+                    continue
+                current_day = int(failure.get("current_day", summary.get("trading_days", 0)))
+                trading_days = int(config.get("trading_days", summary.get("trading_days", 0)))
+                event_count = int(failure.get("telemetry_events", summary.get("telemetry_events", 0)))
                 records[child.name] = {
                     "id": child.name,
                     "state": "failed" if failures else "completed",
                     "active": False,
-                    "current_day": int(summary.get("trading_days", 0)),
-                    "trading_days": int(summary.get("trading_days", 0)),
+                    "current_day": current_day,
+                    "trading_days": trading_days,
                     "seed": int(config.get("seed", 0)),
                     "population_size": int(config.get("population_size", 0)),
-                    "latest_sequence_no": int(summary.get("telemetry_events", 0)),
+                    "latest_sequence_no": event_count,
                     "fingerprint": None if failures else summary.get("fingerprint"),
-                    "published_frames": int(summary.get("telemetry_events", 0)),
+                    "published_frames": event_count,
                     "dropped_frames": 0,
                     "error": "; ".join(failures) if failures else None,
                 }
-            except (OSError, ValueError, TypeError):
+            except (OSError, ValueError, TypeError, OverflowError):
                 continue
         return sorted(records.values(), key=lambda item: str(item["id"]), reverse=True)
 
@@ -184,10 +210,10 @@ class RunRegistry:
         if output_dir.exists() or (output_dir.parent / f".{name}.events.jsonl").exists() or name in self.active:
             raise FileExistsError(name)
         context = multiprocessing.get_context("spawn")
-        telemetry_queue = context.Queue(maxsize=4096)
+        telemetry_queue = ObserverQueue.create(context, 4096)
         command_queue = context.Queue(maxsize=64)
         completion_queue = context.Queue(maxsize=4)
-        status_queue = context.Queue(maxsize=max(config.trading_days + 8, 64))
+        status_queue = ObserverQueue.create(context, 64)
         process = context.Process(
             target=controlled_run_worker,
             args=(
@@ -346,10 +372,6 @@ def create_app(
             path = registry.path_for(name)
         except ValueError as exc:
             raise HTTPException(status.HTTP_404_NOT_FOUND) from exc
-        summary = path / "summary.json"
-        config_path = path / "config.json"
-        if not summary.is_file() or not config_path.is_file():
-            raise HTTPException(status.HTTP_404_NOT_FOUND)
         record = next((item for item in registry.list_runs() if item["id"] == name), None)
         if record is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -394,19 +416,24 @@ def create_app(
             raise HTTPException(status.HTTP_409_CONFLICT, "run command channel is closed") from exc
         return {"status": "accepted"}
 
-    def events_for(name: str, after: int, limit: int | None) -> tuple[TelemetryEvent, ...]:
+    def events_for(
+        name: str, after: int, limit: int | None,
+        journal_cursor: TelemetryJournalCursor | None = None,
+    ) -> tuple[TelemetryEvent, ...]:
         active = registry.get(name)
         if active is not None:
             active.refresh()
             try:
-                return read_telemetry(active.output_dir, after_sequence=after, limit=limit)
+                return read_telemetry(active.output_dir, after_sequence=after, limit=limit,
+                                      journal_cursor=journal_cursor)
             except FileNotFoundError:
                 pass
             events = tuple(event for event in active.events if event.sequence_no > after)
             return events if limit is None else events[:limit]
         path = registry.path_for(name)
         try:
-            return read_telemetry(path, after_sequence=after, limit=limit)
+            return read_telemetry(path, after_sequence=after, limit=limit,
+                                  journal_cursor=journal_cursor)
         except FileNotFoundError as exc:
             raise HTTPException(status.HTTP_404_NOT_FOUND) from exc
 
@@ -433,14 +460,44 @@ def create_app(
         authorize(authorization)
         try:
             cursor = int(last_event_id) if last_event_id is not None else -1
+            if cursor < -1:
+                raise ValueError
         except ValueError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid Last-Event-ID") from exc
+        try:
+            active = registry.get(name)
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_404_NOT_FOUND) from exc
+        archived_state: str | None = None
+        if active is None:
+            records = await asyncio.to_thread(registry.list_runs)
+            record = next((item for item in records if item["id"] == name), None)
+            if record is None:
+                raise HTTPException(status.HTTP_404_NOT_FOUND)
+            archived_state = str(record["state"])
+        journal_cursor = TelemetryJournalCursor()
+        # Validate an archived store before sending response headers. A new
+        # active worker may not have produced its first frame yet.
+        first_batch = await asyncio.to_thread(events_for, name, cursor, 1000, journal_cursor)
+
+        def final_state() -> str | None:
+            active = registry.get(name)
+            if active is not None:
+                metadata = active.metadata()
+                return str(metadata["state"]) if not metadata["active"] else None
+            return archived_state
 
         async def generate():
             nonlocal cursor
+            completion_state: str | None = None
+            batch = first_batch
+            first = True
             yield "retry: 3000\n\n"
             while not await request.is_disconnected():
-                batch = events_for(name, cursor, 1000)
+                if first:
+                    first = False
+                else:
+                    batch = await asyncio.to_thread(events_for, name, cursor, 1000, journal_cursor)
                 for event in batch:
                     cursor = event.sequence_no
                     data = json.dumps(
@@ -452,11 +509,17 @@ def create_app(
                     yield f"id: {cursor}\nevent: telemetry\ndata: {data}\n\n"
                 if len(batch) == 1000:
                     continue
-                active = registry.get(name)
-                if active is None or not active.process.is_alive():
-                    state = "completed" if active is None else active.metadata()["state"]
-                    yield f"event: complete\ndata: {{\"state\":\"{state}\"}}\n\n"
+                if completion_state is not None:
+                    if batch:
+                        continue
+                    yield f"event: complete\ndata: {{\"state\":\"{completion_state}\"}}\n\n"
                     break
+                state = await asyncio.to_thread(final_state)
+                if state is not None:
+                    # A worker may finish between reading its last live batch
+                    # and checking status. Drain the durable archive first.
+                    completion_state = state
+                    continue
                 yield ": keep-alive\n\n"
                 await asyncio.sleep(0.25)
 
@@ -568,7 +631,7 @@ def create_app(
         active = registry.get(name)
         if active is not None:
             active.refresh()
-            if active.state != "completed":
+            if active.state not in ("completed", "failed"):
                 raise HTTPException(status.HTTP_409_CONFLICT, "run is still active")
             active.process.join(timeout=1.0)
         path = registry.path_for(name) / filename

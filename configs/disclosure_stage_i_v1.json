@@ -1,0 +1,1363 @@
+{
+  "name": "disclosure_stage_i_v1",
+  "purpose": "confirmatory",
+  "archive": "compact",
+  "_note": "Stage I (research contract section 26.9): the H3 design (form Q, kappa_T 0.505, s_P 0.423) with financing_spread set by the in-sample premium. Confirmatory block at s* (H3 main and perm_ blocks, H3's names), sensitivity block of eight core scenarios at s0, s_lo, s_hi and s_28 (prefixed names), all on the same seeds. Development and confirmatory specs differ only in name, purpose and seeds; the development run checks the pipeline and may not change the design. The Holm family is the eight primary_questions at s*, adjusted together in analyze.py; no comparison is primary for the runner. The sensitivity block is exploratory.",
+  "financing_spreads": {
+    "s_star": 0.6057,
+    "s0": 0.05,
+    "s_lo": 0.5082,
+    "s_hi": 0.7032,
+    "s_28": 0.6066
+  },
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    57001,
+    57002,
+    57003,
+    57004,
+    57005,
+    57006,
+    57007,
+    57008,
+    57009,
+    57010,
+    57011,
+    57012,
+    57013,
+    57014,
+    57015,
+    57016,
+    57017,
+    57018,
+    57019,
+    57020,
+    57021,
+    57022,
+    57023,
+    57024,
+    57025,
+    57026,
+    57027,
+    57028,
+    57029,
+    57030
+  ],
+  "scenarios": [
+    {
+      "name": "B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "IF",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6,
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "F_2x",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 9.122981607327919e-05
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "F_8x",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00036491926429311675
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "A2",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_probability": 0.02
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "V_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "VF",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value",
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "ALL_R1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "ALL_F1",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 2.2807454018319797e-05,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "LRG_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "LRG_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "large",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "perm_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "perm_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "perm_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423,
+        "reversion_improvement": "permanent"
+      },
+      "market": {
+        "financing_spread": 0.6057
+      }
+    },
+    {
+      "name": "s0_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "s0_ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      }
+    },
+    {
+      "name": "slo_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "slo_ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.5082
+      }
+    },
+    {
+      "name": "shi_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "shi_ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.7032
+      }
+    },
+    {
+      "name": "s28_B",
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_I",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_F",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "fixed_fine": 0.00018245963214655838
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_J",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_J_hidden",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "jump",
+          "audit_rule_public": false
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_V",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_ALL_R16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    },
+    {
+      "name": "s28_ALL_F16",
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4
+        }
+      },
+      "domain": {
+        "natural_decay": 0.0,
+        "natural_reversion": 0.505,
+        "reversion_permanent_share": 0.423
+      },
+      "market": {
+        "financing_spread": 0.6066
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "P1_I_minus_F",
+      "weights": {
+        "I": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "P2_F_minus_B",
+      "weights": {
+        "F": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "P4_J_minus_J_hidden",
+      "weights": {
+        "J": 1,
+        "J_hidden": -1
+      }
+    },
+    {
+      "name": "P6_V_minus_B_size",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      }
+    },
+    {
+      "name": "I_minus_B",
+      "weights": {
+        "I": 1,
+        "B": -1
+      }
+    },
+    {
+      "name": "V_minus_A2",
+      "weights": {
+        "V": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "J_minus_A2",
+      "weights": {
+        "J": 1,
+        "A2": -1
+      }
+    },
+    {
+      "name": "F_minus_F_2x",
+      "weights": {
+        "F": 1,
+        "F_2x": -1
+      }
+    },
+    {
+      "name": "F_8x_minus_F",
+      "weights": {
+        "F_8x": 1,
+        "F": -1
+      }
+    },
+    {
+      "name": "perm_I_minus_perm_F",
+      "weights": {
+        "perm_I": 1,
+        "perm_F": -1
+      }
+    },
+    {
+      "name": "perm_F_minus_perm_B",
+      "weights": {
+        "perm_F": 1,
+        "perm_B": -1
+      }
+    },
+    {
+      "name": "perm_I_minus_perm_B",
+      "weights": {
+        "perm_I": 1,
+        "perm_B": -1
+      }
+    },
+    {
+      "name": "s0_P1_I_minus_F",
+      "weights": {
+        "s0_I": 1,
+        "s0_F": -1
+      }
+    },
+    {
+      "name": "s0_P2_F_minus_B",
+      "weights": {
+        "s0_F": 1,
+        "s0_B": -1
+      }
+    },
+    {
+      "name": "s0_P4_J_minus_J_hidden",
+      "weights": {
+        "s0_J": 1,
+        "s0_J_hidden": -1
+      }
+    },
+    {
+      "name": "s0_P6_V_minus_B_size",
+      "weights": {
+        "s0_V": 1,
+        "s0_B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "s0_P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "s0_ALL_F16": 1,
+        "s0_ALL_R16": -1
+      }
+    },
+    {
+      "name": "s0_I_minus_s0_B",
+      "weights": {
+        "s0_I": 1,
+        "s0_B": -1
+      }
+    },
+    {
+      "name": "slo_P1_I_minus_F",
+      "weights": {
+        "slo_I": 1,
+        "slo_F": -1
+      }
+    },
+    {
+      "name": "slo_P2_F_minus_B",
+      "weights": {
+        "slo_F": 1,
+        "slo_B": -1
+      }
+    },
+    {
+      "name": "slo_P4_J_minus_J_hidden",
+      "weights": {
+        "slo_J": 1,
+        "slo_J_hidden": -1
+      }
+    },
+    {
+      "name": "slo_P6_V_minus_B_size",
+      "weights": {
+        "slo_V": 1,
+        "slo_B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "slo_P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "slo_ALL_F16": 1,
+        "slo_ALL_R16": -1
+      }
+    },
+    {
+      "name": "slo_I_minus_slo_B",
+      "weights": {
+        "slo_I": 1,
+        "slo_B": -1
+      }
+    },
+    {
+      "name": "shi_P1_I_minus_F",
+      "weights": {
+        "shi_I": 1,
+        "shi_F": -1
+      }
+    },
+    {
+      "name": "shi_P2_F_minus_B",
+      "weights": {
+        "shi_F": 1,
+        "shi_B": -1
+      }
+    },
+    {
+      "name": "shi_P4_J_minus_J_hidden",
+      "weights": {
+        "shi_J": 1,
+        "shi_J_hidden": -1
+      }
+    },
+    {
+      "name": "shi_P6_V_minus_B_size",
+      "weights": {
+        "shi_V": 1,
+        "shi_B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "shi_P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "shi_ALL_F16": 1,
+        "shi_ALL_R16": -1
+      }
+    },
+    {
+      "name": "shi_I_minus_shi_B",
+      "weights": {
+        "shi_I": 1,
+        "shi_B": -1
+      }
+    },
+    {
+      "name": "s28_P1_I_minus_F",
+      "weights": {
+        "s28_I": 1,
+        "s28_F": -1
+      }
+    },
+    {
+      "name": "s28_P2_F_minus_B",
+      "weights": {
+        "s28_F": 1,
+        "s28_B": -1
+      }
+    },
+    {
+      "name": "s28_P4_J_minus_J_hidden",
+      "weights": {
+        "s28_J": 1,
+        "s28_J_hidden": -1
+      }
+    },
+    {
+      "name": "s28_P6_V_minus_B_size",
+      "weights": {
+        "s28_V": 1,
+        "s28_B": -1
+      },
+      "primary_metric": "size.large_minus_small_sd"
+    },
+    {
+      "name": "s28_P7_ALL_F16_minus_ALL_R16",
+      "weights": {
+        "s28_ALL_F16": 1,
+        "s28_ALL_R16": -1
+      }
+    },
+    {
+      "name": "s28_I_minus_s28_B",
+      "weights": {
+        "s28_I": 1,
+        "s28_B": -1
+      }
+    }
+  ],
+  "primary_questions": [
+    {
+      "id": "P1",
+      "comparison": "P1_I_minus_F",
+      "kind": "runner_metric",
+      "weights": {
+        "I": 1,
+        "F": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": 1
+    },
+    {
+      "id": "P2",
+      "comparison": "P2_F_minus_B",
+      "kind": "runner_metric",
+      "weights": {
+        "F": 1,
+        "B": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": 1
+    },
+    {
+      "id": "P3",
+      "comparison": "P3_F_minus_B_large_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "F": 1,
+        "B": -1
+      },
+      "share": "large",
+      "direction": 1,
+      "definition": "large firms' washing decisions / all washing decisions, decision days 1260-3480"
+    },
+    {
+      "id": "P4",
+      "comparison": "P4_J_minus_J_hidden",
+      "kind": "runner_metric",
+      "weights": {
+        "J": 1,
+        "J_hidden": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": -1
+    },
+    {
+      "id": "P5",
+      "comparison": "P5_V_minus_B_small_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "share": "small",
+      "direction": 1,
+      "definition": "small firms' washing decisions / all washing decisions, decision days 1260-3480"
+    },
+    {
+      "id": "P6",
+      "comparison": "P6_V_minus_B_size",
+      "kind": "runner_metric",
+      "weights": {
+        "V": 1,
+        "B": -1
+      },
+      "metric": "size.large_minus_small_sd",
+      "direction": 1
+    },
+    {
+      "id": "P7",
+      "comparison": "P7_ALL_F16_minus_ALL_R16",
+      "kind": "runner_metric",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      },
+      "metric": "true_change.equal_weight_sd",
+      "direction": -1
+    },
+    {
+      "id": "P8",
+      "comparison": "P8_ALL_F16_minus_ALL_R16_laxest_share",
+      "kind": "wash_decision_share",
+      "weights": {
+        "ALL_F16": 1,
+        "ALL_R16": -1
+      },
+      "share": "laxest",
+      "direction": 1,
+      "definition": "assured firms' washing decisions made by clients of the provider with that year's lowest quality / all washing decisions of assured firms, decision days 1260-3480"
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "decay_adjusted_gain.equal_weight_sd",
+      "full_period_change.equal_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "terminal_year.change_from_initial_sd",
+      "terminal_year.decay_adjusted_from_initial_sd",
+      "terminal_year.inflation_mean_sd",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.private_net_outflow_fraction_initial_cap",
+      "costs.fine_transfer_fraction_initial_cap",
+      "impact.final_share"
+    ],
+    "confidence_level": 0.95
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "timing": {
+    "decision_day": 1260,
+    "horizon_days": 1260,
+    "repricing_interval": 60,
+    "period_days": 60,
+    "implementation_delay": 120,
+    "disclosure_delay": 20,
+    "discount_rate": 0.05,
+    "audit_probability": 0.01,
+    "n_firms": 200,
+    "wash_cost_ratio": 0.2
+  },
+  "A_w": 3.830453583057525,
+  "main_Q": {
+    "kappa_T": 0.505,
+    "reversion_permanent_share": 0.423,
+    "A_r": 1.4989685277559395,
+    "tau_star": 0.8249922390904104,
+    "I_tau_below_tau_star": true,
+    "size_threshold_ratio_F_over_I": 0.6639819574813405
+  },
+  "perm": {
+    "note": "improvements stay; A_r without reversion",
+    "A_r": 3.725762993642411,
+    "tau_star": 0.5650092532807787,
+    "I_tau_below_tau_star": false,
+    "size_threshold_ratio_F_over_I": null
+  },
+  "check_contract_24_6_A_r": {
+    "0.32": 2.0077,
+    "0.5": 1.51
+  },
+  "T1": "In the same state and at an interior solution, a firm that inflates under I (tau 0.6, fine f) also inflates under F (tau 0.1, fine 4f), and one that inflates under F also inflates under B, for any A_r. Judged on the main block: the paired intervals of the policy-window washing-decision share for I - F and F - B both lie below 0."
+}

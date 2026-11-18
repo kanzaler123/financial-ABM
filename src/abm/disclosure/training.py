@@ -19,6 +19,8 @@ from .domain import DomainSpec, load_domain
 from .learning import action_kinds, load_frozen, save_frozen, table_fingerprint
 from .policy import PolicySchedule
 
+VALIDATION_RULES = ("q_learning", "npv_discrete", "npv")
+
 
 def _seeds(values: Iterable[int], name: str) -> list[int]:
     seeds = list(values)
@@ -176,10 +178,20 @@ def train_and_evaluate(
     training_seeds: Iterable[int], validation_seeds: Iterable[int], reserved_seeds: Iterable[int] = (),
     coverage_target: int = 0,
     common_prepolicy_model: str | Path | None = None, common_prepolicy_sha256: str | None = None,
+    validation_rules: Iterable[str] = VALIDATION_RULES, archive: str = "full",
 ) -> dict:
-    """Run a fixed development budget; refuse overwrite and automatic resume."""
+    """Run a fixed development budget; refuse overwrite and automatic resume.
+
+    ``validation_rules`` keeps the frozen Q-learning run and any of the NPV rules (in the default order);
+    ``archive="compact"`` drops the day-by-firm matrices from every run's result.npz.
+    """
     if type(coverage_target) is not int or coverage_target < 0:
         raise ValueError("coverage_target must be a nonnegative integer")
+    rules = list(validation_rules)
+    if "q_learning" not in rules or rules != [rule for rule in VALIDATION_RULES if rule in rules]:
+        raise ValueError("validation_rules must include q_learning and follow q_learning, npv_discrete, npv")
+    if archive not in ("full", "compact"):
+        raise ValueError("archive must be 'full' or 'compact'")
     train_seeds, valid_seeds = _seeds(training_seeds, "training_seeds"), _seeds(validation_seeds, "validation_seeds")
     if set(train_seeds) & set(valid_seeds):
         raise ValueError("training and validation seeds must not overlap")
@@ -216,7 +228,7 @@ def train_and_evaluate(
     budget = {"training_seeds": train_seeds, "validation_seeds": valid_seeds,
               "reserved_seeds": reserved,
               "training_worlds": len(train_seeds), "validation_worlds_per_rule": len(valid_seeds),
-              "validation_rules": ["q_learning", "npv_discrete", "npv"], "epsilon_by_world": epsilon,
+              "validation_rules": rules, "epsilon_by_world": epsilon,
               "learning_rate": .1, "initial_table": initial_table,
               "coverage": {"scope": "each_world_and_pooled", "maximum_unseen_state_fraction": .05,
                            "common_state_share_threshold": .01, "minimum_action_count": 20,
@@ -224,6 +236,9 @@ def train_and_evaluate(
                            "group_common_state_share_threshold": .01, "unobserved_group_status": "not_observed"}}
     if coverage_target:
         budget["coverage_target"] = coverage_target
+    if archive != "full":
+        budget["archive"] = archive
+    archive_option = {"archive": archive} if archive != "full" else {}
     if config.firm_learning_rate_power:
         budget["learning_rate_power"] = config.firm_learning_rate_power
         budget["step_size_rule"] = "min(1, k * (n + k) ** -learning_rate_power) per batch of k same-key samples; learning_rate unused"
@@ -267,7 +282,7 @@ def train_and_evaluate(
         ]
     summary_path = destination / "summary.json"
     runner.write_json(summary_path, summary)
-    planned_runs = len(train_seeds) + 3 * len(valid_seeds)
+    planned_runs = len(train_seeds) + len(rules) * len(valid_seeds)
     frozen_counts = None
     try:
         summary["initial_model_sha256"] = save_frozen(destination / "initial_model.npz", learner, metadata)
@@ -282,7 +297,7 @@ def train_and_evaluate(
             try:
                 runner.run_and_archive(replace(config, seed=seed, firm_policy="q_learning"), domain, folder,
                                        policy, purpose="development", learner=learner, training=True,
-                                       learning_metadata=run_metadata, **learning_options)
+                                       learning_metadata=run_metadata, **archive_option, **learning_options)
                 record = _run_record(folder, destination, seed, "q_learning", "training")
             except BaseException as error:
                 record = _failed_record(folder, destination, seed, "q_learning", "training", error)
@@ -312,7 +327,7 @@ def train_and_evaluate(
                 kwargs = {"learner": frozen, "learning_metadata": restored_metadata, **learning_options} if mode == "q_learning" else {}
                 try:
                     runner.run_and_archive(replace(config, seed=seed, firm_policy=mode), domain, folder,
-                                           policy, purpose="development", **kwargs)
+                                           policy, purpose="development", **archive_option, **kwargs)
                     record = _run_record(folder, destination, seed, mode, "validation")
                 except BaseException as error:
                     record = _failed_record(folder, destination, seed, mode, "validation", error)

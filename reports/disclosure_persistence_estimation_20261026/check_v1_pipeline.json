@@ -1,0 +1,195 @@
+{
+  "experiment_id": "1b2848491835ed0ee10fe82d8969697f18e48e9710ff8dfd0ebe2adfbc7808ce",
+  "trials": [
+    {
+      "scenario": "u_d0p2",
+      "seed": 36001,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.5856168416513136,
+        0.8371740010463371
+      ],
+      "moments_ok": true,
+      "moment_count": 65
+    },
+    {
+      "scenario": "u_d0p2",
+      "seed": 36002,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.6049360225564965,
+        0.8381435632643305
+      ],
+      "moments_ok": true,
+      "moment_count": 65
+    },
+    {
+      "scenario": "r_k0p5",
+      "seed": 36001,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.8946771024838606,
+        1.087226190796259
+      ],
+      "moments_ok": true,
+      "moment_count": 65
+    },
+    {
+      "scenario": "r_k0p5",
+      "seed": 36002,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.9123851978532601,
+        1.066027409410381
+      ],
+      "moments_ok": true,
+      "moment_count": 65
+    },
+    {
+      "scenario": "q_k1_s0p4",
+      "seed": 36001,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_reversion_anchor",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.891020426375257,
+        1.0714577667111715
+      ],
+      "anchor": {
+        "planned_variance": 0.4,
+        "variance": 0.34775119144384875,
+        "constant": true,
+        "transitory_sd_min_max": [
+          0.6939424109414302,
+          0.8629637499682018
+        ]
+      },
+      "moments_ok": true,
+      "moment_count": 65
+    },
+    {
+      "scenario": "q_k1_s0p4",
+      "seed": 36002,
+      "attempts": 1,
+      "core_validation": {
+        "mechanical": "PASS",
+        "stylized": "PASS"
+      },
+      "sampled_days_ok": true,
+      "shapes_ok": true,
+      "finite": true,
+      "full_arrays_omitted": true,
+      "sampled_archive_manifest": {
+        "start_day": 1260,
+        "interval_days": 63,
+        "days": 36,
+        "arrays": [
+          "sampled_public_signal",
+          "sampled_reversion_anchor",
+          "sampled_true_goodness"
+        ]
+      },
+      "true_sd_min_max": [
+        0.8970408744486532,
+        1.0848032833707912
+      ],
+      "anchor": {
+        "planned_variance": 0.4,
+        "variance": 0.41013987717188544,
+        "constant": true,
+        "transitory_sd_min_max": [
+          0.6920141933249025,
+          0.8316778994832779
+        ]
+      },
+      "moments_ok": true,
+      "moment_count": 65
+    }
+  ],
+  "failures": [],
+  "passed": true
+}

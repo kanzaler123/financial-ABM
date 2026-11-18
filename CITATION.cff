@@ -6,10 +6,15 @@ abstract: >-
   An agent-based artificial financial market in which profit-maximizing and impact investors
   evolve by imitation, firms choose between real improvement, greenwashing and maintenance,
   and a regulator sets transparency, audits and fines. The disclosure domain (ESG, AI-washing, ...)
-  is a configuration file. Version 0.2.0 adds the pre-registered stage F experiment (59 scenarios x 30
-  paired seeds): information policy ranks above penalty policy and baseline at both ends of the
-  natural-decay range, with magnitudes reported as that range; and a static browser sandbox whose firm
-  decision rule is cross-checked against the Python model. Results are conditional on the model.
+  is a configuration file. It contains the pre-registered stage F experiment (59 scenarios x 30
+  paired seeds), in which information policy ranks above penalty policy and baseline at the tested
+  doses, its exploratory supplements, and a static browser sandbox whose firm decision rule is
+  cross-checked against the Python model. Version 0.3.0 adds pre-registered experiments on targeted
+  audits, assurance providers and learning firms, and a pre-registered joint robustness test: the
+  ordering holds in all four joint settings, but with mean reversion of true levels and a fine for
+  every false report, information beats penalty by only 0.004 to 0.012 SD. It also adds the working
+  paper and a check of what the public repository alone can rebuild. Results are conditional on the
+  model.
 authors:
   - given-names: Ellis
     family-names: Lin
@@ -17,8 +22,8 @@ authors:
     affiliation: Fudan University
 repository-code: "https://github.com/kanzaler123/financial-ABM"
 license: MIT
-version: "0.2.0"
-date-released: "2026-10-16"
+version: "0.3.0"
+date-released: "2026-10-24"
 url: "https://kanzaler123.github.io/financial-ABM/"
 keywords:
   - agent-based model
