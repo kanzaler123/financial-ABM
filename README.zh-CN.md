@@ -16,7 +16,7 @@
 
 <p align="center">
   <b>论文：</b><i>Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market</i>，Ellis Lin（2026）。<br>
-  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF（2026 年 10 月 29 日版）</a>
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF（2026 年 11 月 23 日版）</a>
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@
 数值、区间和限定条件见下文[阶段 F 发现](#阶段-f-发现)、[定向核查](#定向核查阶段-e1)与[鉴证机构](#鉴证机构阶段-e2)，以及[论文](paper/main.pdf)。
 
 > [!NOTE]
-> **研究状态与修正（2026 年 11 月 16 日）。** 上述发现来自已归档的历史实验，以相应模型假设为条件。阶段 H 的结果现已在下节并列展示，阶段 I、J 也揭示了校准缺口。[审查修正说明](docs/review_corrections_20261116.md) 记录了 H3 核查预算比较的误标、辅助剖面区间的计算错误，以及更新相关历史数值前需要重新运行的实现修复。原始证据与有日期的论文 PDF 保留。阶段 I、J 的详细结果见[英文 README](README.md#financing-premium-stage-i) 和论文附录；[`paper/`](paper/main.pdf) 仍为 2026 年 10 月 29 日版，正文尚未纳入 H3；SSRN 仍为 10 月 24 日版。
+> **研究状态与同步说明（2026 年 11 月 23 日）。** 上述发现来自已归档的预注册实验（运行至提交 `6f740df`，`reports/` 下的原始证据按字节保留），以相应模型假设为条件。[`paper/main.pdf`](paper/main.pdf)（2026 年 11 月 23 日版）现已纳入阶段 H（附录 A.5）、修正后的 2009–2025 年华证 R1 面板统计（附录 A.1），以及[2026 年 11 月 16 日审查修正说明](docs/review_corrections_20261116.md)（契约第 28 节）的全部内容：剔除受影响的 H2/I3 辅助剖面区间（待用本地原始档案重算），并列报告修正后的 H3 同预算点差（`V − B`、`J − B`）与双倍核查对比（`V − A2`、`J − A2`），同时明确标注已归档鉴证实验（`6f740df`）与后续 v2 成本分账/按日历配对检查修复（`7cdb384`）的版本边界。SSRN 仍为较早的 2026 年 10 月 24 日工作论文版。
 
 ## 校准状态
 
@@ -214,7 +214,7 @@ flowchart LR
 
 ## 鉴证机构（阶段 E.2）
 
-**历史归档结果。** 下列数值采用原鉴证协议。[2026 年 11 月修正](docs/review_corrections_20261116.md#4-implementation-corrections-and-reproducibility) 调整了成本记账和检查抽签的配对方式；这些历史效应和区间尚未在新协议下重跑。
+**已归档结果（v1 协议，提交 `6f740df`）。** 下列数值即[论文](paper/main.pdf)（第 9 节与附录 B）报告的预注册归档结果。[2026 年 11 月 16 日修正](docs/review_corrections_20261116.md#4-implementation-corrections-and-reproducibility)（`7cdb384`）随后在代码层将企业鉴证费（转移支付）与鉴证方努力成本分账记录，并将发布前检查抽签改至独立的按日历配对随机流（`independent_assignment_and_calendar_checks_v2`），供后续新运行使用。论文的鉴证表格均未使用成本效率分母（v1 中鉴证费已在每次检查次日计入企业价值），且五项主要对比要么将单个鉴证场景与无鉴证基准比较，要么比较两个强制范围（全部 200 家）和起始日完全相同的场景；在 v2 下重跑需要未公开再分发的供应商沪深 300 领域文件。
 
 > 确认性实验（2026-10-21）：设计在实现与运行之前写入[研究契约第 22 节](docs/disclosure_research_contract.md)并提交（`307168c`）。18 个场景 × 30 个新的配对种子（43001–43030），共 540 个世界，全部完成。4 家策略型鉴证方在报告发布前检查客户的报告，查出虚报即更正；每家每年按责任作一次最优反应来设定质量，客户的虚报日后被监管者查出时由鉴证方承担责任罚款。责任剂量是 500 万元责任基准的倍数：参照《证券法》第 213 条第三款中“没有业务收入或者业务收入不足五十万元”一档的上限设置，并假定该条适用于 ESG 鉴证，本文不对适用性作判断。费用和努力成本是假设。区间是未作多重比较校正的配对 95% 区间，Holm 校正针对五个主要问题的 p 值。完整表格见[阶段 E.2 报告](reports/disclosure_assurance_20261021/README.md)。
 
@@ -251,7 +251,7 @@ flowchart LR
 - [x] **正式实验**：信息型与惩罚型政策、相图、规模鸿沟，按正式规模、用新种子、对比事先冻结（阶段 F）
 - [x] **浏览器政策沙盘**：[GitHub Pages](https://kanzaler123.github.io/financial-ABM/)，v0.2.0（2026-10-16）；改版为浅色政策作战台，默认英文（2026-10-18）
 - [x] **联合稳健性检验**：真实水平均值回归与每份虚假报告各罚一笔同时成立，用新种子预注册（契约第 24 节，2026-10-23）
-- [x] **工作论文**：*Greenwashing Moves to Where Enforcement Is Weakest*，见 [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081)（2026 年 10 月 24 日版）；2026 年 10 月 29 日版在 [`paper/`](paper/main.pdf)
+- [x] **工作论文**：*Greenwashing Moves to Where Enforcement Is Weakest*，见 [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081)（2026 年 10 月 24 日较早版）；[`paper/`](paper/main.pdf) 已更新至 2026 年 11 月 23 日版（纳入阶段 H、修正后的华证 R1 面板统计及 2026 年 11 月 16 日审查修正）
 - [x] **评级持续性估计与关键对比重跑**（阶段 H）：三种动态均被拒绝，参数恢复未通过；辅助剖面区间待用原始档案修正
 - [x] **ESG 评级的融资收益估计与模型检验**（阶段 I）：对准融资关联后，评级持续性明显偏离数据
 - [x] **投资者对评级变动的反应估计**（阶段 J）：模型反应更强，尚未据此重校准投资者参数

@@ -16,7 +16,7 @@
 
 <p align="center">
   <b>Paper:</b> <i>Greenwashing Moves to Where Enforcement Is Weakest: Pre-Registered Experiments in an Artificial Market</i>, Ellis Lin (2026).<br>
-  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 29 October 2026</a>
+  <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081">SSRN</a> · <a href="paper/main.pdf">PDF, version of 23 November 2026</a>
 </p>
 
 <p align="center"><a href="paper/main.pdf"><b>Read the paper</b></a> · <a href="https://kanzaler123.github.io/financial-ABM/"><b>Try the live policy desk</b></a> · <a href="#quick-start"><b>Run it locally</b></a> · <a href="#what-we-found"><b>What we found</b></a> · <a href="#calibration-status"><b>Research status</b></a> · <a href="CONTRIBUTING.md"><b>Contribute</b></a></p>
@@ -53,7 +53,7 @@ Two further results frame this:
 Numbers, intervals and caveats are in [Stage F findings](#stage-f-findings), [Targeted audits](#targeted-audits-stage-e1) and [Assurance providers](#assurance-providers-stage-e2) below, and in the [paper](paper/main.pdf).
 
 > [!NOTE]
-> **Research status and corrections (16 November 2026).** The findings above are archived experiments, conditional on their assumptions. Stage H is now summarised below; stages I and J also expose calibration gaps. The [review corrections](docs/review_corrections_20261116.md) document a mislabeled H3 audit-budget comparison, an auxiliary profile-interval error, and implementation changes that require new runs before updating the affected historical numbers. Archived evidence and the dated paper PDFs are preserved. The paper in [`paper/`](paper/main.pdf) remains the version of 29 October 2026; its main text has not incorporated H3, and the SSRN version remains that of 24 October 2026.
+> **Research status and reconciliation (23 November 2026).** The findings above are archived pre-registered experiments (executed through commit `6f740df`, preserved byte for byte under `reports/`), conditional on their assumptions. The working paper in [`paper/main.pdf`](paper/main.pdf) (version of 23 November 2026) now incorporates stage H (Appendix A.5), the corrected 2009–2025 R1 Huazheng panel statistics (Appendix A.1) and all items from the [16 November 2026 review corrections](docs/review_corrections_20261116.md) (contract §28): affected H2/I3 auxiliary profile intervals are omitted pending local-archive recomputation, H3 equal-budget contrasts (`V − B`, `J − B`) are reported alongside double-budget comparisons (`V − A2`, `J − A2`), and the pre-audit assurance runs (`6f740df`) are documented alongside the v2 assurance cost-ledger and calendar-day check-stream fix (`7cdb384`). The SSRN posting remains an earlier working-paper version (24 October 2026).
 
 ## Calibration status
 
@@ -227,7 +227,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 
 ## Assurance providers (stage E.2)
 
-**Archived results.** The numbers below use the original assurance protocol. The [November 2026 corrections](docs/review_corrections_20261116.md#4-implementation-corrections-and-reproducibility) change cost accounting and the pairing of check draws. These historical effects and intervals have not yet been rerun under that protocol.
+**Archived results (v1 protocol, commit `6f740df`).** The numbers below are the preserved pre-registered outputs reported in the [paper](paper/main.pdf) (Section 9 and Appendix B). The [16 November 2026 corrections](docs/review_corrections_20261116.md#4-implementation-corrections-and-reproducibility) (`7cdb384`) subsequently separated firm fees from provider effort in cost ledgers and moved check draws onto a calendar-day stream (`independent_assignment_and_calendar_checks_v2`) for future runs. None of the paper's assurance tables use cost-efficiency ratios (fees already entered firm values after each check), and all five primary contrasts compare either one assured scenario against an unassured baseline or two scenarios with identical 200-firm scope and start date; rerunning under v2 would require the non-redistributed vendor CSI 300 domain file.
 
 > Confirmatory experiment (2026-10-21), pre-registered in the [research contract, §22](docs/disclosure_research_contract.md) and committed before implementation and runs (`307168c`): 18 scenarios × 30 new paired seeds (43001–43030), 540 worlds, all completed. Four strategic providers inspect clients' reports before publication and correct the inflation they find; each sets its quality once a year as a best response to its liability, which it pays when the regulator later catches inflation in a report it inspected. Liability doses are multiples of a CNY 5 million benchmark, the upper limit of the band for providers with no or low business income in Securities Law Art. 213(3); the model assumes the provision applies to ESG assurance and makes no judgement on whether it does. Fees and effort costs are assumptions. Intervals are paired 95% intervals not adjusted for multiple comparisons; the Holm correction applies to the p-values of the five primary questions. Full tables: [stage E.2 report (Chinese)](reports/disclosure_assurance_20261021/README.md).
 
@@ -286,7 +286,7 @@ The disclosure game, a true attribute versus a reported attribute, is not specif
 - [x] Investor response to Huazheng ratings: fund ownership and the cost of equity respond (14.5 bp per SD, about half the calibration target), returns show no statistically significant response; the model's investors respond more strongly, taste not recalibrated (stage J, 2026-10-29)
 - [x] In-browser policy sandbox: [GitHub Pages](https://kanzaler123.github.io/financial-ABM/), v0.2.0 (2026-10-16); redesigned as a light policy desk, English first (2026-10-18)
 - [x] Joint robustness test: mean reversion of true levels and one fine per false report together, pre-registered on new seeds (contract §24, 2026-10-23)
-- [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081) (version of 24 October 2026); version of 29 October 2026 in [`paper/`](paper/main.pdf)
+- [x] Working paper: *Greenwashing Moves to Where Enforcement Is Weakest*, on [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7640081) (earlier version of 24 October 2026); updated version of 23 November 2026 in [`paper/`](paper/main.pdf) (incorporating stage H, corrected Huazheng R1 panel statistics and the 16 November 2026 review corrections)
 - [x] Rating persistence estimated and key comparisons rerun (stage H); all tested forms rejected, recovery check failed, auxiliary profile intervals awaiting correction from the original archives
 - [ ] Joint empirical calibration of rating persistence, financing incentives and investor responses; H/I/J analyses are completed, their fit limitations remain open
 - [ ] Enforcement intensity, greenwashing proxies and cost parameters from data (stage K)

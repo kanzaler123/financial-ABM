@@ -1,5 +1,7 @@
 # Research corrections — 16 November 2026
 
+> **Manuscript sync (23 November 2026):** [`paper/main.tex`](../paper/main.tex) and [`paper/main.pdf`](../paper/main.pdf) now incorporate stage H (Appendix A.5), the corrected 2009–2025 R1 Huazheng panel statistics (Appendix A.1), and all corrections below (omitting the affected H2/I3 auxiliary profile intervals, reporting the corrected H3 equal-budget point differences `V − B` and `J − B` alongside `V − A2` and `J − A2`, and documenting the archived v1 assurance runs at commit `6f740df` alongside the v2 protocol fix at `7cdb384`). Historical files under `reports/` remain preserved byte for byte.
+
 This note corrects two issues found in the review of commit `6f740dfe333763e2b81b5835e77f4aa450e7a4e4`. It supersedes the affected interpretations, while preserving historical files under `reports/` byte for byte. Contract section 28 records the correction. It is a post-publication correction, not a new pre-registration or a new confirmatory result.
 
 | Item | Status |
