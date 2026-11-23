@@ -7,3 +7,7 @@
 *.out
 *.synctex.gz
 submission_*/
+
+# Generated figures (rebuild via: python paper/make_figures.py)
+figures/*.pdf
+figures/*.png

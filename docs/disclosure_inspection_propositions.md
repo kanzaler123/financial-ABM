@@ -1,6 +1,6 @@
 # 检查博弈中企业一方的两个命题（2026-10-13）
 
-> **状态：参考。** 这是[现行计划](plan_20261013.md)阶段 B 要求写出的解析基准。命题描述的是模型中 NPV 企业的决策规则 `npv_choices`，数值核对见 [`tests/test_disclosure_fixed_fine.py`](../tests/test_disclosure_fixed_fine.py)。监管者在这里不是策略性参与者：核查概率、罚款和透明度都是给定的，所以下面是企业对给定检查政策的最优反应条件。策略性监管者属于阶段 E。
+> **状态：参考。** 这是阶段 B 写出的解析基准。命题描述的是模型中 NPV 企业的决策规则 `npv_choices`，数值核对见 [`tests/test_disclosure_fixed_fine.py`](../tests/test_disclosure_fixed_fine.py)。监管者在这里不是策略性参与者：核查概率、罚款和透明度都是给定的，所以下面是企业对给定检查政策的最优反应条件。策略性监管者属于阶段 E。
 
 ## 1. 设定
 

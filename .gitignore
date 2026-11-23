@@ -145,5 +145,8 @@ reports/disclosure_investor_response_20261028/*.err
 # Local Claude Code state and worktrees
 .claude/
 
+# Private manuscript, submission materials, and internal working notes (independent private repo)
+private/
+
 # SSRN form notes (submission aid, not part of the archive)
 paper/ssrn_submission.md

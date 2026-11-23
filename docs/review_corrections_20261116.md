@@ -1,6 +1,6 @@
 # Research corrections — 16 November 2026
 
-> **Manuscript sync (23 November 2026):** [`paper/main.tex`](../paper/main.tex) and [`paper/main.pdf`](../paper/main.pdf) now incorporate stage H (Appendix A.5), the corrected 2009–2025 R1 Huazheng panel statistics (Appendix A.1), and all corrections below (omitting the affected H2/I3 auxiliary profile intervals, reporting the corrected H3 equal-budget point differences `V − B` and `J − B` alongside `V − A2` and `J − A2`, and documenting the archived v1 assurance runs at commit `6f740df` alongside the v2 protocol fix at `7cdb384`). Historical files under `reports/` remain preserved byte for byte.
+> **Manuscript sync (23 November 2026):** The updated working-paper manuscript (reproduction scripts in [`paper/`](../paper/README.md)) incorporates stage H (Appendix A.5), the corrected 2009–2025 R1 Huazheng panel statistics (Appendix A.1), and all corrections below (omitting the affected H2/I3 auxiliary profile intervals, reporting the corrected H3 equal-budget point differences `V − B` and `J − B` alongside `V − A2` and `J − A2`, and documenting the archived v1 assurance runs at commit `6f740df` alongside the v2 protocol fix at `7cdb384`). Historical files under `reports/` remain preserved byte for byte.
 
 This note corrects two issues found in the review of commit `6f740dfe333763e2b81b5835e77f4aa450e7a4e4`. It supersedes the affected interpretations, while preserving historical files under `reports/` byte for byte. Contract section 28 records the correction. It is a post-publication correction, not a new pre-registration or a new confirmatory result.
 
@@ -55,7 +55,7 @@ Outputs must be new files outside `reports/` and the input archive. Existing out
 
 The [H3 report, auxiliary analysis](../reports/disclosure_stage_h3_20261027/README.md) and contract 25.8 described `V − A2` and `J − A2` as comparisons against random audits with the same budget. This description is incorrect.
 
-The [H3 specification](../configs/disclosure_stage_h3_v1.json) retains the baseline audit probability for V and J, changing only the allocation rule. A2 explicitly raises the audit probability to 0.02. The original targeted-audit design in [`paper/main.tex`](../paper/main.tex), section “Targeted audits”, defines the baseline as 0.01. The allocation mechanism preserves `n × audit_probability`, as documented in [`policy.py`](../src/abm/disclosure/policy.py). With 200 firms:
+The [H3 specification](../configs/disclosure_stage_h3_v1.json) retains the baseline audit probability for V and J, changing only the allocation rule. A2 explicitly raises the audit probability to 0.02. The original targeted-audit design (contract §21; working paper, section “Targeted audits”) defines the baseline as 0.01. The allocation mechanism preserves `n × audit_probability`, as documented in [`policy.py`](../src/abm/disclosure/policy.py). With 200 firms:
 
 | Scenario | Audit probability budget per firm and period | Expected audits per period |
 |---|---:|---:|
