@@ -273,6 +273,13 @@ def compute_metrics(
                                if domain.observation_link != "linear" else float(domain.initial_sd * gain.sum()))
         _add_assurance_costs(metrics, result, start=start, end=end, gain_sd=float(gain.sum()),
                              beneficial_raw_gain=beneficial_raw_gain)
+    if result.assurer_assignment is not None and result.assurer_quality is not None:
+        metrics["assurance"] = _assurance_concentration_metrics(
+            actions=actions,
+            assignment=np.asarray(result.assurer_assignment),
+            quality=np.asarray(result.assurer_quality),
+            selected=selected,
+        )
     financing_fields = (result.financing_rate, result.financing_cost, result.financing_value_adjustment)
     if all(value is None for value in financing_fields):
         metrics["financing"] = {"status": "not_recorded"}
@@ -365,3 +372,69 @@ def _add_assurance_costs(
         "beneficial_raw_gain_per_resource_cost": beneficial_raw_gain / resource_cost if resource_cost > 0 else None,
         "undefined_reason": "zero_resource_cost" if resource_cost == 0 else None,
     })
+
+
+def _assurance_concentration_metrics(
+    *,
+    actions: np.ndarray,
+    assignment: np.ndarray,
+    quality: np.ndarray,
+    selected: np.ndarray,
+) -> dict:
+    """Tie-safe assurance quality gap (Prop. 4(2)) and laxest-provider washing concentration (N3)."""
+    active = selected & (assignment >= 0).any(axis=1)
+    if not active.any():
+        return {
+            "active_periods": 0,
+            "unweighted_mean_quality": None,
+            "client_weighted_mean_quality": None,
+            "client_minus_unweighted_quality_gap": None,
+            "assured_wash_decisions": 0,
+            "raw_laxest_wash_share": None,
+            "chance_laxest_wash_share": None,
+            "excess_laxest_wash_concentration": None,
+            "non_tied_assured_wash_decisions": 0,
+            "strict_laxest_wash_share": None,
+        }
+    assign = assignment[active]
+    qual = quality[active]
+    acts = actions[active]
+    assured = assign >= 0
+    firm_q = np.where(assured, np.take_along_axis(qual, np.maximum(assign, 0), axis=1), 0.0)
+    unweighted_q = float(qual.mean())
+    client_q = float(firm_q[assured].mean())
+
+    n_providers = qual.shape[1]
+    q_min = qual.min(axis=1, keepdims=True)
+    tied_min_count = (qual <= q_min + 1e-12).sum(axis=1)
+    chance_share = tied_min_count / float(n_providers)
+    non_tied = tied_min_count < n_providers
+
+    wash = (acts == INFLATE) & assured
+    at_laxest = firm_q <= q_min + 1e-12
+    wash_per_period = wash.sum(axis=1)
+    lax_per_period = (wash & at_laxest).sum(axis=1)
+
+    total_wash = int(wash_per_period.sum())
+    total_lax = int(lax_per_period.sum())
+    expected_lax = float(np.dot(chance_share, wash_per_period))
+    raw_share = (total_lax / total_wash) if total_wash > 0 else None
+    chance_baseline = (expected_lax / total_wash) if total_wash > 0 else None
+    excess = (raw_share - chance_baseline) if (raw_share is not None and chance_baseline is not None) else None
+
+    nt_wash = int(wash_per_period[non_tied].sum())
+    nt_lax = int(lax_per_period[non_tied].sum())
+    strict_share = (nt_lax / nt_wash) if nt_wash > 0 else None
+
+    return {
+        "active_periods": int(active.sum()),
+        "unweighted_mean_quality": unweighted_q,
+        "client_weighted_mean_quality": client_q,
+        "client_minus_unweighted_quality_gap": client_q - unweighted_q,
+        "assured_wash_decisions": total_wash,
+        "raw_laxest_wash_share": raw_share,
+        "chance_laxest_wash_share": chance_baseline,
+        "excess_laxest_wash_concentration": excess,
+        "non_tied_assured_wash_decisions": nt_wash,
+        "strict_laxest_wash_share": strict_share,
+    }

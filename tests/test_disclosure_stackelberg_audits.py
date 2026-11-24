@@ -8,9 +8,11 @@ import numpy as np
 import pytest
 
 from abm.disclosure import MarketConfig
+from abm.disclosure.bayesian_audit import BayesianAuditFilter
 from abm.disclosure.domain import load_domain
 from abm.disclosure.game import IMPROVE, INFLATE, DisclosureMarket, npv_choices
 from abm.disclosure.policy import (
+    BAYESIAN_STACKELBERG_ALLOCATIONS,
     STACKELBERG_ALLOCATIONS,
     PolicyRegime,
     PolicySchedule,
@@ -245,3 +247,127 @@ def test_bayesian_observable_stackelberg_budget_and_invariance() -> None:
     )
     assert q_hi.sum() == pytest.approx(n * REGIME.audit_probability, abs=1e-11)
     assert q_hi[size_class == 1].mean() > q_hi[size_class == 0].mean()
+
+
+def test_bayesian_audit_filter_persistent_types_bayes_learning_and_signal() -> None:
+    """Joint type-state Bayesian filter preserves deterred clean types, learns from audits, and uses Delta r."""
+    n = 12
+    size_class = np.array([0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2], dtype=np.int64)
+    prices = np.array([4.0, 3.5, 1.4, 1.2, 1.0, 0.9, 0.4, 0.35, 0.3, 0.25, 0.2, 0.18], dtype=np.float64)
+    benefit = np.full(n, 1.5e-4, dtype=np.float64)
+    init_rep = np.zeros(n, dtype=np.float64)
+
+    filt = BayesianAuditFilter(
+        domain=WASH_DOMAIN,
+        size_class=size_class,
+        initial_report=init_rep,
+        report_bound=WASH_DOMAIN.report_bound,
+        discount_rate=0.05,
+        horizon_days=1260,
+        repricing_interval=60,
+        period_days=60,
+        use_report_signal=False,
+    )
+    # 1. Persistent-type survival: give small firms q = 0.05 (deterring all their types) for 20 periods.
+    # Under the old i.i.d. bug, p_clean collapsed exponentially; with persistent types, it stays high.
+    q_commit = np.where(size_class == 2, 0.05, 0.005)
+    rep = init_rep.copy()
+    for step in range(20):
+        day = step * 60
+        filt.record_commitment(
+            day=day, prices=prices, benefit=benefit, planned_q=q_commit, regime=REGIME, post_audit_report=rep,
+        )
+        rep = rep - WASH_DOMAIN.natural_decay * 60 / 252
+        filt.condition_on_audit(
+            day=day + 60,
+            pre_audit_report=rep,
+            post_audit_report=rep,
+            selected=np.zeros(n, dtype=bool),
+            caught=np.zeros(n, dtype=bool),
+        )
+    # Deterred small firms retain high p_clean (> 0.85), whereas undeterred large firms have high p_dirty (> 0.5)
+    assert filt.p_clean[size_class == 2].mean() > 0.85
+    assert filt.p_dirty[size_class == 0].mean() > 0.50
+
+    # 2. Exact Bayes learning on audit outcomes: caught shifts posterior toward LOWER cost shock eps;
+    # audited-clean shifts posterior toward HIGHER cost shock eps; both reset p_dirty to 0.
+    prior_mean_eps = float(filt.prior_w @ filt.eps_nodes)
+    # Audit firm 0 (caught) and firm 1 (clean) from the same large tier
+    sel = np.zeros(n, dtype=bool)
+    caught = np.zeros(n, dtype=bool)
+    sel[0] = sel[1] = True
+    caught[0] = True
+    filt.condition_on_audit(
+        day=21 * 60, pre_audit_report=rep, post_audit_report=rep, selected=sel, caught=caught,
+    )
+    assert filt.p_dirty[0] == pytest.approx(0.0)
+    assert filt.p_dirty[1] == pytest.approx(0.0)
+    eps_caught = float(filt.w_clean[0] @ filt.eps_nodes)
+    eps_clean = float(filt.w_clean[1] @ filt.eps_nodes)
+    assert eps_caught < eps_clean
+    assert eps_caught <= prior_mean_eps + 1e-9
+
+    # 3. Report-signal Bayesian update: an anomalous positive score jump sharply raises p_dirty
+    filt_sig = BayesianAuditFilter(
+        domain=WASH_DOMAIN,
+        size_class=size_class,
+        initial_report=init_rep,
+        report_bound=WASH_DOMAIN.report_bound,
+        discount_rate=0.05,
+        horizon_days=1260,
+        repricing_interval=60,
+        period_days=60,
+        use_report_signal=True,
+    )
+    q_unif = np.full(n, 0.01, dtype=np.float64)
+    filt_sig.record_commitment(
+        day=0, prices=prices, benefit=benefit, planned_q=q_unif, regime=REGIME, post_audit_report=init_rep,
+    )
+    # Firm 2 jumps +0.22 SD (impossible by clean improvement); firm 3 decays cleanly by -0.04 SD
+    pre_rep = np.full(n, -0.04, dtype=np.float64)
+    pre_rep[2] = 0.22
+    filt_sig.predict(day=60, pre_audit_report=pre_rep)
+    assert filt_sig.p_dirty[2] > filt_sig.p_dirty[3] + 0.20
+
+    # 4. Exact budget conservation for both public commitment and unconfounded hidden clearing
+    for public in (True, False):
+        reg_p = replace(REGIME, audit_allocation="stackelberg_obs", audit_rule_public=public)
+        q_alloc = filt_sig.allocate(day=60, regime=reg_p, prices=prices, benefit=benefit, post_audit_report=pre_rep)
+        assert np.all((q_alloc >= 0.0) & (q_alloc <= 1.0))
+        assert q_alloc.sum() == pytest.approx(n * REGIME.audit_probability, abs=1e-11)
+        if not public:
+            # Hidden optimal rule targets the highest-p_dirty firm (firm 2) with full priority
+            assert q_alloc[2] >= q_alloc.max() - 1e-12
+
+
+def test_bayesian_hidden_and_value_weighted_allocations_in_market() -> None:
+    """All Bayesian Stackelberg variants (obs, obs_val, obs_sig, public & hidden) conserve budget & pre-switch."""
+    cfg = MarketConfig(
+        n_investors=50,
+        n_firms=24,
+        trading_days=360,
+        burn_in_days=120,
+        initial_impact_share=0.2,
+        taste_median=0.0724,
+        seed=61002,
+        intrinsic_value_log_sd=0.915,
+        financing_exposure_fraction=0.5,
+        financing_spread=0.05,
+        financing_repricing_interval=60,
+        financing_horizon_days=1260,
+        firm_discount_rate=0.05,
+    )
+    base = DisclosureMarket(cfg, WASH_DOMAIN, PolicySchedule.constant(WASH_DOMAIN)).run()
+    budget = cfg.n_firms * WASH_DOMAIN.baseline_audit_probability
+    for alloc in BAYESIAN_STACKELBERG_ALLOCATIONS:
+        for public in (True, False):
+            sched = PolicySchedule.constant(WASH_DOMAIN).with_intervention(
+                121, audit_allocation=alloc, audit_rule_public=public,
+            )
+            res = DisclosureMarket(cfg, WASH_DOMAIN, sched).run()
+            np.testing.assert_array_equal(res.true_goodness[:121], base.true_goodness[:121])
+            np.testing.assert_array_equal(res.inflation[:121], base.inflation[:121])
+            assert res.audit_probability is not None
+            for period in range(1, res.audit_probability.shape[0]):
+                assert res.audit_probability[period].sum() == pytest.approx(budget, abs=1e-11)
+                assert np.all((res.audit_probability[period] >= 0.0) & (res.audit_probability[period] <= 1.0))

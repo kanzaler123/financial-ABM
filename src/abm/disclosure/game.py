@@ -58,6 +58,7 @@ from numpy.typing import NDArray
 
 from ..manifest import canonical_json_bytes
 from ..tabular import CompanyQLearner
+from .bayesian_audit import BayesianAuditFilter
 from .bounded import DifferenceRewardQLearner, DifferenceRewardTracker, PeerImitationPolicy
 from .config import BOUNDED_FIRM_POLICIES, TRADING_DAYS_PER_YEAR, MarketConfig
 from .domain import DomainSpec
@@ -66,11 +67,11 @@ from .harness import CrossSectionMarket, CrossSectionResult, _cap_buys_to_cash
 from .investors import IMPACT_INVESTOR, PROFIT_MAXIMIZER
 from .learning import batch_update, choose_actions, context_states, discrete_candidates, npv_discrete, realized_rewards, table_fingerprint
 from .policy import (
+    BAYESIAN_STACKELBERG_ALLOCATIONS,
     STACKELBERG_ALLOCATIONS,
     PolicyRegime,
     PolicySchedule,
     audit_probabilities,
-    bayesian_stackelberg_audit_probabilities,
     stackelberg_audit_probabilities,
 )
 
@@ -707,6 +708,8 @@ class DisclosureMarket(CrossSectionMarket):
         if policy.baseline.assurance_scope != "none":
             raise ValueError("assurance is modelled only as a policy switch")
         if assured:
+            if policy.intervention.assurance_scope == "voluntary" and config.firm_policy in BOUNDED_FIRM_POLICIES:
+                raise ValueError("voluntary assurance is modelled only with NPV firms")
             delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
                      else policy.intervention.disclosure_delay_days)
             if (config.firm_policy not in allowed_modern or self.audit_targeting
@@ -718,18 +721,26 @@ class DisclosureMarket(CrossSectionMarket):
         self.report_after_audit: FloatArray | None = None
         # Next-period Stackelberg audit commitment announced after audits execute on decision day t.
         self.stackelberg_next_probability: FloatArray | None = None
-        # Observable-only Bayesian belief state maintained strictly from past audit selections.
-        self.obs_p_clean: FloatArray | None = (
-            np.ones(config.n_firms, dtype=np.float64)
-            if any(r.audit_allocation == "stackelberg_obs" for r in regimes)
-            else None
-        )
-        self.obs_last_p_det: FloatArray | None = (
-            np.ones(config.n_firms, dtype=np.float64)
-            if self.obs_p_clean is not None
-            else None
-        )
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
+        # Joint persistent-type x Markov-state Bayesian belief filter maintained strictly from public observables.
+        bayes_regimes = [r for r in regimes if r.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS]
+        if bayes_regimes:
+            alloc_name = bayes_regimes[0].audit_allocation
+            self.bayesian_audit_filter: BayesianAuditFilter | None = BayesianAuditFilter(
+                domain=domain,
+                size_class=self.firms.size_class,
+                initial_report=self._claimed_report(),
+                report_bound=self.report_bound,
+                discount_rate=config.firm_discount_rate,
+                horizon_days=config.financing_horizon_days,
+                repricing_interval=config.financing_repricing_interval,
+                period_days=config.firm_decision_interval,
+                real_persistence=self.real_persistence,
+                use_report_signal=(alloc_name == "stackelberg_obs_sig"),
+                value_weighted=(alloc_name == "stackelberg_obs_val"),
+            )
+        else:
+            self.bayesian_audit_filter = None
 
         investors = self.investors
         self.latent_taste = config.taste_median * self.learning_rng.lognormal(
@@ -1050,13 +1061,12 @@ class DisclosureMarket(CrossSectionMarket):
         assurance.quality = np.minimum(1.0, regime.assurer_slope * share)
         if scope == "voluntary":
             if provider_selector is not None:
-                assurance.client_of[:] = -1
-            else:
-                options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
-                best = np.argmax(options, axis=1)
-                fees = ASSURANCE_YEAR_PERIODS * regime.assurance_fee / self.prices
-                buy = options[np.arange(size), best] - fees > values(np.zeros(size))
-                assurance.client_of[:] = np.where(buy, best, -1)
+                raise ValueError("voluntary assurance is modelled only with NPV firms")
+            options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
+            best = np.argmax(options, axis=1)
+            fees = ASSURANCE_YEAR_PERIODS * regime.assurance_fee / self.prices
+            buy = options[np.arange(size), best] - fees > values(np.zeros(size))
+            assurance.client_of[:] = np.where(buy, best, -1)
         elif regime.assurer_selection == "firm":
             if provider_selector is not None:
                 assurance.client_of[:] = provider_selector(mandated, assurance.client_of)
@@ -1084,6 +1094,10 @@ class DisclosureMarket(CrossSectionMarket):
         self.slope_history[day] = pricing_slope(k, self.signal_z(day))
         draws = self.audit_rng.random(state.inflation.size)
         flagged = probability = None
+        pre_audit_report = self._claimed_report() if self.bayesian_audit_filter is not None else None
+        if self.bayesian_audit_filter is not None and day > 0:
+            assert pre_audit_report is not None
+            self.bayesian_audit_filter.predict(day=day, pre_audit_report=pre_audit_report)
         if self.audit_targeting:
             if regime.audit_allocation in STACKELBERG_ALLOCATIONS:
                 if self.stackelberg_next_probability is not None:
@@ -1118,8 +1132,20 @@ class DisclosureMarket(CrossSectionMarket):
         state.inflation[caught] = 0.0
         if state.false_reports is not None:
             state.false_reports[caught] = 0
-        if self.audit_targeting:
-            self.report_after_audit = self._claimed_report()
+        post_audit_report: FloatArray | None = None
+        if self.audit_targeting or self.bayesian_audit_filter is not None:
+            post_audit_report = self._claimed_report()
+            if self.audit_targeting:
+                self.report_after_audit = post_audit_report
+        if self.bayesian_audit_filter is not None:
+            assert pre_audit_report is not None and post_audit_report is not None
+            self.bayesian_audit_filter.condition_on_audit(
+                day=day,
+                pre_audit_report=pre_audit_report,
+                post_audit_report=post_audit_report,
+                selected=selected,
+                caught=caught,
+            )
         self.report_cache[selected] = state.observed(regime.transparency)[selected] + self.disclosure_error_history[day, selected]
         published = selected & regime.publish_audit_results
         self.audit_selected_history[period] = selected
@@ -1146,17 +1172,28 @@ class DisclosureMarket(CrossSectionMarket):
         elif regime.audit_allocation == "jump" and regime.audit_rule_public:
             planned, first_planned, flag_room = self._jump_plan(day, regime, flagged)
         elif regime.audit_allocation in STACKELBERG_ALLOCATIONS:
-            if (
-                regime.audit_allocation == "stackelberg_obs"
-                and self.obs_p_clean is not None
-                and self.obs_last_p_det is not None
-            ):
-                self.obs_p_clean = np.where(selected, 1.0, self.obs_p_clean * self.obs_last_p_det)
             cached_benefit = self.marginal_financing_saving()
             next_prob = self._stackelberg_probabilities(day, regime, benefit=cached_benefit)
             self.stackelberg_next_probability = next_prob
             if regime.audit_rule_public:
                 planned = next_prob
+        if self.bayesian_audit_filter is not None:
+            assert post_audit_report is not None
+            if cached_benefit is None:
+                cached_benefit = self.marginal_financing_saving()
+            planned_q = (
+                np.full(self.config.n_firms, regime.audit_probability, dtype=np.float64)
+                if planned is None
+                else np.broadcast_to(np.asarray(planned, dtype=np.float64), (self.config.n_firms,))
+            )
+            self.bayesian_audit_filter.record_commitment(
+                day=day,
+                prices=self.prices,
+                benefit=cached_benefit,
+                planned_q=planned_q,
+                regime=regime,
+                post_audit_report=post_audit_report,
+            )
         new_case_fine = None
         if regime.fixed_fine and regime.fixed_fine_basis == "report":
             # Every new inflated report carries its own fine whatever the stock it joins.
@@ -1289,58 +1326,33 @@ class DisclosureMarket(CrossSectionMarket):
         )
         wash_due = day + max(1, disclosure_delay)
         raw_benefit = self.marginal_financing_saving() if benefit is None else benefit
-        if regime.audit_allocation == "stackelberg_obs":
-            # Observable-only belief-state Bayesian Stackelberg regulator: uses public prices,
-            # size tier, public reported scores, public financing slope, structural cost dispersion
-            # and own past audit selections (zero private cost shocks or hidden inflation state).
-            multipliers = np.asarray(self.domain.size_cost_multipliers, dtype=np.float64)[self.firms.size_class]
-            pub_report = self._claimed_report()
-            base_cost = (
-                self.domain.real_cost_scale
-                * multipliers
-                * np.exp(self.domain.cost_level_elasticity * pub_report)
-            )
-            prob, clean_det = bayesian_stackelberg_audit_probabilities(
+        if regime.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS:
+            assert self.bayesian_audit_filter is not None
+            return self.bayesian_audit_filter.allocate(
+                day=day,
                 regime=regime,
                 prices=self.prices,
-                benefit_median=raw_benefit,
-                base_cost=base_cost,
-                cost_log_sd_eff=self.domain.real_cost_log_sd,
-                wash_cost_ratio=self.domain.wash_cost_ratio,
-                discount_rate=self.config.firm_discount_rate,
-                decision_day=day,
-                horizon_days=self.config.financing_horizon_days,
-                repricing_interval=self.config.financing_repricing_interval,
-                period_days=self.config.firm_decision_interval,
-                implementation_delay=self.domain.implementation_delay_days,
-                disclosure_delay=disclosure_delay,
-                real_persistence=self.real_persistence,
-                max_change_per_period=self.domain.max_change_per_period,
-                p_clean=self.obs_p_clean,
-                return_clean_deterrence=True,
+                benefit=raw_benefit,
+                post_audit_report=self._claimed_report(),
             )
-            if self.obs_last_p_det is not None:
-                self.obs_last_p_det = clean_det
-            return prob
+        benefit_est = raw_benefit
+        cost_est = self.attributes.marginal_cost(self.domain)
+        if regime.fixed_fine_basis == "report":
+            pi_est = np.ones(size, dtype=np.float64)
         else:
-            benefit_est = raw_benefit
-            cost_est = self.attributes.marginal_cost(self.domain)
-            if regime.fixed_fine_basis == "report":
-                pi_est = np.ones(size, dtype=np.float64)
-            else:
-                pi_est = new_case_probability(
-                    self.attributes.inflation,
-                    self.attributes.pending,
-                    decision_day=day,
-                    wash_due=wash_due,
-                    period_days=self.config.firm_decision_interval,
-                    audit_probability=regime.audit_probability,
-                )
-            w_est = (
-                self.domain.wash_cost_ratio
-                if self.attributes.wash_cost_ratio is None
-                else self.attributes.wash_cost_ratio
+            pi_est = new_case_probability(
+                self.attributes.inflation,
+                self.attributes.pending,
+                decision_day=day,
+                wash_due=wash_due,
+                period_days=self.config.firm_decision_interval,
+                audit_probability=regime.audit_probability,
             )
+        w_est = (
+            self.domain.wash_cost_ratio
+            if self.attributes.wash_cost_ratio is None
+            else self.attributes.wash_cost_ratio
+        )
         return stackelberg_audit_probabilities(
             regime=regime,
             prices=self.prices,
@@ -1357,6 +1369,7 @@ class DisclosureMarket(CrossSectionMarket):
             disclosure_delay=disclosure_delay,
             real_persistence=self.real_persistence,
             max_change_per_period=self.domain.max_change_per_period,
+            has_open_case=(self.attributes.inflation > 0.0),
         )
 
     def _discrete_decision(

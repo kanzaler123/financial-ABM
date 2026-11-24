@@ -59,7 +59,9 @@ from .config import TRADING_DAYS_PER_YEAR
 from .domain import DomainSpec
 
 FIXED_FINE_BASES = ("case", "report")
-STACKELBERG_ALLOCATIONS = ("stackelberg_eq", "stackelberg_val", "stackelberg_obs")
+ORACLE_STACKELBERG_ALLOCATIONS = ("stackelberg_eq", "stackelberg_val")
+BAYESIAN_STACKELBERG_ALLOCATIONS = ("stackelberg_obs", "stackelberg_obs_val", "stackelberg_obs_sig")
+STACKELBERG_ALLOCATIONS = (*ORACLE_STACKELBERG_ALLOCATIONS, *BAYESIAN_STACKELBERG_ALLOCATIONS)
 AUDIT_ALLOCATIONS = ("uniform", "value", "jump", *STACKELBERG_ALLOCATIONS)
 ASSURANCE_SCOPES = ("none", "voluntary", "large", "all")
 ASSURER_SELECTIONS = ("assigned", "firm")
@@ -392,14 +394,19 @@ def stackelberg_audit_probabilities(
     real_persistence: NDArray[np.float64] | None = None,
     max_change_per_period: float | None = None,
     deterrence_margin: float = 1e-5,
+    has_open_case: NDArray[np.bool_] | None = None,
 ) -> NDArray[np.float64]:
-    """Budget-conserving Stackelberg-optimal knapsack audit allocation (Proposition 5).
+    """Budget-conserving full-information oracle Stackelberg audit allocation (Proposition 5).
 
-    Allocates expected budget ``K = N * regime.audit_probability`` to maximize weighted single-period
-    deterrence (equal weights for ``stackelberg_eq`` and ``stackelberg_obs``; market-value weights
-    for ``stackelberg_val``) by funding firms' exact deterrence thresholds ``q_i^det`` in bang-per-buck
-    order, then channels any residual budget to undeterred firms (proportional to market value) to
-    accelerate open-case clearance while strictly conserving ``sum(q) == K``.
+    Under ``audit_rule_public=True``, allocates expected budget ``K = N * regime.audit_probability``
+    to maximize weighted single-period deterrence (equal weights for ``stackelberg_eq``; market-value
+    weights for ``stackelberg_val``) by funding firms' exact deterrence thresholds ``q_i^det`` in
+    bang-per-buck order, then channels any residual budget to undeterred firms to accelerate
+    open-case clearance while strictly conserving ``sum(q) == K``.
+
+    Under ``audit_rule_public=False`` (unconfounded hidden-rule optimum), firms plan with uniform
+    ``regime.audit_probability`` so commitment has no deterrence effect; the oracle instead maximizes
+    expected weighted open-case detections/clearings subject to ``q_i in [0, 1]`` and ``sum(q) == K``.
     """
     if regime.audit_allocation not in STACKELBERG_ALLOCATIONS:
         raise ValueError(f"unsupported Stackelberg allocation: {regime.audit_allocation}")
@@ -430,6 +437,31 @@ def stackelberg_audit_probabilities(
     )
 
     weights = prices if regime.audit_allocation == "stackelberg_val" else np.ones(size, dtype=np.float64)
+
+    if not regime.audit_rule_public:
+        # Unconfounded optimal hidden-rule detection/clearing: target firms with open cases first,
+        # then firms expected to inflate under uniform audit_probability.
+        open_mask = (
+            np.asarray(new_case_prob, dtype=np.float64) < 1.0 - 1e-12
+            if has_open_case is None
+            else np.asarray(has_open_case, dtype=bool)
+        )
+        will_inflate = q_det > regime.audit_probability + 1e-12
+        priority = np.where(open_mask, 2.0, np.where(will_inflate, 1.0, 0.0))
+        probability = np.zeros(size, dtype=np.float64)
+        remaining = float(budget)
+        if float(priority.max()) > 0.0:
+            order = sorted(range(size), key=lambda i: (-priority[i], -float(weights[i]), i))
+            for idx in order:
+                if remaining <= 1e-15 or priority[idx] <= 0.0:
+                    break
+                alloc = min(1.0, remaining)
+                probability[idx] = alloc
+                remaining = max(0.0, remaining - alloc)
+        if remaining > 1e-15:
+            _distribute_budget_proportionally(probability, remaining, weights, np.ones(size, dtype=bool))
+        return probability
+
     probability = np.zeros(size, dtype=np.float64)
     deterred = q_det <= 0.0
     candidates = np.flatnonzero((q_det > 0.0) & np.isfinite(q_det) & (q_det <= 1.0))

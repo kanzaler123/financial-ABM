@@ -129,3 +129,13 @@ def test_diff_q_achieves_full_coverage_and_maintains_under_zero_taste() -> None:
     # In the final third of periods, MAINTAIN dominates (> 80% of decisions despite 5% exploration)
     tail_actions = res.actions[10:]
     assert float((tail_actions == MAINTAIN).mean()) > 0.80
+
+
+@pytest.mark.parametrize("policy", ["diff_q", "peer_imitation"])
+def test_bounded_voluntary_assurance_rejected(policy: str) -> None:
+    cfg = _small_cfg(policy)
+    sched = PolicySchedule.constant(WASH).with_intervention(
+        181, **{**ASSURE_16, "assurance_scope": "voluntary"},
+    )
+    with pytest.raises(ValueError, match="voluntary assurance"):
+        DisclosureMarket(cfg, WASH, sched)

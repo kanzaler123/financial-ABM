@@ -5,33 +5,34 @@
 
 ---
 
-## §29（草案）Stackelberg 最优预算核查分配（Study 2 机制设计升级）
+## §29（草案）联合类型-状态贝叶斯动态 Stackelberg 核查机制（Study 2 算法升级）
 
-- **理论依据**：[disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 5（$D(q)$ 严格凹性与单期 0–1 背包结构）。
-- **实现模块**：[`stackelberg_audit_probabilities`](../src/abm/disclosure/policy.py)、[`bayesian_stackelberg_audit_probabilities`](../src/abm/disclosure/policy.py)，集成于 [`DisclosureMarket._stackelberg_probabilities`](../src/abm/disclosure/game.py)。
+- **理论依据**：[disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 5（$D(q)$ 严格凹性、反序定理与两状态 RMAB 动态清案 Bellman 凹包络）。
+- **实现模块**：[`BayesianAuditFilter`](../src/abm/disclosure/bayesian_audit.py)（零私有信息泄露的持久成本类型 $\times$ Markov 未结案状态联合贝叶斯滤波 + Bellman 上凹包络水填求解器）、[`stackelberg_audit_probabilities`](../src/abm/disclosure/policy.py)（全信息先知上界），集成于 [`DisclosureMarket._stackelberg_probabilities`](../src/abm/disclosure/game.py)。
 - **种子块**：
-  - 开发流水线检查：3 个配对种子 `60101–60103`；
+  - 已消耗开发诊断种子：`60901–60903`（CSI 300 开发基准验证）；
+  - 开发流水线检查：`60101–60103`；
   - 确认性实验：30 个全新配对种子 `61001–61030`。
-- **场景矩阵（均在等期望预算 $K = N\bar q = 2.0$ 下，含 `A2` 双倍预算与 `I` 透明度参照）**：
+- **场景矩阵（均在等期望预算 $K = N\bar q = 2.0$ 下，含 `A2` 双倍预算参照与全信息先知上界）**：
   1. `B`：随机核查（1%）；
-  2. `V`：按市值成比例核查（公开）；
-  3. `J`：按评分跳升核查（公开）；
+  2. `V`：按市值成比例核查（公开启发式）；
+  3. `J`：按评分跳升核查（公开启发式）；
   4. `A2`：双倍随机核查（2%，$K=4.0$）；
-  5. `S_eq`：等权全信息 Stackelberg 背包核查（公开）；
-  6. `S_eq_hid`：等权全信息 Stackelberg 核查（隐藏，检验承诺价值）；
-  7. `S_val`：市值加权全信息 Stackelberg 背包核查（公开）；
-  8. `S_obs`：仅用公开可观测量（公开市值、规模档、公开披露分、公开融资斜率、期幅上限、结构成本分布与监管者自身历史核查信念状态 $p_{\text{clean}}$）的 Gauss-Hermite 贝叶斯凹包络水填核查（公开）；
-  9. `I`：信息政策（$\tau = 0.6$）。
-- **主要预注册检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）**：
-  - `S1`（核心威慑）：`S_eq − B`（等权真实 ESG 变化，预测 $> 0$）；
-  - `S2`（超越启发式）：`S_eq − V`（等权真实 ESG 变化，预测 $> 0$）；
-  - `S3`（承诺价值）：`S_eq − S_eq_hid`（等权真实 ESG 变化，预测 $> 0$，与 Study 2 的 `J − J_hidden < 0` 形成镜像对照）；
-  - `S4`（市值加权正面对决）：`S_val − V`（市值加权真实 ESG 变化，预测 $> 0$）；
-  - `S5`（消除启发式损害的可观测规则）：`S_obs − V`（等权真实 ESG 变化，预测 $> 0$）。
+  5. `S_obs`：**可落地纯核查历史联合贝叶斯动态 Stackelberg 核查（公开，等权）**——仅用公开市值、规模档、公开融资斜率、结构成本先验与自身历史核查结果（完全不依赖评分跳升，免疫卡线规避）；
+  6. `S_obs_hid`：**无混杂隐藏规则最优贝叶斯清案对照（隐藏）**——同一联合贝叶斯信念下，因规则隐藏无威慑承诺，最大化期望清理价值；
+  7. `S_obs_sig`：**可落地含公开报告信号贝叶斯动态 Stackelberg 核查（公开，等权）**——在 `S_obs` 基础上融合公开报告变动 $\Delta r_i$ 平滑似然更新；
+  8. `S_obs_val`：**可落地市值加权联合贝叶斯动态 Stackelberg 核查（公开，市值加权）**；
+  9. `S_oracle_eq` / `S_oracle_val` / `S_oracle_hid`：**全信息先知上界**（读取企业私有 $c_i$ 与隐状态 $x_i$，仅用于信息价值 VoI 与理论天花板分解，不作为可落地主检验）。
+- **主要预注册检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日，全部聚焦 100% 公开信息可落地算法）**：
+  - `S1`（可落地机制超越随机核查）：`S_obs − B`（等权真实 ESG 变化，预测 $> 0$）；
+  - `S2`（可落地机制超越公开启发式）：`S_obs − V` 与 `S_obs − J`（等权真实 ESG 变化，预测 $> 0$）；
+  - `S3`（无混杂公开承诺价值）：`S_obs − S_obs_hid`（等权真实 ESG 变化，预测 $> 0$；对比最优隐藏清案的高命中率与最优公开承诺的高合规，呈现严格命中率悖论）；
+  - `S4`（市值加权正面对决）：`S_obs_val − V`（市值加权真实 ESG 变化，预测 $> 0$）；
+  - `S5`（公开报告贝叶斯滤波信息价值）：`S_obs_sig − S_obs`（等权真实 ESG 变化，预测 $> 0$）。
 - **辅助分解指标**：
-  - 承诺价值 = `S_eq − S_eq_hid`；
-  - 私有状态信息价值 = `S_eq − S_obs`；
-  - 预算倍增等效对比 = `S_eq − A2`（检验同预算最优承诺是否匹敌或超越双倍随机核查）。
+  - 预算倍增等效对比：`S_obs − A2` 与 `S_obs_sig − A2`（检验 1× 预算贝叶斯承诺是否匹敌或超越 2× 随机核查）；
+  - 私有状态信息价值（VoI）：`S_oracle_eq − S_obs` 与 `S_oracle_eq − S_obs_sig`；
+  - 信念校准质量：终点未结案后验 Brier 分数。
 
 ---
 
@@ -54,17 +55,17 @@
 
 ## §31（草案）鉴证方不完全观测贝叶斯更新稳健性（Study 3 信息边界升级）
 
-- **动机**：回应手稿 Section 7（[main.tex](file:///c:/Users/kanzaler/Desktop/financial-ABM/private/manuscript/main.tex#L706-L708)）中鉴证方年末精确观测真实客户污染率 $s_k$ 的强假设。
-- **实现模块**：`PolicyRegime.assurer_observation="detected_bayes"` 与 [`AssuranceState.detected_bayes_share`](../src/abm/disclosure/game.py)，鉴证方仅根据自身发布前更正数 $C_k$ 与监管事后追责罚单数 $E_k$ 按有效观测暴露 $n_k [a_k + (1-a_k)\bar q]$ 做经验贝叶斯平滑更新。
+- **动机**：回应研究局限中关于鉴证方年末精确观测真实客户污染率 $s_k$ 的强假设（Study 3 信息结构边界）。
+- **实现模块**：`PolicyRegime.assurer_observation="detected_bayes"` 与 [`AssuranceState.detected_bayes_share`](../src/abm/disclosure/game.py)，鉴证方仅根据自身发布前更正数 $C_k$ 与监管事后追责罚单数 $E_k$ 按有效观测暴露 $n_k [a_k + (1-a_k)\bar q]$ 做经验贝叶斯平滑更新；平局安全聚集指标实现于 [`metrics.py`](../src/abm/disclosure/metrics.py)（`assurance.excess_laxest_wash_concentration` 与 `assurance.client_minus_unweighted_quality_gap`）。
 - **种子块**：
   - 开发检查：`60301–60303`；
   - 确认性实验：30 个全新配对种子 `63001–63030`。
-- **场景矩阵（10 场景 × 30 种子 = 300 次运行，涵盖 `exact` v2 复核与 `detected_bayes` 对比）**：
+- **场景矩阵（10 场景 × 30 种子 = 300 次运行，涵盖 `exact` v2 复核与 `detected_bayes` 对比；待 Phase 2 补充机制修复情景）**：
   - `B`、`I`；
   - `exact`（v2 协议复核）：`ALL_R16`、`ALL_R100`、`ALL_F16`；
   - `detected_bayes`：`ALL_R16_bayes`、`ALL_R100_bayes`、`ALL_F16_bayes`、`ALL_R1_bayes`、`LRG_R16_bayes`。
 - **主要检验（Holm 校正）**：
   - `N1`（不完全观测下强责任指派有效）：`ALL_R16_bayes − B > 0`；
   - `N2`（逃逸周期稳健性）：`ALL_F16_bayes − ALL_R16_bayes < 0`；
-  - `N3`（最宽松方聚集）：`ALL_F16_bayes` 中最宽松鉴证方客户占受鉴证漂绿决策比例显著高于 `ALL_R16_bayes`；
+  - `N3`（平局安全最宽松方超额聚集）：`ALL_F16_bayes` 的 `assurance.excess_laxest_wash_concentration` 显著高于 `ALL_R16_bayes`（预测 $> 0$；同步报告 `assurance.client_minus_unweighted_quality_gap < 0`）；
   - `N4`（非单调性信息敏感度，双侧无预设方向）：`ALL_R100_bayes − ALL_R16_bayes`（检验噪声更新是否阻尼或保留高责任 3-周期崩塌）。

@@ -52,55 +52,6 @@
       }
     },
     {
-      "name": "S_eq",
-      "domain": {
-        "baseline_fixed_fine": 4.56e-05,
-        "baseline_penalty": 0.0,
-        "baseline_audit_probability": 0.01,
-        "baseline_transparency": 0.1,
-        "natural_decay": 0.2
-      },
-      "policy": {
-        "start_day": 1201,
-        "changes": {
-          "audit_allocation": "stackelberg_eq"
-        }
-      }
-    },
-    {
-      "name": "S_eq_hid",
-      "domain": {
-        "baseline_fixed_fine": 4.56e-05,
-        "baseline_penalty": 0.0,
-        "baseline_audit_probability": 0.01,
-        "baseline_transparency": 0.1,
-        "natural_decay": 0.2
-      },
-      "policy": {
-        "start_day": 1201,
-        "changes": {
-          "audit_allocation": "stackelberg_eq",
-          "audit_rule_public": false
-        }
-      }
-    },
-    {
-      "name": "S_val",
-      "domain": {
-        "baseline_fixed_fine": 4.56e-05,
-        "baseline_penalty": 0.0,
-        "baseline_audit_probability": 0.01,
-        "baseline_transparency": 0.1,
-        "natural_decay": 0.2
-      },
-      "policy": {
-        "start_day": 1201,
-        "changes": {
-          "audit_allocation": "stackelberg_val"
-        }
-      }
-    },
-    {
       "name": "S_obs",
       "domain": {
         "baseline_fixed_fine": 4.56e-05,
@@ -113,6 +64,71 @@
         "start_day": 1201,
         "changes": {
           "audit_allocation": "stackelberg_obs"
+        }
+      }
+    },
+    {
+      "name": "S_obs_hid",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs",
+          "audit_rule_public": false
+        }
+      }
+    },
+    {
+      "name": "S_obs_sig",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs_sig"
+        }
+      }
+    },
+    {
+      "name": "S_obs_val",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs_val"
+        }
+      }
+    },
+    {
+      "name": "S_oracle_eq",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_eq"
         }
       }
     },
@@ -197,24 +213,35 @@
   ],
   "comparisons": [
     {
-      "name": "stackelberg_eq_minus_baseline",
-      "weights": { "S_eq": 1, "B": -1 },
+      "name": "bayesian_obs_minus_baseline",
+      "weights": { "S_obs": 1, "B": -1 },
       "primary": true
     },
     {
-      "name": "stackelberg_eq_minus_value",
-      "weights": { "S_eq": 1, "V": -1 },
-      "primary": true
-    },
-    {
-      "name": "stackelberg_commitment_value",
-      "weights": { "S_eq": 1, "S_eq_hid": -1 },
-      "primary": true
-    },
-    {
-      "name": "stackelberg_obs_minus_value",
+      "name": "bayesian_obs_minus_value",
       "weights": { "S_obs": 1, "V": -1 },
       "primary": true
+    },
+    {
+      "name": "bayesian_obs_commitment_value",
+      "weights": { "S_obs": 1, "S_obs_hid": -1 },
+      "primary": true
+    },
+    {
+      "name": "bayesian_obs_val_minus_value",
+      "weights": { "S_obs_val": 1, "V": -1 },
+      "primary_metric": "true_change.fixed_start_cap_weight_sd",
+      "primary": true
+    },
+    {
+      "name": "bayesian_sig_minus_obs",
+      "weights": { "S_obs_sig": 1, "S_obs": -1 },
+      "primary": true
+    },
+    {
+      "name": "oracle_private_info_value",
+      "weights": { "S_oracle_eq": 1, "S_obs_sig": -1 },
+      "primary": false
     },
     {
       "name": "assurance_bayes_choice_cost",
@@ -231,7 +258,7 @@
     "primary_metric": "true_change.equal_weight_sd",
     "metrics": [
       "true_change.equal_weight_sd",
-      "true_change.value_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
       "inflation.mean_sd",
       "size.large_minus_small_sd"
     ],
