@@ -187,3 +187,16 @@ def test_empirical_belief_voluntary_assurance_rejected() -> None:
     )
     with pytest.raises(ValueError, match="voluntary assurance"):
         DisclosureMarket(cfg, WASH, sched)
+
+
+def test_empirical_belief_archives_cleanly_via_runner(tmp_path) -> None:
+    from abm.disclosure.runner import run_and_archive
+
+    cfg = _small_cfg(trading_days=240, burn_in_days=180)
+    manifest = run_and_archive(
+        cfg, WASH, tmp_path / "emp_run", PolicySchedule.constant(WASH),
+        purpose="development", archive="compact",
+    )
+    assert manifest["status"] == "complete"
+    assert (tmp_path / "emp_run" / "metrics.json").exists()
+    assert not (tmp_path / "emp_run" / "learning.json").exists()

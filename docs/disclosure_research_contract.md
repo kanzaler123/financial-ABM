@@ -1937,3 +1937,74 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
    - 从已提交的 `h3_v1_analysis.json`（SHA-256 `fcfeefa7817017fc85d68a55b0f664682130c10504eb5436224f41f4f8d0b6b2`）的 30 种子场景均值可算得：V−B = −0.020926597892002977 SD，J−B = −0.009767268907335078 SD。原 V−A2 = −0.030915642378042292、J−A2 = −0.019756313393374393 的数值保留，但只解释为与双倍随机核查的比较。
    - **同预算配对区间待逐种子档案复算。** 不从场景均值推断标准误、p 值或显著性，不复用 A2 的区间。`python scripts/recompute_research_corrections.py h3` 公开复现点差；有原始档案时加 `--archive <h3_v1档案>`，核验一致身份、完整且唯一的种子对及场景均值后，计算未作多重校正的配对 95% t 区间。这仍是描述性辅助勘误，不替换八项主要问题。
 3. **已完成与未解决事项。** 上述代码由不依赖授权数据的合成案例验证；原始证据未改动，未运行新的大规模实验。H2 的拟合与恢复问题、H3 下政策幅度明显缩小、阶段 I 的融资激励与评级动态冲突、阶段 J 的投资者响应差异仍须分别保留。联合校准、样本外政策验证和等成本政策比较未因本次修复而完成。
+
+## 29. MAS 升级一：联合类型-状态贝叶斯动态 Stackelberg 核查机制（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节在既有主设定（第 20.1 条：1000 名投资者、200 家企业、3500 个交易日、预热 1200 日、沪深 300 分位-copula 定额罚款饱和域 `configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json`、连续 NPV 企业、紧凑归档）下，检验完全可落地的联合类型-状态贝叶斯动态 Stackelberg 核查机制，并分解公开承诺价值（VoC）与私有信息价值（VoI）。本节不改变第 20–28 条的任何判定。
+
+1. **理论依据与实现。** 依据 [disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 5（$D(q)$ 严格凹性、反序定理、两状态 RMAB 动态清案 Bellman 上凹包络水填求解器及无混杂隐藏规则最优清案解）。核心实现为 [`BayesianAuditFilter`](../src/abm/disclosure/bayesian_audit.py)（零私有信息泄露的 25 节点 Gauss-Hermite 持久成本类型 $\times$ Markov 未结案状态联合贝叶斯滤波，在预热期被动跟踪以保持切换前逐位一致）与 [`stackelberg_audit_probabilities`](../src/abm/disclosure/policy.py)（全信息先知上界），集成于 [`DisclosureMarket._stackelberg_probabilities`](../src/abm/disclosure/game.py)。
+2. **种子与谱系核查。** 已消耗开发诊断种子 `60901–60903`；流水线检查种子 `60101–60103`。起草阶段原拟使用 `61001–63030`，冻结前全仓 JSON 谱系扫描（2,823 个历史种子）检出 `61001–61006` 与 `62001–62003` 曾出现于 `reports/disclosure_m1_candidates_20261011/` 与 `reports/disclosure_market_public_20261011/`；因此本节改用全新未用种子段 **`71001–71030`**（与全部历史种子、开发种子及第 30–31 节种子零重叠）。
+3. **实验矩阵（11 场景 × 30 种子 = 330 次运行，均在第 1201 日切换，等期望预算 $K = N\bar q = 2.0$，`A2` 除外）。**
+   - 参照与公开启发式：`B`（1% 随机）、`V`（公开市值加权）、`J`（公开评分跳升）、`A2`（2% 双倍随机预算，$K = 4.0$）；
+   - 100% 可落地贝叶斯算法：`S_obs`（纯历史公开贝叶斯 Stackelberg，等权）、`S_obs_hid`（无混杂隐藏规则最优贝叶斯清案对照，等权）、`S_obs_sig`（融合公开报告变动 $\Delta r_i$ 平滑似然更新，等权）、`S_obs_val`（纯历史公开贝叶斯 Stackelberg，市值加权）；
+   - 全信息先知上界（仅用于 VoI 分解，不进主 Holm 族）：`S_oracle_eq`、`S_oracle_val`、`S_oracle_hid`。
+4. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日，全部针对可落地算法）：**
+   - **S1（超越随机核查）：** `S_obs − B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S2a（超越公开市值加权）：** `S_obs − V`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S2b（超越公开跳升核查）：** `S_obs − J`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S3（无混杂公开承诺价值）：** `S_obs − S_obs_hid`（`true_change.equal_weight_sd`，预测 $> 0$；同步对比两者命中率以检验命中率悖论）；
+   - **S4（市值加权正面对决）：** `S_obs_val − V`（`true_change.fixed_start_cap_weight_sd`，预测 $> 0$）；
+   - **S5（公开报告贝叶斯滤波增益）：** `S_obs_sig − S_obs`（`true_change.equal_weight_sd`，预测 $> 0$）。
+   - *判定：* Holm $p < 0.05$ 且符号与预测一致记 `supported`，符号相反记 `unsupported`，否则记 `unresolved`。
+5. **辅助分解（未校正 95% 配对 $t$ 区间）：** `S_obs − A2`、`S_obs_sig − A2`（1× 预算贝叶斯承诺 vs. 2× 随机预算）；`S_oracle_eq − S_obs` 与 `S_oracle_eq − S_obs_sig`（私有信息价值 VoI）；`S_oracle_eq − S_oracle_hid`（先知承诺价值）；`S_oracle_val − S_obs_val`；核查命中率（`actions.detections` / 审计次数）。
+6. **流水线检查与冻结身份（2026-11-24，确认性运行之前）。**
+   - 公开合成域开发流水线运行 `configs/disclosure_mas_upgrade_dev_v1.json`（种子 `60101–60103`，39 次运行）：首次运行 `runs/disclosure_mas_upgrade_dev_v1` 检出 `runner.py` 第 410 行对非 `npv` 政策无条件调用离散表格 `learning_report` 的缺陷（导致 `emp_B`/`emp_I` 失败，其余 33/33 完成），保留失败档案不删档，修复为仅对 `("npv_discrete", "q_learning")` 生成 `learning.json` 并补充单元测试后，在 `runs/disclosure_mas_upgrade_dev_v1_r2` 39/39 全部通过，核心验证失败 0。
+   - **冻结规格：** `configs/disclosure_mas_stackelberg_confirmatory_v1.json`
+   - **`experiment_id`：** `f8297bce3f57482b05db71f0e2f76413035b631f2501031916904e60a83b0c24`
+   - **规格 SHA-256（LF）：** `ac423e7bb53f4770c3a42fee04659aef7c67dcd6c8c24b40df31933778dd1c2e`
+   - **源码摘要（`source_hashes` 规范 JSON SHA-256）：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
+
+## 30. MAS 升级二：零泄露三层有限理性阶梯与在线经验信念学习（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节在阶段 D.3（第 23 条，L0：原始账户无模型表格 Q-learning，确立 0.07 bp 信号 vs. 190 bp 账户回报噪声物理边界）与零泄露 L1 真实账户控制变量诊断（20 期融资回报标准差减去同规模组均值仅由 73.0 bp 降至 70.6 bp，一阶差分减组均值仍为 0.84 bp，证明 >95% 方差为企业特质基本面噪声）的基础上，在 L2 层级以严格零泄露的在线经验信念学习器 `EmpiricalBeliefLearner` 检验核心制度机制对松弛执法理性预期的稳健性及认知边界。
+
+1. **实现与零泄露约束。** `firm_policy="empirical_belief"`（默认 `firm_belief_decay=0.15`，省略于默认序列化身份中，保持旧身份向后兼容），实现于 [`EmpiricalBeliefLearner`](../src/abm/disclosure/bounded.py) 与 [`DisclosureMarket._bounded_decision`](../src/abm/disclosure/game.py)。企业保留与 `npv` 相同的连续动作空间（消除离散网格混杂）与本地企业财务估值，但**绝不读取干预后的 `regime.audit_probability`、定向规则 `q_i`、`regime.fixed_fine`、`regime.penalty` 或真实鉴证质量 `assurance.quality`**；初始先验仅取模拟前历史基线 `domain.baseline_*`，政策切换后完全依据已发生的公开审计抽查、已查处罚单与已发生的发布前鉴证纠错事件，通过折扣 Beta-Binomial 后验与一致折扣 Thompson 采样在线更新信念。
+2. **种子与矩阵（8 场景 × 30 种子 = 240 次运行，全新未用种子段 `72001–72030`）。**
+   - 场景：`EB_B`、`EB_I`（$\tau = 0.6$）、`EB_F`（4× 法定罚款）、`EB_V`（市值加权核查）、`EB_S_obs`（公开贝叶斯 Stackelberg 核查，检验粗粒度规模档信念下个体承诺的退化边界）、`EB_R16_bayes`（指派鉴证 16×，`detected_bayes`）、`EB_F16_bayes`（自选鉴证 16×，`detected_bayes`）、`EB_F100_bayes_smooth`（自选鉴证 100×，`detected_bayes`，运行时滞回 $\gamma = 0.7$）。
+3. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）：**
+   - **L1（透明度稳健）：** `EB_I − EB_B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **L2a（无公式知晓下的小企业漂绿位移）：** `EB_V − EB_B`（`actions.wash_share_by_size.small`，预测 $> 0$）；
+   - **L2b（无公式知晓下的大企业漂绿下降）：** `EB_V − EB_B`（`actions.wash_share_by_size.large`，预测 $< 0$）；
+   - **L3（在线经验鉴证有效）：** `EB_R16_bayes − EB_B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **L4（Thompson 采样自选逃逸）：** `EB_F16_bayes − EB_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$；同步报告漂绿占比、`excess_laxest_wash_concentration` 与双边学习相位滞后下的衰减幅度）；
+   - **L5（运行时滞回对有限理性企业稳健）：** `EB_F100_bayes_smooth − EB_F16_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）。
+4. **辅助检验：** `L1b`（`EB_F − EB_B`：仅凭罚单在线学到 4× 罚款的净增益）；`L2c`（`EB_V − EB_B` 等权变化）；`L2d`（`EB_S_obs − EB_B`：粗粒度规模档信念下的 Stackelberg 承诺脆弱性）；`L5b`（`EB_F100_bayes_smooth − EB_I`）。
+5. **冻结身份（2026-11-24，确认性运行之前）：**
+   - **冻结规格：** `configs/disclosure_mas_empirical_belief_confirmatory_v1.json`
+   - **`experiment_id`：** `394a6af463c7c8b08ee0326aea3d94fa92141f1c119f7119e2af182fc7984fb6`
+   - **规格 SHA-256（LF）：** `4c87a2754a785f9e187e04b205b94b8f9880f3178308e47f11180455bbf01286`
+   - **源码摘要：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
+
+## 31. MAS 升级三：鉴证方部分可观测监控盲区与运行时滞回/轮换制度修复（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节检验 [disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 3–4 与命题 6 的动态机制预测：当鉴证方无法读取全市场真实漂绿率、仅能依据自身查出并更正数 $C_k$ 与事后追责罚单数 $E_k$ 作贝叶斯估计（`assurer_observation="detected_bayes"`）时，强责任鉴证、自选逃逸周期、50.5× 逆向监控盲区是否稳健；以及运行时审查滞回（`assurer_smoothing=0.7`）与年度强制轮换（`assurer_selection="rotating"`）能否在不禁止企业自选或重塑指派规则的前提下治愈高责任 3-周期并封堵自选逃逸口。
+
+1. **种子与矩阵（15 场景 × 30 种子 = 450 次运行，全新未用种子段 `73001–73030`，连续 NPV 企业，沪深 300 主设定）。**
+   - 基准与参照：`B`、`I`；
+   - `exact` 复核：`ALL_R16`、`ALL_R100`、`ALL_F16`；
+   - `detected_bayes` 部分可观测稳健性：`ALL_R16_bayes`、`ALL_R100_bayes`、`ALL_F16_bayes`；
+   - 制度修复矩阵：`ALL_R16_smooth`、`ALL_R100_smooth`、`ALL_R100_bayes_smooth`、`ALL_F16_smooth`、`ALL_F100_smooth`、`ALL_F100_bayes_smooth`（`detected_bayes` + 企业自选 + 100× + 滞回 $\gamma=0.7$）、`ALL_ROT16_bayes`（`detected_bayes` + 16× + 年度强制轮换）。
+2. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）：**
+   - **N1（部分可观测强责任指派有效）：** `ALL_R16_bayes − B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **N2（自选逃逸对部分可观测性稳健）：** `ALL_F16_bayes − ALL_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$）；
+   - **N3（命题 4(2) 平局安全协方差排序）：** `ALL_F16_bayes − ALL_R16_bayes`（`assurance.client_minus_unweighted_quality_gap`，预测 $< 0$）；
+   - **N4（监控盲区保留高责任非单调性）：** `ALL_R100_bayes − ALL_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$）；
+   - **N5（运行时滞回治愈 3-周期与监控盲区）：** `ALL_R100_bayes_smooth − ALL_R100_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **N6（运行时滞回封堵部分可观测自选逃逸口）：** `ALL_F100_bayes_smooth − ALL_F16_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）。
+3. **辅助检验：** `N3b`（`excess_laxest_wash_concentration`）；`N5b`（`ALL_R100_smooth − ALL_R100`）；`N5c`（`ALL_R100_smooth − ALL_R16_smooth`，验证滞回恢复单调性）；`N6b`（`ALL_F100_smooth − ALL_F16`）；`N6c`（`ALL_F16_smooth − ALL_F16`）；`N6d`（`ALL_ROT16_bayes − ALL_F16_bayes`，年度强制轮换封堵逃逸）；`N6e`/`N6f`（滞回修复与透明度基准 `I` 的比较）；`Exact_vs_Bayes_R16`/`R100`。
+4. **失败与基础设施处理规范（第 29–31 节通用）。** 沿用第 20.9 条与第 24.10 条：模型内失败或价格截断保留在统计中，不换种子、不追加；基础设施中断按冻结身份用 `--resume` 续跑并保留中断尝试；全部确认性运行留在当前特性分支 `feat/mas-theory-and-mechanisms` 本地 `runs/` 归档，不合并至 `main`。
+5. **冻结身份（2026-11-24，确认性运行之前）：**
+   - **冻结规格：** `configs/disclosure_mas_assurance_confirmatory_v1.json`
+   - **`experiment_id`：** `ede705da4e1256c6f267b68ff7546078ebf0f2dbe8fdb119fbfe3bbd1febbe70`
+   - **规格 SHA-256（LF）：** `5fa99977533a20b93780c34b09e43045856d67f5c57d395277c05e16074b1b73`
+   - **源码摘要：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
