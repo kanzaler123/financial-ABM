@@ -1,12 +1,12 @@
-# 多智能体动态与博弈命题：鉴证共演化与 Stackelberg 核查（Propositions 3–5）
+# 多智能体动态与博弈命题：鉴证共演化、Stackelberg 核查与运行时滞回修复（Propositions 3–6）
 
-> **状态：理论推导与数值核验。** 本文档承接单企业静态基准 [disclosure_inspection_propositions.md](disclosure_inspection_propositions.md)（Propositions 1–2），为 Study 2（定向核查）和 Study 3（第三方鉴证）中的多智能体涌现现象提供形式化数学刻画，并导出预算约束下的 Stackelberg 核查分配结构。全部解析阈值与不等式均在 [`tests/test_disclosure_dynamic_propositions.py`](../tests/test_disclosure_dynamic_propositions.py) 中与 [`src/abm/disclosure/financing.py`](../src/abm/disclosure/financing.py) 逐项数值核验。
+> **状态：形式化推导与数值核验。** 本文档承接单企业静态基准 [disclosure_inspection_propositions.md](disclosure_inspection_propositions.md)（Propositions 1–2），为 Study 2（定向与贝叶斯动态核查）及 Study 3（第三方鉴证共演化、部分可观测性与制度修复）建立领域无关的规范多智能体（Normative MAS）理论框架。全部解析阈值、分岔条件、凹包络结构与轨道不等式均在 [`tests/test_disclosure_dynamic_propositions.py`](../tests/test_disclosure_dynamic_propositions.py) 中与 [`src/abm/disclosure/financing.py`](../src/abm/disclosure/financing.py)、[`src/abm/disclosure/bayesian_audit.py`](../src/abm/disclosure/bayesian_audit.py) 逐项数值核验。
 
 ---
 
 ## 1. 记号与公共前提
 
-沿用 Propositions 1–2 的内点设定（$\sigma = 0, p = 0$，日度报告、未公开核查结果、无均值回归或给定持续性年金 $A_r > 0$）：
+沿用 Propositions 1–2 的基准设定（$\sigma = 0, p = 0$，日度报告、未公开核查结果、无均值回归或给定持续性年金 $A_r > 0$）：
 
 - 交易日周期：$P_d = 60$ 日，贴现率 $r_d = 0.05$/年，252 交易日/年，期贴现因子 $\beta = e^{-r_d P_d / 252} \approx 0.988166$，首次核查贴现因子 $\beta_1 = e^{-r_d (t_{a,1} - t_0)/252} = \beta$（在默认时序 $t_0 \equiv 0 \pmod{60}, t_w = t_0 + 20 \implies t_{a,1} = t_0 + 60$ 下）。
 - 监管基础核查率：$\bar q \in (0,1)$（默认 $\bar q = 0.01$），每鉴证年含 $m = 4$ 个决策期（240 交易日）。
@@ -20,91 +20,101 @@
 
 ---
 
-## 2. 命题 3：指派鉴证下的罚款保险、无零漂绿不动点与高责任 3-周期非单调性
+## 2. 命题 3：指派鉴证下的罚款保险、分岔失稳与高责任 3-周期非单调性
 
-考虑随机指派给单一鉴证方 $k$ 的连续测度（或代表性异质分布）客户群，每家内点企业在质量 $a$ 下的洁净开案规模门槛为：
+考虑随机指派给单一鉴证方 $k$ 的连续测度异质客户群，每家内点企业在质量 $a < a^*$ 下的洁净开案规模门槛为：
 $$P^*(a) \equiv \frac{4 c F\, D(a)}{B^2\big[(1-\tau)^2 A_w(a)^2 / w - A_r^2\big]} \quad (a < a^*),$$
-记当质量为 $a$ 时满足 $P_i > P^*(a)$（即无未结案时亦主动发起漂绿）的客户占比为 $\theta(a) \in [0,1]$，且对所有 $a \ge a^*$ 有 $\theta(a) = 0$。在每一期 $p \in \{1,\dots,m\}$ 中，携带虚报的报告在披露日经概率 $a$ 的发布前检查（在更正前计入受检虚报占比 $s_{k,y}$）与期末概率 $\bar q$ 的监管核查，因此单期存续率为 $\rho(a) \equiv (1-a)(1-\bar q)$。鉴证方每年初按短视最优反应更新质量：$a_{k,y+1} = \min(1, \lambda_L s_{k,y})$，其中 $\lambda_L = L\bar q / (2\kappa)$。
+记当质量为 $a$ 时满足 $P_i > P^*(a)$（无未结案时亦主动发起漂绿）的客户占比为 $\theta(a) \in [0,1]$，且对所有 $a \ge a^*$ 有 $\theta(a) = 0$。单期虚报存续率为 $\rho(a) \equiv (1-a)(1-\bar q)$。短视鉴证方每年初更新质量：$a_{k,y+1} = \min(1, \lambda_L s_{k,y})$，其中 $\lambda_L = L\bar q / (2\kappa)$。
 
 **命题 3（指派鉴证动力学）.** 设 $\tau < \tau^*(0)$（从而 $a^* > 0$）且 $\theta(0) > 0$。则：
 
 1. **（弱责任罚款保险区间）** 当且仅当
    $$\left|\frac{D'(0)}{D(0)}\right| > \left|\frac{2 A_w'(0)}{A_w(0)}\right| \cdot \frac{(1-\tau)^2 A_w(0)^2 / w}{(1-\tau)^2 A_w(0)^2 / w - A_r^2}$$
-   时，存在非空开区间 $(0, a_{\mathrm{ins}}) \subset (0, a^*)$，使得对任意 $a \in (0, a_{\mathrm{ins}})$ 均有 $P^*(a) < P^*(0)$。在默认参数下，左端为 $45.84$，右端为 $19.55 \times 1.305 = 25.51$，不等式严格成立；精确罚款保险区间为 $(0, 0.0346)$，门槛最低点在 $a_{\min} = 0.0156$ 处达到 $P^*(a_{\min}) / P^*(0) = 0.8728$。此外，若 $\lambda_L < a^*$（如 $1\times$ 法定责任 $\lambda_L = 0.0525 < 0.0827$），鉴证质量恒满足 $a_{k,y} \le \lambda_L < a^*$，永远无法达到止漂门槛。
-2. **（零漂绿稳态的不存在性与内生质量回落）** 对任意有限责任斜率 $\lambda_L \in (0, \infty)$，耦合均值场映射 $(u_y, a_y) \mapsto (u_{y+1}, a_{y+1})$ **不存在**满足 $a_{\mathrm{eq}} \ge a^*$ 的不动点。进一步地，任意进入止漂年（$a_y \ge a^*$）的轨迹满足存量几何收缩
+   时，存在非空开区间 $(0, a_{\mathrm{ins}}) \subset (0, a^*)$，使得对任意 $a \in (0, a_{\mathrm{ins}})$ 均有 $P^*(a) < P^*(0)$。在默认参数下，左端 $45.84 >$ 右端 $25.51$，精确罚款保险区间为 $(0, 0.0346)$，门槛最低点在 $a_{\min} = 0.0156$ 处达到 $P^*(a_{\min}) / P^*(0) = 0.8728$。若 $\lambda_L < a^*$（如 $1\times$ 责任 $\lambda_L = 0.0525 < 0.0827$），恒有 $a_{k,y} \le \lambda_L < a^*$，永远无法触及止漂门槛。
+2. **（零漂绿稳态的不存在性与内生回落）** 对任意有限 $\lambda_L \in (0, \infty)$，耦合映射 $(u_y, a_y) \mapsto (u_{y+1}, a_{y+1})$ **不存在**满足 $a_{\mathrm{eq}} \ge a^*$ 的不动点。任意进入止漂年（$a_y \ge a^*$）的轨迹满足几何收缩
    $$u_{y+1} = \rho(a_y)^m u_y, \qquad s_y = \Phi_m(a_y)\, u_y, \qquad \Phi_m(a) \equiv \frac{1 - \rho(a)^m}{m(1-\rho(a))},$$
-   因此至多经过有限个连续止漂年后必然出现 $s_y < a^*/\lambda_L \implies a_{y+1} < a^*$，触发漂绿复发。
-3. **（高责任精确 3-周期与责任威慑的非单调性）** 设在复发年（$a_y = 0, u_y = 0$）中，高倾向客户 $\theta(0)$ 在每期决策日均立即发起漂绿（并在被 1% 抽查清除后于下期重新发起），于是 $s_y = \theta(0)$ 且年末留存 $u_{y+1} = (1-\bar q)\theta(0)$。若责任斜率满足
-   $$\lambda_L \ge \lambda_L^{\mathrm{3c}} \equiv \frac{\max\big(1,\, m\,a^*/(1-\bar q)\big)}{\theta(0)},$$
-   则该确定性映射从 $(u_0, a_0) = (0, 0)$ 起进入一个**精确的 3-周期轨道**：
-   $$\big((u_0, a_0),\; (u_1, a_1),\; (u_2, a_2)\big) = \left((0, 0),\; \big((1-\bar q)\theta(0),\, 1\big),\; \Big(0,\, \min\!\Big(1,\, \frac{\lambda_L(1-\bar q)\theta(0)}{m}\Big)\Big)\right),$$
-   其长期平均漂绿决策占比恒为 $\frac{1}{3}\theta(0) > 0$（即便 $\lambda_L \to \infty$ 亦不趋于零）。反之，若 $\theta(a)$ 在 $[0, a^*]$ 上连续且 $\theta(a^*) = 0$，则存在中等责任斜率 $\lambda_L^\dagger < \lambda_L^{\mathrm{3c}}$（保持质量在 $a^*$ 附近小幅波动而不发生彻底清空后的零质量崩塌），其长期平均漂绿占比严格低于 $\frac{1}{3}\theta(0)$。由此证明：**在年度短视鉴证更新下，长期漂绿率对鉴证方责任 $L$ 严格非单调**。
+   因此至多经过有限个连续止漂年后必出现 $\lambda_L s_y < a^* \implies a_{y+1} < a^*$，触发复发。
+3. **（内点不动点倍周期分岔、高责任记忆擦除 3-周期与严格非单调性）**
+   - **(a) 内点平衡与倍周期失稳条件**：若 $\theta(a)$ 在 $[a_{\mathrm{ins}}, a^*]$ 上连续可微、严格递减且 $\theta(a^*) = 0$，则对任意目标质量 $\tilde a \in (a_{\mathrm{ins}}, a^*)$，令 $\lambda_L(\tilde a) = \tilde a / \theta(\tilde a)$ 存在内点平衡态（高倾向子群 $\theta(\tilde a)$ 持续漂绿，其余客户持续洁净，稳态受检污染率 $s_{\mathrm{stat}}(\tilde a) = \theta(\tilde a)$）。然而在 $a < a^*$ 区域，一维简化映射 $a \mapsto \lambda_L \theta(a)$ 在 $\tilde a$ 处的导数为 $\lambda_L \theta'(\tilde a) = \tilde a \theta'(\tilde a) / \theta(\tilde a) \equiv \varepsilon_\theta(\tilde a) < 0$；当且仅当弹性 $|\varepsilon_\theta(\tilde a)| > 1$ 时该内点平衡经**倍周期（Flip）分岔失稳**并产生自激振荡（在校准对数正态分布下，所有 $\tilde a > 0.040$ 均满足 $|\varepsilon_\theta(\tilde a)| > 1$，直接解释了 Study 3 中 28/30 种子自发穿越 $a^*$ 循环的现象）。
+   - **(b) 高责任完全记忆擦除精确 3-周期**：若责任斜率满足
+     $$\lambda_L \ge \lambda_L^{\mathrm{3c}} \equiv \frac{\max\big(1,\, m\,a^*/(1-\bar q)\big)}{\theta(0)},$$
+     则从 $(u_0, a_0) = (0, 0)$ 起，该映射进入**精确 3-周期轨道**：
+     $$\big((u_0, a_0),\; (u_1, a_1),\; (u_2, a_2)\big) = \left((0, 0),\; \big((1-\bar q)\theta(0),\, 1\big),\; \Big(0,\, \min\!\Big(1,\, \frac{\lambda_L(1-\bar q)\theta(0)}{m}\Big)\Big)\right).$$
+     因 Year 1 过冲至 $a_1 = 1$ 将未结案存量在首期**完全清空（$u_2 = 0$，记忆擦除）**，Year 2 观测 $s_2 = 0$，迫使 Year 3 彻底跌回 $a_3 = 0$，承受最大复发幅度 $\theta(0)$；长期平均漂绿率恒为 $\frac{1}{3}\theta(0) > 0$（即使 $\lambda_L \to \infty$ 亦不下降）。
+   - **(c) 中等责任不完全清空防崩塌与全局轨道非单调性**：设 $\theta(a)$ 在 $[a_{\mathrm{ins}}, a^*]$ 上连续递减且 $\theta(a^*) = 0$。若存在中等斜率 $\lambda_L^\dagger \in (a^*/\theta(0),\, 1/\theta(0))$ 与阈值 $\underline a \in (a_{\mathrm{ins}}, a^*)$，使得从任意处于紧陷阱区 $a_y \in [\underline a, a^*), u_y \le \theta(\underline a)$ 的复发年出发，均有：(i) 次年过冲不触顶，$a_{y+1} = \lambda_L^\dagger s_y \in [a^*, 1)$；(ii) 留存残余信号支撑连续两止漂年，$a_{y+2} = \lambda_L^\dagger \Phi_m(a_{y+1}) u_{y+1} \ge a^*$；(iii) 第三年回落质量保持严格正值，$a_{y+3} = \lambda_L^\dagger \Phi_m(a_{y+2})\rho(a_{y+1})^m u_{y+1} \in [\underline a, a^*)$。则该 3 步返回映射将复发质量永久锁定在 $[\underline a, a^*)$ 内（永不跌回 $a = 0$），每个 3 年周期内至多 1 年复发且复发率 $\le \theta(\underline a) < \theta(0)$，因此长期平均漂绿率严格低于 $\frac{1}{3}\theta(\underline a) < \frac{1}{3}\theta(0)$。由此**不依赖内点不动点稳定性**地严格证明：在年度短视更新下，长期漂绿率对鉴证方责任 $L$ **全局严格非单调**。
 
 *证明.*
-1. 由 $P^*(a) \propto D(a) / \big[(1-\tau)^2 A_w(a)^2/w - A_r^2\big]$ 取对数求导，在 $a=0$ 处有
-   $$\left.\frac{d\ln P^*(a)}{da}\right|_{a=0} = \frac{D'(0)}{D(0)} - \frac{2(1-\tau)^2 A_w(0) A_w'(0)/w}{(1-\tau)^2 A_w(0)^2/w - A_r^2}.$$
-   因 $D'(0) < 0$ 且 $A_w'(0) < 0$，当且仅当题设不等式成立时 $\left.\frac{d\ln P^*}{da}\right|_{a=0} < 0$，由连续性即存在 $(0, a_{\mathrm{ins}})$ 使 $P^*(a) < P^*(0)$。又因为 $s_{k,y} \in [0, 1]$，故 $a_{k,y+1} = \min(1, \lambda_L s_{k,y}) \le \lambda_L$。
-2. 反证：设 $(u_{\mathrm{eq}}, a_{\mathrm{eq}})$ 为不动点且 $a_{\mathrm{eq}} \ge a^*$。此时该年内无企业发起或追加漂绿，故进入第 $p$ 期检查时的虚报存量占比为 $u_{p-1} = \rho(a_{\mathrm{eq}})^{p-1} u_{\mathrm{eq}}$，年末剩余存量满足 $u_{\mathrm{eq}} = \rho(a_{\mathrm{eq}})^m u_{\mathrm{eq}}$。因 $\rho(a_{\mathrm{eq}}) \le (1-a^*)(1-\bar q) < 1$，必有 $u_{\mathrm{eq}} = 0$，从而 $s_{\mathrm{eq}} = \Phi_m(a_{\mathrm{eq}})\cdot 0 = 0$，推出 $a_{\mathrm{eq}} = \min(1, \lambda_L \cdot 0) = 0 < a^*$，矛盾。对任意轨迹，若第 $y, y+1, \dots, y+t-1$ 年均维持 $a \ge a^*$，则 $u_{y+t} \le \rho(a^*) ^{m t} u_y \to 0$，故必在有限步内出现 $\lambda_L \Phi_m(a) u < a^*$。
-3. 设 $\lambda_L \ge \lambda_L^{\mathrm{3c}}$，直接迭代三步：
-   - **Year 0**（$u_0 = 0, a_0 = 0$）：每期恰有 $\theta(0)$ 比例的企业发起漂绿（并携带虚报接受检查），故 $s_0 = \theta(0)$，第 4 期期末审计后存量为 $u_1 = (1-\bar q)\theta(0)$，下年质量 $a_1 = \min(1, \lambda_L\theta(0)) = 1$（因 $\lambda_L \ge 1/\theta(0)$）。
-   - **Year 1**（$u_1 = (1-\bar q)\theta(0), a_1 = 1 > a^*$）：全年零新漂绿；第 1 期检查观测到全部存量 $u_1$ 并以概率 $a_1 = 1$ 全部清除，第 2–4 期观测到 0 虚报，故 $s_1 = \frac{1}{m} u_1 = \frac{1-\bar q}{m}\theta(0)$，年末存量 $u_2 = 0$；下年质量 $a_2 = \min\!\big(1, \lambda_L \frac{1-\bar q}{m}\theta(0)\big) \ge a^*$（因 $\lambda_L \ge m a^* / [(1-\bar q)\theta(0)]$）。
-   - **Year 2**（$u_2 = 0, a_2 \ge a^*$）：既无旧存量又无新漂绿，故 $s_2 = 0$、$u_3 = 0$，下年质量 $a_3 = \min(1, 0) = 0$，精确回到 $(u_0, a_0) = (0, 0)$。
-   三步中仅 Year 0 发生漂绿（占比 $\theta(0)$），Year 1 与 Year 2 均为 0，故周期均值恒为 $\frac{1}{3}\theta(0)$。在默认参数下 $\frac{m a^*}{1-\bar q} = 0.3342 < 1$，故临界条件简化为 $\lambda_L \ge 1/\theta(0)$；对于 $\theta(0) \approx 0.19$，$\lambda_L^{\mathrm{3c}} \approx 5.26$，恰好对应 $100\times$ 责任（$\lambda_L = 5.25$）处的剧烈 3-周期（Study 3 仿真中 $100\times$ 漂绿率 $8.6\%$ 高于 $16\times$ 的 $6.2\%$）。对于中等 $\lambda_L$，取任意足够接近 $a^*$ 的目标质量 $\tilde a \in (a_{\mathrm{ins}}, a^*)$ 使 $\theta(\tilde a) < \frac{1}{3}\theta(0)$ 且令 $\lambda_L^\dagger = \tilde a / \tilde s(\tilde a)$（其中 $\tilde s(\tilde a) \in [\theta(\tilde a), 1]$ 为该质量下的稳态受检占比），则 $(\tilde u, \tilde a)$ 为不动点（或在局部小幅波动），其平均漂绿率严格低于 $\frac{1}{3}\theta(0)$。$\square$
+1. 由 $P^*(a) \propto D(a)/[(1-\tau)^2 A_w(a)^2/w - A_r^2]$ 对 $a$ 取对数求导，在 $a = 0$ 处有 $\frac{d\ln P^*}{da}\big|_{0} = \frac{D'(0)}{D(0)} - \frac{2(1-\tau)^2 A_w(0)A_w'(0)/w}{(1-\tau)^2 A_w(0)^2/w - A_r^2} < 0$，由连续性得 $(0, a_{\mathrm{ins}})$；又因 $s_{k,y} \in [0, 1]$，故 $a_{k,y+1} \le \lambda_L$。
+2. 反证：若 $(u_{\mathrm{eq}}, a_{\mathrm{eq}})$ 为不动点且 $a_{\mathrm{eq}} \ge a^*$，则 $u_{\mathrm{eq}} = \rho(a_{\mathrm{eq}})^m u_{\mathrm{eq}}$，因 $\rho(a^*) < 1$ 必有 $u_{\mathrm{eq}} = 0 \implies s_{\mathrm{eq}} = 0 \implies a_{\mathrm{eq}} = 0 < a^*$，矛盾。有限时间回落由 $\rho(a^*)^{mt} \to 0$ 直接得出。
+3. (a) 在 $a < a^*$ 下，满足 $P_i > P^*(a)$ 的企业每期皆主动发起/延续漂绿（即便被查处亦于次期立即重开），故其受检污染概率恒为 1，其余洁净企业恒为 0，得 $s_{\mathrm{stat}}(a) = \theta(a)$；Jacobian 特征值即 $\frac{d}{da}[\lambda_L\theta(a)]\big|_{\tilde a} = \varepsilon_\theta(\tilde a)$，故 $|\varepsilon_\theta(\tilde a)| > 1$ 时按标准一维分岔定理失去局部渐近稳定性。(b) 对 $\lambda_L \ge \lambda_L^{\mathrm{3c}}$ 从 $(0, 0)$ 显式迭代三步：$a_0=0 \implies s_0=\theta(0), u_1=(1-\bar q)\theta(0), a_1=\min(1, \lambda_L\theta(0))=1$；$a_1=1 \implies \rho(1)=0, s_1=\frac{u_1}{m}, u_2=0, a_2 \ge a^*$；$u_2=0, a_2\ge a^* \implies s_2=0, u_3=0, a_3=0$，三步均值恒为 $\frac{1}{3}\theta(0)$。(c) 设三步陷阱条件在 $[\underline a, a^*)$ 上成立（在校准异质分布中，于 $25\times$ 责任 $\lambda_L^\dagger = 1.313$ 下，自 $(0,0)$ 仅 1 个周期即进入 $a_{3k} \in [0.055, 0.058] > a_{\mathrm{ins}} = 0.0346$，复发率 $\approx 0.094 < 0.19$，长期均值 $3.01\% < 6.33\%$）：每 3 步中至多第 $3k$ 年满足 $a_{3k} < a^*$，且该年所有漂绿决策受 $a_{3k} \ge \underline a$ 约束（新开案比例 $\theta(a_{3k}) \le \theta(\underline a)$，旧存量 $u_{3k}$ 经两止漂年几何衰减满足 $u_{3k} \ll \theta(\underline a)$），第 $3k+1, 3k+2$ 年质量均 $\ge a^*$ 故零漂绿，三步均值严格低于 $\frac{1}{3}\theta(0)$。$\square$
 
 ---
 
-## 3. 命题 4：自选鉴证下的客户排序、对称破缺与年度逃逸周期
+## 3. 命题 4：自选鉴证下的客户排序、协方差质量缺口与年度逃逸周期
 
-考虑 $M \ge 2$ 家鉴证方，第 $y$ 年初质量向量为 $a_y = (a_{1,y}, \dots, a_{M,y}) \in [0, 1]^M$，记 $\underline{a}_y = \min_k a_{k,y}$。企业 $i$ 评估单期最优价值 $V_i^*(a) = \max\{V_{I,i}, V_{W,i}(a), 0\}$，并在严格改进时切换至 $k_i^* = \arg\max_k V_i^*(a_k)$（平局取最小索引）。
+考虑 $M \ge 2$ 家鉴证方，第 $y$ 年初质量向量 $a_y = (a_{1,y}, \dots, a_{M,y}) \in [0, 1]^M$，记 $\underline a_y = \min_k a_{k,y}$。企业 $i$ 评估单期最优价值 $V_i^*(a) = \max\{V_{I,i}, V_{W,i}(a), 0\}$，在严格改进时切换至 $k_i^* = \arg\max_k V_i^*(a_k)$。
 
-**命题 4（自选鉴证的聚集与逃逸周期）.** 在强制全员鉴证且允许企业按年自选鉴证方（`ALL_F`）的机制下：
+**命题 4（自选鉴证的聚集、协方差缺口与逃逸周期）.** 在强制全员鉴证且允许按年自选（`ALL_F`）的机制下：
 
-1. **（单调排序与最宽松机构聚集）**
-   - 对所有已携带未查出虚报的企业（$\pi_i = 0$），$V_{W,i}(a)$ 在 $[0, 1]$ 上严格递减；因此只要 $\underline{a}_y < a^*$，所有 $\pi_i = 0$ 企业均严格偏好最低质量机构 $\arg\min_k a_{k,y}$。
-   - 对所有洁净企业（$\pi_i = 1$），若所有非最宽松机构均满足 $a_{k,y} \ge a_{\mathrm{ins}}$（特别是 $a_{k,y} \ge a^*$）且最宽松机构满足 $a_{k_-, y} = \underline{a}_y < a^*$（或 $\underline{a}_y \ge a_{\mathrm{ins}}$），则所有在 $\underline{a}_y$ 下有意漂绿的洁净企业亦严格偏好最低质量机构 $k_-$；同时所有在 $\underline{a}_y$ 下不漂绿的企业对所有鉴证方无差异（$V_i^*(a_k) \equiv V_{I,i}$），因严格改进切换规则而留在原机构。
-   - 推论：当至少存在一家机构 $a_{k,y} \ge a^*$ 且存在唯一最低质量机构 $k_-$ 满足 $a_{k_-,y} < a^*$（且其余机构 $\ge a_{\mathrm{ins}}$）时，**100% 的当期漂绿决策集中于最低质量机构 $k_-$ 的客户群**（对应 Study 3 的 96.9% 与持久化 $Q$ 下的 95.6%）。
-2. **（客户加权质量缺口）** 只要存在两家质量不同的机构 $a_{k_1, y} < a^* \le a_{k_2, y}$ 且有正测度潜在漂绿企业从高质机构迁入低质机构，当年的客户加权平均质量 $\bar a_y^{\mathrm{client}} = \sum_k \frac{n_{k,y}}{N} a_{k,y}$ 严格低于等权机构平均质量 $\bar a_y^{\mathrm{unw}} = \frac{1}{M}\sum_k a_{k,y}$（当初始各机构客户数相等且漂绿者仅从高质量迁往低质量时，质量与客户份额呈严格负协方差：$\bar a_y^{\mathrm{client}} - \bar a_y^{\mathrm{unw}} = M \cdot \mathrm{Cov}(n_{k,y}/N,\, a_{k,y}) < 0$）。这直接解释了 Study 3 中 `ALL_F16` 的等权质量（0.131）高于 `ALL_R16`（0.110），但客户实际面对质量仅 0.110 且漂绿率飙升至 21.0% 的现象。
-3. **（无非对称稳态与年度逃逸周期）** 设强责任条件 $\lambda_L \cdot \frac{\theta(0)}{1/M + (1-1/M)\theta(0)} \ge a^*$ 成立（即只要全部漂绿企业聚集至单一机构 $k_-$，该机构的污染率便足以将其次年质量推至 $a^*$ 以上）。若 $M \ge 2$ 且在第 $y$ 年出现单宽松机构状态（$a_{k_-, y} < a^*$，而存在其他机构 $k' \neq k_-$ 满足 $a_{k', y} \ge a^*$ 且无残余虚报存量），则次年必有 $a_{k_-, y+1} \ge a^*$ 且 $a_{k', y+1} = 0 < a^*$：**宽松机构身份必然在机构之间跨年轮转，不存在稳定均衡，且每个周期的活跃漂绿决策数永不归零。**
+1. **（单调排序与最宽松机构聚集）** 对所有未结案企业（$\pi_i = 0$），$V_{W,i}(a)$ 在 $[0, 1]$ 上严格递减，只要 $\underline a_y < a^*$ 即严格偏好 $\arg\min_k a_{k,y}$；对洁净企业（$\pi_i = 1$），只要非最宽松机构满足 $a_{k,y} \ge a_{\mathrm{ins}}$ 且在 $\underline a_y$ 下有意漂绿，亦严格偏好最宽松机构 $k_-$，而不漂绿企业无差异留守原机构。当存在唯一最宽松机构 $a_{k_-,y} < a^*$ 且其余机构 $\ge a^*$ 时，**100% 当期漂绿决策集中于 $k_-$**。
+2. **（客户加权质量协方差缺口）** 记机构 $k$ 的客户份额为 $w_{k,y} = n_{k,y}/N$。客户实际面对的加权质量与机构等权均值满足精确协方差恒等式：
+   $$\bar a_y^{\mathrm{client}} - \bar a_y^{\mathrm{unw}} = \sum_{k=1}^M \left(w_{k,y} - \frac{1}{M}\right) a_{k,y} = M \cdot \mathrm{Cov}(w_{k,y},\, a_{k,y}).$$
+   每当漂绿企业从高质量机构迁往低质量机构导致质量与客户份额呈负相关时，严格有 $\bar a_y^{\mathrm{client}} < \bar a_y^{\mathrm{unw}}$（平局安全，直接作为 [`metrics.py`](../src/abm/disclosure/metrics.py) 中的 `client_minus_unweighted_quality_gap` 检验指标）。
+3. **（无非对称稳态与年度逃逸周期）** 在强责任条件 $\lambda_L \cdot \frac{\theta(0)}{1/M + (1-1/M)\theta(0)} \ge a^*$ 与短视更新（$\gamma = 0$）下，任意单宽松机构状态（$a_{k_-,y} < a^*$，其余 $k' \neq k_-$ 满足 $a_{k',y} \ge a^*$ 且无残余存量）在次年必翻转至 $a_{k_-,y+1} \ge a^*$ 且 $a_{k',y+1} = 0 < a^*$：**最宽松机构跨年轮转，不存在稳定均衡，且每期活跃漂绿永不归零。**
 
-*证明.*
-1. 当 $\pi_i = 0$ 时，$V_{W,i}(a) = B_i^2(1-\tau)^2 A_w(a)^2 / (4wc_i)$，因 $A_w(a)$ 关于 $a$ 严格递减（$(1-a)^{n_c(u)}$ 逐项严格递减且 $n_c \ge 1$），故 $V_{W,i}(a)$ 在 $[0, 1]$ 上严格递减，且最优价值 $V_i^*(a) = \max\{V_{I,i}, V_{W,i}(a)\}$ 在 $[0, a^*]$ 上严格递减、在 $[a^*, 1]$ 上恒等于 $V_{I,i}$。当 $\pi_i = 1$ 时，若 $a_{k,y} \ge a^*$ 则 $V_i^*(a_{k,y}) = V_{I,i}$；若企业在 $\underline{a}_y$ 下选择漂绿，则 $V_{W,i}(\underline{a}_y) > V_{I,i} = V_i^*(a_{k,y})$；而在活跃区间 $[a_{\mathrm{ins}}, a^*)$ 上（命题 3(1) 保证 $P^*(a) > P^*(0)$ 且在 $V_{W,i}(a) > V_{I,i}$ 的点处 $V_{W,i}'(a) < 0$），最优价值 $V_i^*(a) = \max\{V_{I,i}, V_{W,i}(a)\}$ 在 $[a_{\mathrm{ins}}, 1]$ 上单调不增并在所有满足 $V_{W,i}(a) > V_{I,i}$ 的区间严格递减，故只要 $\underline{a}_y \notin (0, a_{\mathrm{ins}})$ 或所有其他机构 $\ge a_{\mathrm{ins}}$，即有 $V_i^*(\underline{a}_y) > V_i^*(a_k)$。
-2. 设初始各机构各有 $N/M$ 家客户，其中不漂绿企业 $(1-\theta)$ 留守原机构，漂绿企业 $\theta$ 全部迁往最低质量机构 $k_-$，则机构 $k_-$ 客户占比为 $w_{k_-} = \frac{1-\theta}{M} + \theta > \frac{1}{M}$，其余每家机构占比 $w_k = \frac{1-\theta}{M} < \frac{1}{M}$。故
-   $$\bar a_y^{\mathrm{client}} - \bar a_y^{\mathrm{unw}} = \theta\Big(a_{k_-,y} - \frac{1}{M}\sum_{k=1}^M a_{k,y}\Big) < 0,$$
-   因为 $a_{k_-,y} = \min_k a_{k,y}$ 且各机构质量不完全相等。
-3. 接上式，所有 $\theta(a_{k_-,y})$ 漂绿企业迁入 $k_-$ 后，$k_-$ 当年客户总占比为 $\frac{1-\theta}{M} + \theta$，其客户群污染率下界为 $s_{k_-,y} \ge \frac{\theta}{\frac{1-\theta}{M} + \theta}$。在强责任条件下 $\lambda_L s_{k_-,y} \ge a^*$，故 $a_{k_-,y+1} \ge a^*$。同时，上年处于 $a_{k',y} \ge a^*$ 且无旧存量的机构 $k'$ 本年零客户漂绿，$s_{k',y} = 0 \implies a_{k',y+1} = 0 < a^*$。因此次年最宽松机构严格切换为 $k' \neq k_-$，漂绿企业集体从 $k_-$ 逃逸至 $k'$，形成永不停止的年度逃逸周期。$\square$
+*证明.* 与单调性、负协方差展开及次年 $s_{k_-,y} \ge \frac{\theta}{(1-\theta)/M + \theta} \implies a_{k_-,y+1} \ge a^*$、$s_{k',y} = 0 \implies a_{k',y+1} = 0$ 一致。$\square$
 
 ---
 
-## 4. 命题 5：预算约束核查的凹性失效与 Stackelberg 背包最优结构
+## 4. 命题 5：核查双凹反序定理与多期两状态 RMAB-Stackelberg 动态索引
 
-固定市场状态 $(B_i, P_i, c_i, \pi_i)_{i=1}^N$，考察监管者在固定期望核查预算 $\sum_{i=1}^N q_i \le K = N\bar q$（$q_i \in [0, 1]$）下的公开承诺核查博弈（Stackelberg Audit Game）。企业 $i$ 观测到自身核查率 $q_i$ 后，当且仅当净漂绿盈余
-$$\Delta V_i(q_i) \equiv V_{W,i}(q_i) - V_{I,i} = \frac{B_i^2}{4 c_i}\left[\frac{(1-\tau)^2 A_w^{\text{aud}}(q_i)^2}{w} - A_r^2\right] - \pi_i \frac{F}{P_i} D^{\text{aud}}(q_i) \le 0$$
-时放弃漂绿并选择真实改善。
+固定市场状态 $(B_i, P_i, c_i, \pi_i)_{i=1}^N$ 与固定期望核查预算 $\sum_{i=1}^N q_i \le K = N\bar q$（$q_i \in [0, 1]$）。在内点情形（未触及单期幅度上限 $M$，且 $p=0, \sigma=0$）下，企业 $i$ 的净漂绿盈余为
+$$\Delta V_i(q_i) = \frac{B_i^2}{4 c_i}\left[\frac{(1-\tau)^2 A_w^{\text{aud}}(q_i)^2}{w} - A_r^2\right] - \pi_i \frac{F}{P_i} D^{\text{aud}}(q_i);$$
+当存在幅度上限 $M < \infty$ 时，按截断步长 $d_I = \min(\frac{B_i A_r}{2c_i}, M), d_W(q) = \min(\frac{B_i(1-\tau)A_w^{\text{aud}}(q)}{2w c_i}, M)$ 定义的 $\Delta V_i^{(M)}(q)$ 仍关于 $q$ 严格递减（因包络定理 $\frac{d V_W^{(M)}}{dq} = B_i(1-\tau)(A_w^{\text{aud}})'(q) d_W(q) - \pi_i\frac{F}{P_i}(D^{\text{aud}})'(q) < 0$）。
 
-**命题 5（核查凹性与 Stackelberg 背包结构）.** 设 $p = 0, \sigma = 0, \tau < \tau^*(0)$。
+**命题 5（双凹反序定理与多期 RMAB-Stackelberg 凹包络分配）.** 设 $p = 0, \sigma = 0, \tau < \tau^*(0)$。
 
-1. **（$D^{\text{aud}}(q)$ 的严格凹性与唯一企业威慑门槛 $q_i^{\mathrm{det}}$）** 对所有 $q \in [0, 1]$：
-   $$\frac{d D^{\text{aud}}}{d q} = \frac{\beta_1 (1-\beta)}{[(1-\beta) + \beta q]^2} > 0, \qquad \frac{d^2 D^{\text{aud}}}{d q^2} = -\frac{2\beta_1 \beta (1-\beta)}{[(1-\beta) + \beta q]^3} < 0.$$
-   连同 $A_w^{\text{aud}}(q)$ 的严格递减性，$\Delta V_i(q)$ 在 $[0, 1]$ 上严格递减，故每家内点企业存在唯一的最小威慑核查概率 $q_i^{\mathrm{det}} \in [0, q^*]$ 使得企业 $i$ 放弃漂绿当且仅当 $q_i \ge q_i^{\mathrm{det}}$。其中：
-   - 若 $\pi_i = 0$ 或 $F = 0$，则 $q_i^{\mathrm{det}} = q^*$（默认参数下 $q^* = 0.104924$）；
-   - 若 $\pi_i = 1$ 且 $F > 0$，则 $q_i^{\mathrm{det}} \in [0, q^*)$ 关于市值 $P_i$ 严格递增，满足 $\lim_{P_i\to 0} q_i^{\mathrm{det}} = 0$ 且 $\lim_{P_i\to\infty} q_i^{\mathrm{det}} = q^*$。
-2. **（按市值定向核查 V 的双渠道威慑失效）** 任取一对洁净企业 $(i, j)$ 满足 $P_i < P_j$。将核查概率 $\Delta q > 0$ 从小企业 $i$ 转移至大企业 $j$（如从均匀随机 $\bar q$ 转为按市值分配 $V$）时：
-   - **边际威慑双衰减**：因同时有 $F/P_i > F/P_j$ 与 $(D^{\text{aud}})'(q_i) > (D^{\text{aud}})'(q_j)$（严格凹性），小企业损失的期望定额罚威慑 $\frac{F}{P_i}(D^{\text{aud}})'(q_i)\Delta q$ 严格大于大企业获得的威慑增量 $\frac{F}{P_j}(D^{\text{aud}})'(q_j)\Delta q$（在默认参数下，$(D^{\text{aud}})'(0) \approx 83.5$ 是 $(D^{\text{aud}})'(0.08) \approx 1.42$ 的 59 倍）；
-   - **离散跨越损失**：只要 $q_i^V < q_i^{\mathrm{det}} \le \bar q$ 且 $q_j^V < q_j^{\mathrm{det}}$（在 Study 2 中，小企业核查率由 $1\%$ 跌至 $0.41\%$，而最大企业仅升至 $8.0\% < q^* = 10.49\%$），按市值分配严格降低该企业对的合规企业数（由 1 降至 0）。
-3. **（单期 Stackelberg 最优核查的 0–1 背包刻画）** 设监管者最大化加权合规目标 $\sum_{i=1}^N \omega_i\, \mathbf{1}_{\{q_i \ge q_i^{\mathrm{det}}\}}$（$\omega_i > 0$；例如等权合规 $\omega_i \equiv 1$，等权真实改善收益 $\omega_i = \Delta_{I,i}$，或市值加权收益 $\omega_i = P_i \Delta_{I,i}$），约束为 $\sum_{i=1}^N q_i \le K$，$q_i \in [0, 1]$。则：
-   - 任何最优解均可取“门槛精确匹配”形式：$q_i^* \in \{0, q_i^{\mathrm{det}}\}$（多给超过 $q_i^{\mathrm{det}}$ 的概率不增加当期威慑，少于 $q_i^{\mathrm{det}}$ 的概率完全浪费当期威慑），原问题精确等价于 **0–1 背包问题**：
-     $$\max_{z \in \{0,1\}^N}\sum_{i=1}^N \omega_i z_i \quad \text{s.t.} \quad \sum_{i=1}^N q_i^{\mathrm{det}} z_i \le K.$$
-   - 在**等权合规目标**（$\omega_i \equiv 1$）下，将所有尚未自动威慑（$q_i^{\mathrm{det}} > 0$）的企业按 $q_i^{\mathrm{det}}$ **升序排列**并依次分配 $q_i^* = q_i^{\mathrm{det}}$ 直至预算耗尽，在 $O(N\log N)$ 时间内给出**全局精确最优解**。该结构与按市值分配 $V$（给 $q_i^{\mathrm{det}}$ 最高的大企业最多核查、给 $q_i^{\mathrm{det}}$ 最低的小企业最少核查）**方向完全相反**。
-   - 在一般正权重 $\omega_i$（如市值加权 $\omega_i = P_i \Delta_{I,i}$）下，按性价比 $\omega_i / q_i^{\mathrm{det}}$ 降序贪心分配在 $O(N\log N)$ 时间内给出连续松弛最优解（至多相差一个边界企业）；当超大企业 $P_i$ 极大而 $q_i^{\mathrm{det}} \le q^*$ 有界时，它把大企业直接推过 $q_i^{\mathrm{det}}$（彻底止漂），而不是像 $V$ 那样停留在 $q_i^V < q^*$ 的无效区间。
+1. **（$D^{\text{aud}}(q)$ 严格凹性与唯一威慑门槛 $q_i^{\mathrm{det}}$）** 对所有 $q \in [0, 1]$，$(D^{\text{aud}})'(q) = \frac{\beta_1(1-\beta)}{[(1-\beta)+\beta q]^2} > 0$ 且 $(D^{\text{aud}})''(q) = -\frac{2\beta_1\beta(1-\beta)}{[(1-\beta)+\beta q]^3} < 0$（默认参数下 $(D^{\text{aud}})'(0) / (D^{\text{aud}})'(0.08) \approx 59$）。每家企业存在唯一威慑门槛 $q_i^{\mathrm{det}} \in [0, q^*]$：当 $\pi_i = 0$ 或 $F = 0$ 时 $q_i^{\mathrm{det}} = q^*$；当 $\pi_i = 1, F > 0$ 时 $q_i^{\mathrm{det}}$ 随 $P_i$ 严格递增且满足 $\lim_{P_i\to 0} q_i^{\mathrm{det}} = 0$、$\lim_{P_i\to\infty} q_i^{\mathrm{det}} = q^*$。
+2. **（双凹反序定理：按市值启发式 `V` 与最优序严格反序）**
+   - 对任意一对洁净企业 $P_i < P_j$，将预算 $\Delta q$ 从小企业 $i$ 移至大企业 $j$ 时，因 $F/P_i > F/P_j$ 与 $(D^{\text{aud}})'(q_i) > (D^{\text{aud}})'(q_j)$ 同向叠加，引发边际威慑双衰减与离散跨越损失。
+   - 在单期加权合规目标 $\max \sum_{i=1}^N \omega_i \mathbf{1}_{\{q_i \ge q_i^{\mathrm{det}}\}}$（$\sum q_i \le K$）下，最优分配精确归约为门槛匹配 0–1 背包问题；当 $\omega_i \equiv 1$ 时，全局精确最优解按 $q_i^{\mathrm{det}}$ **升序**分配（优先锁定洁净小/中企业），与按市值降序分配的启发式 `V` **方向完全相反**。
+3. **（多期部分可观测 RMAB-Stackelberg Bellman 凹包络分配）** 将每家企业 $i$ 的持久成本类型 $\varepsilon_k$ 与未结案二元状态 $x_{i,t} \in \{0, >0\}$ 建模为弱耦合多臂不稳定赌博机（RMAB），其联合后验为 $(w^{\mathrm{clean}}_{i,k}, w^{\mathrm{dirty}}_{i,k})$。记清理一个未结案旧案所释放的折现跨期预算红利（以边际影子价格 $\mu = 1/q^*$ 计价）为
+   $$\Delta J_{i,k} = \frac{\beta(1 - \beta^{H_p})}{1 - \beta}\left(1 - \frac{q^{\mathrm{det,clean}}_{i,k}}{q^*}\right)_+.$$
+   则公开承诺下两状态 Bellman 动作价值函数为
+   $$Q^{\mathrm{clean}}_{i,k}(q) = d^{\mathrm{clean}}_{i,k}(q)\big(1 + \beta\Delta J_{i,k}\big) + \big(1 - d^{\mathrm{clean}}_{i,k}(q)\big)\,q\,\beta\Delta J_{i,k}, \qquad Q^{\mathrm{dirty}}_{i,k}(q) = d^{\mathrm{dirty}}_{i,k}(q) + q\,\beta\Delta J_{i,k},$$
+   期望收益 $U_i(q) = \omega_i \sum_k [w^{\mathrm{clean}}_{i,k} Q^{\mathrm{clean}}_{i,k}(q) + w^{\mathrm{dirty}}_{i,k} Q^{\mathrm{dirty}}_{i,k}(q)]$。对其上凹包络执行全局斜率降序水填（$O(NG\log(NG))$，实现于 [`BayesianAuditFilter.allocate`](../src/abm/disclosure/bayesian_audit.py)），给出拉格朗日松弛精确最优解，并自动涌现三层优先级结构：
+   - **第一优先（保护洁净小/中企业）**：洁净企业斜率 $\sim (1+\beta\Delta J)/q^{\mathrm{clean}} \gg 1/q^* + \beta\Delta J$，彻底杜绝 `V` 的跨档位移；
+   - **第二优先（在 $q^*$ 处兼顾止漂与清旧案）**：对高概率未结案企业，在 $[0, q^*]$ 上斜率为 $p^{\mathrm{dirty}}_i(1/q^* + \beta\Delta J)$，严格高于 $[q^*, 1]$ 上的纯清理斜率 $p^{\mathrm{dirty}}_i \beta\Delta J$——与“将预算集中于少数企业给 $q=1$”相比，以等量期望清案速率同时多获得 $1/q^* \approx 9.5\times$ 当期止漂红利；
+   - **第三优先（溢出清案）**：仅当洁净威慑与 $q^*$ 档全部饱和后，剩余预算沿 $[q^*, 1]$ 加速清案。
+4. **（无混杂隐藏规则最优解与命中率悖论）** 当规则隐藏（`audit_rule_public=False`）时，企业按均匀 $\bar q$ 规划，故 $q_i$ 无当期威慑作用；此时贝叶斯最优隐藏规则退化为线性规划 $\max \sum_i \omega_i q_i \sum_k w^{\mathrm{dirty}}_{i,k}(1 + \Delta J_{i,k})$，将全部预算集中投向最可能带案的 $\lfloor K \rfloor$ 家企业（$q_i = 1$）。尽管该隐藏最优解可将核查命中率推高至 $92\%$–$98\%$，但其当期不阻止任何洁净企业开案，因而公开承诺价值 `S_obs − S_obs_hid` 严格为正。
 
-*证明.*
-1. $D^{\text{aud}}(q) = \beta_1 q / [(1-\beta) + \beta q]$，直接求导即得一阶导为正、二阶导为负（$\beta \in (0, 1)$）。由于 $A_w^{\text{aud}}(q)$ 严格递减且 $A_w^{\text{aud}}(q^*) = \frac{\sqrt{w}}{1-\tau} A_r$，故 $\Delta V_i(q)$ 严格递减且 $\Delta V_i(q^*) = -\pi_i \frac{F}{P_i} D^{\text{aud}}(q^*) \le 0$。若 $\Delta V_i(0) \le 0$，则 $q_i^{\mathrm{det}} = 0$；若 $\Delta V_i(0) > 0$，由介值定理与严格单调性，存在唯一根 $q_i^{\mathrm{det}} \in (0, q^*]$。当 $\pi_i = 0$ 或 $F = 0$ 时 $\Delta V_i(q^*) = 0$，故 $q_i^{\mathrm{det}} = q^*$。当 $\pi_i = 1, F > 0$ 时，由隐函数定理 $\frac{\partial q_i^{\mathrm{det}}}{\partial P_i} = -\frac{\partial \Delta V_i / \partial P_i}{\partial \Delta V_i / \partial q} = \frac{F D^{\text{aud}}(q_i^{\mathrm{det}}) / P_i^2}{-\partial \Delta V_i / \partial q} > 0$；且 $P_i \to 0$ 时 $F/P_i \to \infty$ 使 $\Delta V_i(q) < 0$ 对任意固定 $q > 0$ 成立，故 $q_i^{\mathrm{det}} \to 0$；$P_i \to \infty$ 时 $F/P_i \to 0$，故 $q_i^{\mathrm{det}} \to q^*$。
-2. 直接由 (1) 的严格凹性与 $P_i < P_j \implies F/P_i > F/P_j$ 得出。
-3. 令 $z_i = \mathbf{1}_{\{q_i \ge q_i^{\mathrm{det}}\}} \in \{0, 1\}$。给定任意可行分配 $q$，将其替换为 $\tilde q_i = z_i q_i^{\mathrm{det}}$ 满足 $\tilde q_i \le q_i$，故仍满足预算约束 $\sum_i \tilde q_i \le \sum_i q_i \le K$ 且获得完全相同的目标值 $\sum_i \omega_i z_i$。因此最优分配必归约为 0–1 背包问题。当 $\omega_i \equiv 1$ 时，任意可行子集 $S$ 若未选最小代价元素，可用未选最小代价元素替换 $S$ 中最大代价元素而不违反预算且不减基数（标准交换论证），故按 $q_i^{\mathrm{det}}$ 升序贪心精确最优。一般权重下的连续松弛最优性由 Dantzig 贪心定理直接给出。$\square$
+*证明.* (1)–(2) 由包络定理、二阶导数及交换论证直接给出。(3) 由 $Q^{\mathrm{dirty}}_{i,k}(q)$ 在 $q^*$ 处的阶跃增量 $+1$ 得 $[0, q^*]$ 割线斜率严格大于 $[q^*, 1]$ 斜率 $1/q^*$；弱耦合约束 $\sum_i q_i \le K$ 的拉格朗日对偶将多企业问题分解为单企业 $\max_{q_i} [U_i(q_i) - \lambda q_i]$，最优解必落在各 $U_i$ 上凹包络的顶点及单一边界切线段上，由斜率降序水填精确求解。(4) 在 $q_i$ 不可观测时，$d^{\mathrm{clean}}, d^{\mathrm{dirty}}$ 与 $q_i$ 无关，目标函数关于 $q_i$ 严格线性，极点解即按斜率降序填满 $q_i = 1$。$\square$
 
 ---
 
-## 5. 适用范围与仿真衔接说明
+## 5. 命题 6：部分可观测监控盲区与运行时滞回（Hysteresis）修复定理
 
-1. **命题 3 与命题 4 属于连续均值场/内点基准**：完整多资产市场中存在有限样本离散随机性（$N=200, 4$ 家鉴证方，每机构 50 家企业）、价格与融资收益 $B_i$ 的内生波动以及报告满分上限 $C$ 的截断；这些有限样本噪声会使确定性 3-周期略微失相（从而在 30 种子平均图上呈现平滑振荡并出现 28/30 种子穿越 $a^*$），但不改变无零漂绿不动点、罚款保险区间、逃逸周期聚集与高责任非单调性的机制结构。
-2. **命题 5 与多期动态市场的衔接**：单期背包分配仅考虑当期威慑，在多期市场中，未被当期威慑的企业（尤其携带未结案存量的大企业）仍可通过剩余预算 $K - \sum_{i \in S^*} q_i^{\mathrm{det}}$ 进行抽查清理（一旦查结旧案，$\pi_i$ 从 0 恢复为 1，次期 $q_i^{\mathrm{det}}$ 从 $q^*$ 大幅回落，产生动态滚动威慑红利）。Track 3 的多期 Stackelberg 核查算法即直接实现这一“背包威慑 + 剩余预算清存量”机制。
+考察 Study 3 中鉴证方在部分可观测信息结构（`assurer_observation="detected_bayes"`）下仅观测自身发布前更正数 $C_{k,y}$ 与监管事后追责罚单数 $E_{k,y}$ 的经验贝叶斯更新：
+$$\hat s_{k,y+1} = \mathrm{clip}_{[0,1]}\!\left(\frac{\nu\,\hat s_{k,y} + C_{k,y} + E_{k,y}}{\nu + n_{k,y}\, p_{\mathrm{obs}}(a_{k,y})}\right), \qquad p_{\mathrm{obs}}(a) \equiv a + (1-a)\bar q,$$
+以及带运行时审查滞回平滑 $\gamma \in [0, 1)$ 与法定最低质量下限 $a_{\min} \in [0, 1]$ 的质量更新规则（实现于 [`PolicyRegime`](../src/abm/disclosure/policy.py) 与 [`DisclosureMarket._assurance_year`](../src/abm/disclosure/game.py)）：
+$$a_{k,y+1} = \max\!\Big(a_{\min},\; \gamma\, a_{k,y} + (1 - \gamma)\min(1,\, \lambda_L \hat s_{k,y+1})\Big).$$
+
+**命题 6（部分可观测监控盲区与滞回修复定理）.** 设每家鉴证方当年检查次数为 $n_k > 0$，先验强度 $\nu > 0$，$\bar q \in (0, 1)$。则：
+
+1. **（无偏暴露缩放与状态依赖惯性权重）** 在真实客户污染率 $s_{k,y}$ 给定下，$\mathbb{E}[C_{k,y} + E_{k,y} \mid s_{k,y}] = n_k p_{\mathrm{obs}}(a_{k,y}) s_{k,y}$。记最大似然估计 $\hat s^{\mathrm{ML}}_{k,y} = \frac{C_{k,y} + E_{k,y}}{n_k p_{\mathrm{obs}}(a_{k,y})}$，则贝叶斯更新精确等价于线性收缩：
+   $$\hat s_{k,y+1} = \gamma_{\mathrm{eff}}(a_{k,y})\,\hat s_{k,y} + \big(1 - \gamma_{\mathrm{eff}}(a_{k,y})\big)\,\hat s^{\mathrm{ML}}_{k,y}, \qquad \gamma_{\mathrm{eff}}(a) \equiv \frac{\nu}{\nu + n_k [a + (1-a)\bar q]}.$$
+2. **（逆向非对称惯性 / 监控盲区效应）** $\gamma_{\mathrm{eff}}(a)$ 关于 $a \in [0, 1]$ **严格递减**：
+   $$\gamma_{\mathrm{eff}}'(a) = -\frac{\nu\, n_k (1 - \bar q)}{\big(\nu + n_k[a + (1-a)\bar q]\big)^2} < 0, \qquad \frac{\gamma_{\mathrm{eff}}(0)}{\gamma_{\mathrm{eff}}(1)} = \frac{\nu + n_k}{\nu + n_k \bar q} > 1.$$
+   在基准参数（$n_k = 200, \bar q = 0.01, \nu = 2$）下，$\gamma_{\mathrm{eff}}(0) = 0.500$ 而 $\gamma_{\mathrm{eff}}(1) = 0.0099$，形成 **$50.5\times$ 逆向不对称**：鉴证方在松懈态（$a_k \approx 0$）陷入观测盲区、极慢察觉漂绿抬头，却在严审态（$a_k \approx 1$）几乎零惯性、一旦清空存量便迅速遗忘回落。
+3. **（运行时审查滞回 $\gamma$ 的多周期止漂下界与双病理同治）** 在 `assurer_smoothing` $= \gamma \in (0, 1)$ 下：
+   - **打破高责任 3-周期并恢复单调性**：每当某机构质量达到峰值 $a_{\mathrm{peak}} > a^*$，即使此后零违规（$\hat s = 0$），其质量按 $a_{y+t} \ge \gamma^t a_{\mathrm{peak}}$ 衰减，必然维持至少
+     $$T(\gamma; a_{\mathrm{peak}}) = \left\lfloor \frac{\ln(a_{\mathrm{peak}} / a^*)}{\ln(1/\gamma)} \right\rfloor + 1$$
+     个连续零漂绿止漂年（默认 $a^* = 0.0827, \gamma = 0.7$ 且高责任达到 $a_{\mathrm{peak}} \ge 0.30$ 时，$T \ge 4$；在 $a_{\mathrm{peak}} \to 1$ 时 $T(0.7) = 7$，将渐近复发频率由 $1/3$ 压缩至 $\le 1/8$，恢复随责任 $L$ 增大的单调威慑改善）。
+   - **封堵自选鉴证逃逸口**：在 $M$ 家机构竞争的自选机制下，当 $M-1$ 家严审机构维持 $a_{k',y} \ge a_{\mathrm{peak}}$ 而最宽松机构 $k_-$ 吸收漂绿客户并在次年跃升至 $a_{k_-,y+1} = (1-\gamma)\min(1, \lambda_L s_{k_-,y}) \ge a^*$ 时，只要 $\gamma a_{\mathrm{peak}} \ge a^*$，次年**全部 $M$ 家机构同时满足 $\min_k a_{k,y+1} \ge a^*$**——逃逸口被同步封闭，打破命题 4(3) 的逐年逃逸周期。
+4. **（法定最低质量下限 $a_{\min}$ 的相变临界性）** 强制下限 $a_{\min}$ 存在尖锐双阈值相变：若 $a_{\min} \in (0, a_{\mathrm{ins}})$，所有机构被迫落入命题 3(1) 的罚款保险区间，反而降低洁净企业开案门槛 $P^*(a_{\min}) < P^*(0)$；当且仅当 $a_{\min} \ge a^*$ 时，零漂绿状态 $(u_{\mathrm{eq}}, a_{\mathrm{eq}}) = (0, a_{\min})$ 成为全局吸引不动点，同时消除指派 3-周期与自选逃逸周期。
+
+*证明.*
+1. 单次携带虚报的报告在发布前被纠错的概率为 $a_k$，未被纠错且被监管抽查追责的概率为 $(1-a_k)\bar q$，两事件互斥，故总观测概率为 $p_{\mathrm{obs}}(a_k) = a_k + (1-a_k)\bar q$，直接取期望并代数整理即得线性收缩式。
+2. 对 $\gamma_{\mathrm{eff}}(a)$ 求导即得严格负导数与比值公式。
+3. 由非负目标项得 $a_{y+t} \ge \gamma^t a_{\mathrm{peak}}$，令 $\gamma^t a_{\mathrm{peak}} \ge a^*$ 解出 $t \le \ln(a_{\mathrm{peak}}/a^*)/\ln(1/\gamma)$，含峰值年共 $T(\gamma; a_{\mathrm{peak}})$ 年连续 $\ge a^*$。在自选机制下，若 $\gamma a_{\mathrm{peak}} \ge a^*$ 且 $a_{k_-,y+1} \ge a^*$，则对所有 $k \in \{1,\dots,M\}$ 均有 $a_{k,y+1} \ge a^*$，从而 $\min_k a_{k,y+1} \ge a^*$，当期全体企业均选择停止漂绿。
+4. $a_{\min} \in (0, a_{\mathrm{ins}})$ 由命题 3(1) 得出；$a_{\min} \ge a^*$ 时恒有 $a_{k,y} \ge a^*$，故无新漂绿且旧存量按 $\rho(a_{\min})^{mt} \to 0$ 全局收敛至 0。$\square$

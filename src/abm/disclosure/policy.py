@@ -64,7 +64,7 @@ BAYESIAN_STACKELBERG_ALLOCATIONS = ("stackelberg_obs", "stackelberg_obs_val", "s
 STACKELBERG_ALLOCATIONS = (*ORACLE_STACKELBERG_ALLOCATIONS, *BAYESIAN_STACKELBERG_ALLOCATIONS)
 AUDIT_ALLOCATIONS = ("uniform", "value", "jump", *STACKELBERG_ALLOCATIONS)
 ASSURANCE_SCOPES = ("none", "voluntary", "large", "all")
-ASSURER_SELECTIONS = ("assigned", "firm")
+ASSURER_SELECTIONS = ("assigned", "firm", "rotating")
 ASSURER_OBSERVATIONS = ("exact", "detected_bayes")
 # Assurance options and their defaults; at the defaults they are left out of a regime's identity.
 ASSURANCE_DEFAULTS = {
@@ -77,6 +77,8 @@ ASSURANCE_DEFAULTS = {
     "assurer_observation": "exact",
     "assurer_prior_share": 0.2,
     "assurer_prior_strength": 2.0,
+    "assurer_smoothing": 0.0,
+    "assurer_min_quality": 0.0,
 }
 
 
@@ -114,6 +116,10 @@ class PolicyRegime:
     assurer_observation: str = "exact"
     assurer_prior_share: float = 0.2
     assurer_prior_strength: float = 2.0
+    # Runtime scrutiny hysteresis gamma in [0, 1): a_{y+1} = max(min_q, gamma * a_y + (1 - gamma) * target).
+    assurer_smoothing: float = 0.0
+    # Statutory minimum assurance quality floor in [0, 1].
+    assurer_min_quality: float = 0.0
 
     def __post_init__(self) -> None:
         if self.assurance_scope not in ASSURANCE_SCOPES:
@@ -130,6 +136,14 @@ class PolicyRegime:
                 or not isfinite(self.assurer_prior_strength)
                 or self.assurer_prior_strength <= 0.0):
             raise ValueError("assurer_prior_strength must be finite and positive")
+        if (type(self.assurer_smoothing) not in (int, float)
+                or not isfinite(self.assurer_smoothing)
+                or not 0.0 <= self.assurer_smoothing < 1.0):
+            raise ValueError("assurer_smoothing must be finite and in [0, 1)")
+        if (type(self.assurer_min_quality) not in (int, float)
+                or not isfinite(self.assurer_min_quality)
+                or not 0.0 <= self.assurer_min_quality <= 1.0):
+            raise ValueError("assurer_min_quality must be finite and in [0, 1]")
         for name in ("assurer_liability", "assurance_fee", "assurer_effort_cost"):
             value = getattr(self, name)
             if type(value) not in (int, float) or not isfinite(value) or value < 0:

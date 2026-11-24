@@ -53,19 +53,26 @@
 
 ---
 
-## §31（草案）鉴证方不完全观测贝叶斯更新稳健性（Study 3 信息边界升级）
+## §31（草案）鉴证方不完全观测稳健性与运行时滞回制度修复（Study 3 信息边界与机制设计升级）
 
-- **动机**：回应研究局限中关于鉴证方年末精确观测真实客户污染率 $s_k$ 的强假设（Study 3 信息结构边界）。
-- **实现模块**：`PolicyRegime.assurer_observation="detected_bayes"` 与 [`AssuranceState.detected_bayes_share`](../src/abm/disclosure/game.py)，鉴证方仅根据自身发布前更正数 $C_k$ 与监管事后追责罚单数 $E_k$ 按有效观测暴露 $n_k [a_k + (1-a_k)\bar q]$ 做经验贝叶斯平滑更新；平局安全聚集指标实现于 [`metrics.py`](../src/abm/disclosure/metrics.py)（`assurance.excess_laxest_wash_concentration` 与 `assurance.client_minus_unweighted_quality_gap`）。
+- **理论依据**：[disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 3–4、命题 6（部分可观测 $50.5\times$ 逆向监控盲区与运行时审查滞回多周期止漂定理）。
+- **实现模块**：
+  - 部分可观测贝叶斯更新：`PolicyRegime.assurer_observation="detected_bayes"` 与 [`AssuranceState.detected_bayes_share`](../src/abm/disclosure/game.py)（仅用自身更正数 $C_k$ 与事后追责罚单数 $E_k$）；
+  - 规范制度修复：`PolicyRegime.assurer_smoothing`（运行时审查滞回 $\gamma = 0.7$）、`PolicyRegime.assurer_min_quality`（法定最低质量相变对照）、`PolicyRegime.assurer_selection="rotating"`（年度强制轮换）；
+  - 平局安全聚集与协方差指标：[`metrics.py`](../src/abm/disclosure/metrics.py) 中的 `assurance.client_minus_unweighted_quality_gap`（命题 4(2) 协方差缺口）与 `assurance.excess_laxest_wash_concentration`。
 - **种子块**：
-  - 开发检查：`60301–60303`；
+  - 已消耗开发诊断种子：`60901–60903`；
+  - 开发流水线检查：`60301–60303`；
   - 确认性实验：30 个全新配对种子 `63001–63030`。
-- **场景矩阵（10 场景 × 30 种子 = 300 次运行，涵盖 `exact` v2 复核与 `detected_bayes` 对比；待 Phase 2 补充机制修复情景）**：
-  - `B`、`I`；
-  - `exact`（v2 协议复核）：`ALL_R16`、`ALL_R100`、`ALL_F16`；
-  - `detected_bayes`：`ALL_R16_bayes`、`ALL_R100_bayes`、`ALL_F16_bayes`、`ALL_R1_bayes`、`LRG_R16_bayes`。
+- **场景矩阵（14 场景 × 30 种子 = 420 次运行）**：
+  - 基准与参照：`B`、`I`；
+  - `exact` 复核：`ALL_R16`、`ALL_R100`、`ALL_F16`；
+  - `detected_bayes` 稳健性：`ALL_R16_bayes`、`ALL_R100_bayes`、`ALL_F16_bayes`、`ALL_R1_bayes`；
+  - 制度修复验证：`ALL_R16_smooth`、`ALL_R100_smooth`、`ALL_R100_bayes_smooth`、`ALL_F16_smooth`、`ALL_F100_smooth`、`ALL_ROT16_bayes`（共 15 场景时含 `ALL_R1_bayes`，或精简为 14 场景不含 `ALL_R1_bayes`，冻结前定稿）。
 - **主要检验（Holm 校正）**：
   - `N1`（不完全观测下强责任指派有效）：`ALL_R16_bayes − B > 0`；
-  - `N2`（逃逸周期稳健性）：`ALL_F16_bayes − ALL_R16_bayes < 0`；
-  - `N3`（平局安全最宽松方超额聚集）：`ALL_F16_bayes` 的 `assurance.excess_laxest_wash_concentration` 显著高于 `ALL_R16_bayes`（预测 $> 0$；同步报告 `assurance.client_minus_unweighted_quality_gap < 0`）；
-  - `N4`（非单调性信息敏感度，双侧无预设方向）：`ALL_R100_bayes − ALL_R16_bayes`（检验噪声更新是否阻尼或保留高责任 3-周期崩塌）。
+  - `N2`（逃逸周期对部分可观测性稳健）：`ALL_F16_bayes − ALL_R16_bayes < 0`；
+  - `N3`（命题 4(2) 平局安全排序检验）：`ALL_F16_bayes` 的 `assurance.client_minus_unweighted_quality_gap` 严格 $< 0$ 且低于 `ALL_R16_bayes`（预测 $< 0$；同步报告 `excess_laxest_wash_concentration` 显著高于 `ALL_R16_bayes`）；
+  - `N4`（监控盲区保留高责任非单调性）：`ALL_R100_bayes − ALL_R16_bayes`（检验逆向惯性下 3-周期是否维持）；
+  - `N5`（运行时滞回治愈 3-周期与监控盲区）：`ALL_R100_bayes_smooth − ALL_R100_bayes > 0`；
+  - `N6`（运行时滞回封堵自选逃逸口）：`ALL_F100_smooth − ALL_F16 > 0`（及 `ALL_F16_smooth − ALL_F16 > 0`、`ALL_ROT16_bayes − ALL_F16_bayes > 0`）。

@@ -320,3 +320,120 @@ def test_proposition5_concavity_value_targeting_failure_and_knapsack_optimality(
     deterred_stack = int(np.sum(q_stack >= firm_q_det))
     assert deterred_value < deterred_uniform < deterred_stack
     assert np.sum(q_stack) <= budget + 1e-12
+
+
+def test_proposition3_flip_bifurcation_and_trapping_band_nonmonotonicity() -> None:
+    """Prop. 3(3a)-(3c): interior FP loses stability via flip bifurcation; 25x traps relapse quality > a_ins."""
+    a_star = 0.082707
+    a_ins = 0.0346
+    r0, w0, d0 = _assurance_factors(np.array([0.0]))
+    base_denom = ((1.0 - TRANSPARENCY) * w0[0]) ** 2 / WASH_COST_RATIO - r0[0] ** 2
+    sigma = 1.04
+    theta0 = 0.19
+    mu = sigma * norm.ppf(theta0)
+
+    def theta_of(a: float) -> float:
+        if a >= a_star:
+            return 0.0
+        rr, ww, dd = _assurance_factors(np.array([a]))
+        denom = ((1.0 - TRANSPARENCY) * ww[0]) ** 2 / WASH_COST_RATIO - rr[0] ** 2
+        if denom <= 0.0:
+            return 0.0
+        ratio = (dd[0] / denom) / (d0[0] / base_denom)
+        return float(1.0 - norm.cdf((np.log(ratio) - mu) / sigma))
+
+    # Flip-bifurcation elasticity |a * theta'(a) / theta(a)| > 1 for all interior targets a_tilde >= 0.045
+    eps = 1e-5
+    for a_tilde in (0.045, 0.055, 0.065, 0.075):
+        th = theta_of(a_tilde)
+        dth = (theta_of(a_tilde + eps) - theta_of(a_tilde - eps)) / (2.0 * eps)
+        elast = abs(a_tilde * dth / th)
+        assert elast > 1.0
+
+    # Global trapping-band check at 25x: relapse years stay strictly inside (a_ins, a*) — never crash to a=0!
+    z = mu + sigma * norm.ppf((np.arange(500) + 0.5) / 500.0)
+    lam_25 = 25.0 * ASSURER_LIABILITY_1X * BASE_AUDIT / (2.0 * ASSURER_EFFORT_COST)
+    u_vec = np.zeros(500)
+    a_cur = 0.0
+    relapse_qualities = []
+    for year in range(40):
+        rr, ww, dd = _assurance_factors(np.array([a_cur]))
+        denom = ((1.0 - TRANSPARENCY) * ww[0]) ** 2 / WASH_COST_RATIO - rr[0] ** 2
+        if denom <= 0.0:
+            init = np.zeros(500, dtype=bool)
+            cont = False
+        else:
+            ratio = (dd[0] / denom) / (d0[0] / base_denom)
+            init = z > np.log(ratio)
+            cont = True
+            if year >= 3:
+                relapse_qualities.append(a_cur)
+        rho = (1.0 - a_cur) * (1.0 - BASE_AUDIT)
+        s_p = []
+        for _ in range(ASSURANCE_YEAR_PERIODS):
+            u_pre = np.where(init, 1.0, u_vec) if cont else u_vec
+            s_p.append(float(np.mean(u_pre)))
+            u_vec = rho * u_pre
+        a_cur = min(1.0, lam_25 * float(np.mean(s_p)))
+    assert len(relapse_qualities) >= 8
+    assert min(relapse_qualities) > a_ins
+    assert max(relapse_qualities) < a_star
+
+
+def test_proposition6_monitoring_blindness_and_hysteresis_remedy() -> None:
+    """Prop. 6: wrong-way Bayesian inertia ratio; runtime smoothing restores monotonicity and seals escape hatch."""
+    a_star = 0.082707
+    # Part (1)-(2): exact wrong-way inertia ratio gamma_eff(0) / gamma_eff(1)
+    n_k, nu = 200.0, 2.0
+    g_lax = nu / (nu + n_k * BASE_AUDIT)
+    g_strict = nu / (nu + n_k * 1.0)
+    assert g_lax == pytest.approx(0.5)
+    assert g_lax / g_strict == pytest.approx((nu + n_k) / (nu + n_k * BASE_AUDIT))
+    assert g_lax / g_strict > 50.0
+
+    # Part (3): exact consecutive zero-inflation years lower bound T(gamma; a_peak)
+    gamma = 0.7
+    a_peak = 1.0
+    t_bound = int(np.floor(np.log(a_peak / a_star) / np.log(1.0 / gamma))) + 1
+    assert t_bound == 7
+    assert (gamma ** (t_bound - 1)) * a_peak >= a_star
+    assert (gamma ** t_bound) * a_peak < a_star
+
+    # Verify smoothing gamma=0.7 restores strict monotonicity across 4x..100x in heterogeneous mean field
+    r0, w0, d0 = _assurance_factors(np.array([0.0]))
+    base_denom = ((1.0 - TRANSPARENCY) * w0[0]) ** 2 / WASH_COST_RATIO - r0[0] ** 2
+    sigma, theta0 = 1.04, 0.19
+    mu = sigma * norm.ppf(theta0)
+    z = mu + sigma * norm.ppf((np.arange(500) + 0.5) / 500.0)
+
+    def long_run_rate(mult: float, smooth: float) -> float:
+        lam = mult * ASSURER_LIABILITY_1X * BASE_AUDIT / (2.0 * ASSURER_EFFORT_COST)
+        u_vec = np.zeros(500)
+        a_cur = 0.0
+        rates = []
+        for year in range(100):
+            rr, ww, dd = _assurance_factors(np.array([a_cur]))
+            denom = ((1.0 - TRANSPARENCY) * ww[0]) ** 2 / WASH_COST_RATIO - rr[0] ** 2
+            if denom <= 0.0:
+                init = np.zeros(500, dtype=bool)
+                cont = False
+            else:
+                ratio = (dd[0] / denom) / (d0[0] / base_denom)
+                init = z > np.log(ratio)
+                cont = True
+            rho = (1.0 - a_cur) * (1.0 - BASE_AUDIT)
+            s_p, inf_p = [], []
+            for _ in range(ASSURANCE_YEAR_PERIODS):
+                inf_p.append(float(np.mean((u_vec if cont else 0.0) + (1.0 - u_vec) * init)))
+                u_pre = np.where(init, 1.0, u_vec) if cont else u_vec
+                s_p.append(float(np.mean(u_pre)))
+                u_vec = rho * u_pre
+            if year >= 30:
+                rates.append(float(np.mean(inf_p)))
+            target = min(1.0, lam * float(np.mean(s_p)))
+            a_cur = smooth * a_cur + (1.0 - smooth) * target
+        return float(np.mean(rates))
+
+    smooth_rates = [long_run_rate(m, 0.7) for m in (4.0, 10.0, 16.0, 25.0, 50.0, 100.0)]
+    assert all(a > b for a, b in zip(smooth_rates, smooth_rates[1:]))
+    assert smooth_rates[-1] < 0.02  # drops from >6% myopic 3-cycle down to ~1.1%!

@@ -140,3 +140,84 @@ def test_detected_bayes_supports_firm_choice_and_preserves_escape_incentive() ->
     assert np.all((res.assurer_quality >= 0.0) & (res.assurer_quality <= 1.0))
     assert np.all((res.assurer_inflation_share >= 0.0) & (res.assurer_inflation_share <= 1.0))
     assert np.isfinite(res.true_goodness).all()
+
+
+def test_assurance_hysteresis_floor_and_rotation_validation_and_mechanics() -> None:
+    """Validate serialization, pre-switch parity, EMA smoothing, quality floor, and annual rotation."""
+    # Defaults omitted from serialized identity
+    base_payload = REGIME.to_dict()
+    assert not {"assurer_smoothing", "assurer_min_quality"} & set(base_payload)
+
+    # Validation bounds
+    exact = replace(REGIME, **ASSURED)
+    with pytest.raises(ValueError, match="assurer_smoothing"):
+        replace(exact, assurer_smoothing=1.0)
+    with pytest.raises(ValueError, match="assurer_smoothing"):
+        replace(exact, assurer_smoothing=-0.1)
+    with pytest.raises(ValueError, match="assurer_min_quality"):
+        replace(exact, assurer_min_quality=1.2)
+    with pytest.raises(ValueError, match="need an assurance_scope"):
+        replace(REGIME, assurer_smoothing=0.5)
+    with pytest.raises(ValueError, match="need an assurance_scope"):
+        replace(REGIME, assurer_min_quality=0.05)
+
+    # Roundtrip serialization
+    rem = replace(exact, assurer_selection="rotating", assurer_smoothing=0.7, assurer_min_quality=0.09)
+    d = rem.to_dict()
+    assert d["assurer_selection"] == "rotating"
+    assert d["assurer_smoothing"] == 0.7
+    assert d["assurer_min_quality"] == 0.09
+    assert PolicyRegime(**d) == rem
+
+    cfg = MarketConfig(
+        n_investors=50,
+        n_firms=40,
+        trading_days=780,
+        burn_in_days=180,
+        initial_impact_share=0.2,
+        taste_median=0.0724,
+        seed=63003,
+        intrinsic_value_log_sd=0.915,
+        financing_exposure_fraction=0.5,
+        financing_spread=0.05,
+        financing_repricing_interval=60,
+        financing_horizon_days=1260,
+        firm_discount_rate=0.05,
+    )
+    base = DisclosureMarket(cfg, WASH, PolicySchedule.constant(WASH)).run()
+
+    # 1. Exact EMA smoothing formula verified on year 2
+    gamma = 0.7
+    sched_s = PolicySchedule.constant(WASH).with_intervention(
+        181, **ASSURED, assurer_selection="assigned", assurer_smoothing=gamma,
+    )
+    res_s = DisclosureMarket(cfg, WASH, sched_s).run()
+    np.testing.assert_array_equal(res_s.true_goodness[:181], base.true_goodness[:181])
+    first = 4
+    second = 8
+    lam = sched_s.intervention.assurer_slope
+    q1 = res_s.assurer_quality[first]
+    s2 = res_s.assurer_inflation_share[second]
+    expected_q2 = gamma * q1 + (1.0 - gamma) * np.minimum(1.0, lam * s2)
+    np.testing.assert_allclose(res_s.assurer_quality[second], expected_q2, atol=1e-12)
+
+    # 2. Statutory floor above a* (= 0.0827) keeps all active qualities >= floor and eliminates washing
+    floor = 0.09
+    sched_f = PolicySchedule.constant(WASH).with_intervention(
+        181, **ASSURED, assurer_selection="firm", assurer_min_quality=floor,
+    )
+    res_f = DisclosureMarket(cfg, WASH, sched_f).run()
+    np.testing.assert_array_equal(res_f.true_goodness[:181], base.true_goodness[:181])
+    assert (res_f.assurer_quality[first:] >= floor - 1e-12).all()
+    assert int((res_f.actions[first:] == 1).sum()) == 0
+
+    # 3. Mandatory annual rotation reshuffles assignments across years while keeping equal client counts
+    sched_r = PolicySchedule.constant(WASH).with_intervention(
+        181, **ASSURED, assurer_selection="rotating",
+    )
+    res_r = DisclosureMarket(cfg, WASH, sched_r).run()
+    np.testing.assert_array_equal(res_r.true_goodness[:181], base.true_goodness[:181])
+    assert not np.array_equal(res_r.assurer_assignment[first], res_r.assurer_assignment[second])
+    for p in (first, second):
+        counts = np.bincount(res_r.assurer_assignment[p], minlength=4)
+        assert counts.tolist() == [10, 10, 10, 10]

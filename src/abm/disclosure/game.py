@@ -1058,7 +1058,20 @@ class DisclosureMarket(CrossSectionMarket):
         assurance.year_corrected[:] = 0
         assurance.year_liable[:] = 0
         assurance.share = share
-        assurance.quality = np.minimum(1.0, regime.assurer_slope * share)
+        target_quality = np.minimum(1.0, regime.assurer_slope * share)
+        if first or regime.assurer_smoothing == 0.0:
+            quality = target_quality
+        else:
+            gamma = regime.assurer_smoothing
+            quality = gamma * assurance.quality + (1.0 - gamma) * target_quality
+        if regime.assurer_min_quality > 0.0:
+            quality = np.maximum(regime.assurer_min_quality, quality)
+        assurance.quality = quality
+        if not first and regime.assurer_selection == "rotating" and scope != "voluntary":
+            members = np.flatnonzero(mandated)
+            order = assurance.rng.permutation(members.size)
+            assurance.client_of[:] = -1
+            assurance.client_of[members[order]] = np.arange(members.size) % assurance.count
         if scope == "voluntary":
             if provider_selector is not None:
                 raise ValueError("voluntary assurance is modelled only with NPV firms")
