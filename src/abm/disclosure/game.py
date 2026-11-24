@@ -50,7 +50,7 @@ would manufacture a "transition" out of the update rule itself.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from statistics import NormalDist
 
 import numpy as np
@@ -59,7 +59,7 @@ from numpy.typing import NDArray
 from ..manifest import canonical_json_bytes
 from ..tabular import CompanyQLearner
 from .bayesian_audit import BayesianAuditFilter
-from .bounded import DifferenceRewardQLearner, DifferenceRewardTracker, PeerImitationPolicy
+from .bounded import EmpiricalBeliefLearner
 from .config import BOUNDED_FIRM_POLICIES, TRADING_DAYS_PER_YEAR, MarketConfig
 from .domain import DomainSpec
 from .financing import financing_signal_factors
@@ -796,9 +796,7 @@ class DisclosureMarket(CrossSectionMarket):
         self.choice_history = None
         self.coverage_forced_history = None
         self.learning_update_history = None
-        self.bounded_tracker: DifferenceRewardTracker | None = None
-        self.diff_learner: DifferenceRewardQLearner | None = None
-        self.peer_policy: PeerImitationPolicy | None = None
+        self.empirical_belief: EmpiricalBeliefLearner | None = None
         if config.firm_policy in ("npv_discrete", "q_learning"):
             self.pending_resource_cost = np.zeros(firms)
             self.pending_fine = np.zeros(firms)
@@ -819,35 +817,15 @@ class DisclosureMarket(CrossSectionMarket):
                 if common_prepolicy_sha256 is not None:
                     self.learning_update_history = np.zeros((decisions, firms), dtype=bool)
         elif config.firm_policy in BOUNDED_FIRM_POLICIES:
-            action_count = 2 * len(config.firm_action_fractions) + 1
             n_providers = policy.intervention.assurer_count if assured else 4
-            horizon_periods = max(1, config.financing_horizon_days // config.firm_decision_interval)
-            self.bounded_tracker = DifferenceRewardTracker(
-                n_firms=firms,
+            self.empirical_belief = EmpiricalBeliefLearner(
                 n_tiers=3,
-                period_days=config.firm_decision_interval,
-                horizon_periods=horizon_periods,
-                discount_rate=config.firm_discount_rate,
-                ema_alpha=config.firm_learning_alpha,
                 n_providers=n_providers,
+                decay=config.firm_belief_decay,
+                baseline_audit_probability=domain.baseline_audit_probability,
+                baseline_fixed_fine=domain.baseline_fixed_fine,
+                baseline_penalty=domain.baseline_penalty,
             )
-            if config.firm_policy == "diff_q":
-                self.diff_learner = DifferenceRewardQLearner(
-                    n_tiers=3,
-                    n_actions=action_count,
-                    alpha=config.firm_learning_alpha,
-                    epsilon=config.firm_learning_epsilon,
-                    n_providers=n_providers,
-                )
-            else:
-                self.peer_policy = PeerImitationPolicy(
-                    n_firms=firms,
-                    n_actions=action_count,
-                    intensity=config.firm_imitation_intensity,
-                    update_fraction=config.firm_imitation_update_fraction,
-                    exploration=config.firm_imitation_exploration,
-                    rng=self.firm_rng,
-                )
         self.signal_day = -1
         self._prepare_signals(0)
         # Quoted after the day-0 signal, so the initial rate carries the day-0 rating term.
@@ -1015,8 +993,12 @@ class DisclosureMarket(CrossSectionMarket):
         period = decision_day // period_days
         assurance.history["assurance_checked_inflated"][period] = inflated
         assurance.history["assurance_corrections"][period] = corrected
-        if self.bounded_tracker is not None:
-            self.bounded_tracker.observe_assurance_period(inflated, corrected, assurance.client_of)
+        if self.empirical_belief is not None:
+            self.empirical_belief.observe_assurance_period(
+                checked_inflated=inflated,
+                corrected=corrected,
+                client_of=assurance.client_of,
+            )
         self.assurance_fee_history[day, checked] = regime.assurance_fee
         self.assurance_effort_cost_history[day, checked] = (
             regime.assurer_effort_cost * assurance.firm_quality()[checked] ** 2
@@ -1257,13 +1239,11 @@ class DisclosureMarket(CrossSectionMarket):
                 day=day,
                 period=period,
                 regime=regime,
+                published=published,
                 selected=selected,
                 caught=caught,
-                had_inflation_before_audit=had_inflation_before_audit,
-                penalty=penalty,
                 improve_capacity=improve_capacity,
                 inflate_capacity=inflate_capacity,
-                real_due=real_due,
                 wash_due=wash_due,
                 cached_benefit=cached_benefit,
             )
@@ -1490,155 +1470,105 @@ class DisclosureMarket(CrossSectionMarket):
         day: int,
         period: int,
         regime: PolicyRegime,
+        published: NDArray[np.bool_],
         selected: NDArray[np.bool_],
         caught: NDArray[np.bool_],
-        had_inflation_before_audit: NDArray[np.bool_],
-        penalty: FloatArray,
         improve_capacity: FloatArray,
         inflate_capacity: FloatArray,
-        real_due: int,
         wash_due: int,
         cached_benefit: FloatArray | None,
     ) -> FirmChoices:
-        """Bounded-rationality decision step for ``diff_q`` and ``peer_imitation``."""
+        """Zero-leakage empirical-belief decision step (learns q_tier, F, p and a_k strictly online)."""
         cfg, domain, state = self.config, self.domain, self.attributes
-        tracker = self.bounded_tracker
-        assert tracker is not None
-        benefit = self.marginal_financing_saving() if cached_benefit is None else cached_benefit
-        marginal_cost = state.marginal_cost(domain)
+        belief = self.empirical_belief
+        assert belief is not None
         size = cfg.n_firms
-        client_of = None if self.assurance is None else self.assurance.client_of
 
-        # 1. Advance open difference-reward tickets and settle realized returns.
-        updates = tracker.step_and_settle(
-            day=day,
+        # 1. Update empirical enforcement beliefs solely from realized public audit & fine outcomes.
+        realized_fixed = np.where(caught, regime.fixed_fine, 0.0)
+        realized_prop = np.where(caught, regime.penalty, 0.0)
+        belief.observe_audits(
             size_class=self.firms.size_class,
             selected=selected,
             caught=caught,
-            had_inflation_before_audit=had_inflation_before_audit,
-            penalty_fraction=penalty,
-            benefit=benefit,
-            transparency=regime.transparency,
-            fixed_fine_basis=regime.fixed_fine_basis,
-            real_persistence=self.real_persistence,
-            client_of=client_of,
+            realized_fixed_fine_money=realized_fixed,
+            realized_proportional_rate=realized_prop,
         )
-        if updates:
-            if self.diff_learner is not None:
-                self.diff_learner.update(updates)
-            elif self.peer_policy is not None:
-                self.peer_policy.update(updates)
 
-        # 2. Construct feasible discrete action grid (value terms are unused by bounded learners).
-        zeros = np.zeros(size, dtype=np.float64)
-        candidates = discrete_candidates(
-            improve_capacity=improve_capacity,
-            inflate_capacity=inflate_capacity,
-            marginal_cost=marginal_cost,
-            max_change_per_period=domain.max_change_per_period,
-            wash_cost_ratio=domain.wash_cost_ratio if state.wash_cost_ratio is None else state.wash_cost_ratio,
-            subsidy=regime.subsidy,
-            real_value_per_sd=zeros,
-            displaced_real_value_per_sd=zeros,
-            wash_value_per_sd=zeros,
-            fine_value_per_sd=zeros,
-            fixed_fine_value=0.0,
-            amplitude_fractions=cfg.firm_action_fractions,
+        # 2. Construct perceived regime using ONLY empirically learned audit/fine parameters.
+        assured_active = self.assurance is not None and regime.assurance_scope != "none"
+        emp_q_scalar = belief.pooled_audit_probability
+        emp_q_vec = belief.firm_audit_probabilities(self.firms.size_class)
+        emp_fine = belief.emp_fixed_fine_money
+        emp_regime = replace(
+            regime,
+            audit_probability=emp_q_scalar,
+            fixed_fine=emp_fine,
+            penalty=belief.emp_penalty_rate,
         )
-        changes = (candidates.subsidy_fraction - candidates.cost_fraction - penalty[:, None]) * self.prices[:, None]
-        ratio = 1.0 + (changes + self.pending_value_change[:, None]) / self.firms.intrinsic_value[:, None]
-        candidates.valid_actions[:] &= np.isfinite(ratio) & (ratio > 0)
-        if cfg.firm_cost_budget_fraction:
-            candidates.valid_actions[:] &= candidates.cost_fraction <= cfg.firm_cost_budget_fraction
-        if not candidates.valid_actions.any(axis=1).all():
-            raise ValueError(f"no feasible firm action preserves the value anchor on day {day}")
+        emp_audit_arg: FloatArray | None = None if assured_active else emp_q_vec
 
-        open_case = state.inflation > 0.0
-
-        # 3. Update assurance year if active (bounded provider selection under firm choice).
-        provider_quality: FloatArray | None = None
-        if self.assurance is not None and regime.assurance_scope != "none":
-            if self.diff_learner is not None:
-                selector = lambda mandated, current: self.diff_learner.choose_providers(
-                    size_class=self.firms.size_class,
-                    open_case=open_case,
-                    mandated=mandated,
-                    current_providers=current,
-                    emp_provider_catch=tracker.emp_provider_catch,
-                    candidates_kinds=candidates.kinds,
-                    rng=self.firm_rng,
-                    provider_quality=self.assurance.quality,
-                )
+        emp_new_case_fine: FloatArray | None = None
+        if emp_fine > 0.0:
+            if regime.fixed_fine_basis == "report":
+                emp_new_case_fine = emp_fine / self.prices
             else:
-                assert self.peer_policy is not None
-                selector = lambda mandated, current: self.peer_policy.choose_providers(
-                    size_class=self.firms.size_class,
-                    mandated=mandated,
-                    current_providers=current,
-                    firm_perf=tracker.firm_perf,
-                    emp_provider_catch=tracker.emp_provider_catch,
-                    candidates_kinds=candidates.kinds,
-                    rng=self.firm_rng,
-                    open_case=open_case,
-                    provider_quality=self.assurance.quality,
+                emp_new_case_fine = emp_fine / self.prices * new_case_probability(
+                    state.inflation,
+                    state.pending,
+                    decision_day=day,
+                    wash_due=wash_due,
+                    period_days=cfg.firm_decision_interval,
+                    audit_probability=emp_q_scalar if assured_active else emp_q_vec,
                 )
+
+        benefit = self.marginal_financing_saving() if cached_benefit is None else cached_benefit
+        marginal_cost = state.marginal_cost(domain)
+        cost_of_capital = np.full(size, cfg.firm_discount_rate, dtype=np.float64)
+
+        def decide(assurance_probability: FloatArray | None = None) -> FirmChoices:
+            return npv_choices(
+                benefit=benefit,
+                cost_of_capital=cost_of_capital,
+                marginal_cost=marginal_cost,
+                regime=emp_regime,
+                domain=domain,
+                period_days=cfg.firm_decision_interval,
+                improve_capacity=improve_capacity,
+                inflate_capacity=inflate_capacity,
+                horizon_days=cfg.financing_horizon_days,
+                repricing_interval=cfg.financing_repricing_interval,
+                decision_day=day,
+                published_now=published,
+                new_case_fine=emp_new_case_fine,
+                wash_cost_ratio=state.wash_cost_ratio,
+                real_persistence=self.real_persistence,
+                audit_probability=emp_audit_arg,
+                assurance_probability=assurance_probability,
+            )
+
+        # 3. Assurance year (Discounted Thompson Sampling over empirical provider Beta posteriors;
+        # zero access to true provider quality self.assurance.quality).
+        if assured_active:
+            assert self.assurance is not None
+            provider_draws = belief.sample_provider_qualities(size, self.firm_rng)
+            selector = lambda mandated, current: belief.choose_providers_thompson(
+                mandated=mandated,
+                current_providers=current,
+                value_fn=lambda a: decide(a).npv,
+                rng=self.firm_rng,
+                draws=provider_draws,
+            )
             self._assurance_year(day, regime, None, provider_selector=selector)
             history = self.assurance.history
             history["assurer_assignment"][period] = self.assurance.client_of
             history["assurer_quality"][period] = self.assurance.quality
             history["assurer_inflation_share"][period] = self.assurance.share
             client_of = self.assurance.client_of
-            provider_quality = self.assurance.quality
-
-        # 4. Choose bounded-rationality actions.
-        if self.diff_learner is not None:
-            actions = self.diff_learner.choose_actions(
-                self.firms.size_class,
-                open_case,
-                candidates.valid_actions,
-                self.firm_rng,
-                client_of=client_of,
-                emp_provider_catch=tracker.emp_provider_catch,
-                provider_quality=provider_quality,
-            )
-        else:
-            assert self.peer_policy is not None
-            actions = self.peer_policy.choose_actions(
-                size_class=self.firms.size_class,
-                open_case=open_case,
-                valid_actions=candidates.valid_actions,
-                firm_perf=tracker.firm_perf,
-                rng=self.firm_rng,
-                client_of=client_of,
-                emp_provider_catch=tracker.emp_provider_catch,
-                provider_quality=provider_quality,
-            )
-
-        immediate = tracker.record_decisions(
-            day=day,
-            size_class=self.firms.size_class,
-            open_case=open_case,
-            actions=actions,
-            candidates=candidates,
-            real_due=real_due,
-            wash_due=wash_due,
-            client_of=client_of,
-            provider_quality=provider_quality,
-        )
-        if immediate:
-            if self.diff_learner is not None:
-                self.diff_learner.update(immediate)
-            elif self.peer_policy is not None:
-                self.peer_policy.update(immediate)
-
-        rows = np.arange(size)
-        return FirmChoices(
-            candidates.kinds[actions],
-            candidates.amounts[rows, actions],
-            np.zeros(size, dtype=np.float64),
-            candidates.cost_fraction[rows, actions],
-            candidates.subsidy_fraction[rows, actions],
-        )
+            rows = np.arange(size)
+            emp_firm_a = np.where(client_of >= 0, provider_draws[rows, np.maximum(client_of, 0)], 0.0)
+            return decide(emp_firm_a)
+        return decide()
 
     def _imitate(self) -> None:
         cfg, investors = self.config, self.investors

@@ -36,20 +36,31 @@
 
 ---
 
-## §30（草案）有界理性企业正向验证：方差缩减差分奖励学习与同行社会模仿（Section 5.4 升级）
+## §30（草案）零泄露三层有限理性阶梯：控制变量 SNR 边界与在线经验信念学习（Section 5.4 升级）
 
-- **理论依据**：Agogino & Tumer (2008) 差分奖励（Difference Rewards）与 Sutton & Barto (2018) 基线方差缩减、Schlag (1998) 成对比例模仿。
-- **实现模块**：[`src/abm/disclosure/bounded.py`](../src/abm/disclosure/bounded.py) 中的 `DifferenceRewardTracker`、`DifferenceRewardQLearner`（`firm_policy="diff_q"`）与 `PeerImitationPolicy`（`firm_policy="peer_imitation"`），采用与 Stage D.3 完全相同的离散动作网格 `firm_action_fractions=(0.04, 0.2, 1.0)` 与单期成本约束 `firm_cost_budget_fraction=0.01`。
+- **动机与三层阶梯设计**：
+  - **L0（原始账户无模型 Q-learning，已有 Stage D.3）**：确立 0.07 bp 信号 vs. 190 bp 20 期账户回报噪声的 SNR 物理边界。
+  - **L1（零泄露真实账户控制变量诊断）**：直接在真实融资费用现金流上减去同规模组均值（及一阶差分减同组均值），零参数泄露诊断显示：20 期融资回报标准差仅从 73.0 bp 降至 70.6 bp（一阶差分减同组均值仍达 0.84 bp，相对单期 ~0.0035 bp 信号仍低 240 倍），证明**企业特质基本面波动（>95% 方差）使跨截面基线相减同样无法让纯账户无模型 RL 在现实股价中介融资中生效**。
+  - **L2（零泄露在线经验信念学习与折扣 Thompson 采样，`firm_policy="empirical_belief"`）**：保留与 `npv` 完全一致的连续动作空间（消除离散网格混杂）及企业本地财务评估能力，但**完全剥离对政策干预执法参数的理性预期**——企业初始先验仅取模拟前历史基线 `domain.baseline_*`，**绝不读取干预后的 `regime.audit_probability`、定向规则 `q_i`、`regime.fixed_fine`、`regime.penalty` 或真实鉴证质量 `assurance.quality`**，也无任何硬编码阈值，仅从已发生的公开执法事件在线更新：
+    1. 折扣 Beta-Binomial 规模档核查概率 $\hat q_{\text{tier}}$（仅观测同档已抽查事件）；
+    2. 指数平滑法定罚款 $\hat F_{\text{money}}$（仅观测已查处罚单）；
+    3. 折扣 Beta-Binomial 鉴证纠错率 $\hat a_k$ 与**一致折扣 Thompson 采样**（仅观测已发生的发布前检查与更正，同时驱动自选签约与当期决策探测，解决“无人漂绿则无纠错观测”的删失反馈探索问题）。
+- **实现模块**：[`EmpiricalBeliefLearner`](../src/abm/disclosure/bounded.py)，集成于 [`DisclosureMarket._bounded_decision`](../src/abm/disclosure/game.py)，配置字段 `firm_policy="empirical_belief"`、`firm_belief_decay=0.15`。
 - **种子块**：
+  - 已消耗开发诊断种子：`60901–60903`；
   - 开发流水线检查：`60201–60203`；
   - 确认性实验：30 个全新配对种子 `62001–62030`。
-- **场景矩阵（分别在 `diff_q` 与 `peer_imitation` 下运行）**：`B`、`I`、`F`、`V`、`ALL_R16`、`ALL_F16`（共 12 个场景 × 30 种子 = 360 次运行）。
-- **门控与主要检验（Holm 校正）**：
-  - **覆盖与方差门控**：核验 `diff_q` 在 `(tier, open_case)` 紧凑状态空间内的覆盖率（目标 100%，对比 Stage D.3 的 91/100 失败）及已结算差分奖励标准差相对原始账户噪声（190 bp）的压缩倍数；
-  - `L1`（透明度效应）：`diff_q` 下 `I − B`（等权真实 ESG，预测 $> 0$）；
-  - `L2`（跨档位移）：`diff_q` 下 `V − B` 的小企业漂绿决策占比变化与大企业漂绿决策占比变化（预测小升、大降）；
-  - `L3`（强指派鉴证）：`diff_q` 下 `ALL_R16 − B`（等权真实 ESG，预测 $> 0$）；
-  - `L4`（自选削弱）：`diff_q` 下 `ALL_F16 − ALL_R16`（等权真实 ESG，预测 $< 0$）。
+- **场景矩阵（8 场景 × 30 种子 = 240 次运行，均在 `empirical_belief` 下运行，鉴证场景与 §31 一致采用 `detected_bayes`）**：
+  - `EB_B`、`EB_I`、`EB_F`（4× 法定罚款）、`EB_V`、`EB_S_obs`、`EB_R16_bayes`、`EB_F16_bayes`、`EB_F100_bayes_smooth`。
+- **主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）**：
+  - `L1`（透明度效应）：`EB_I − EB_B`（等权真实 ESG，预测 $> 0$）；
+  - `L2`（无规则公式知晓下的跨档位移）：`EB_V − EB_B` 下小企业漂绿占比上升（预测 $> 0$）、大企业漂绿占比下降（预测 $< 0$），检验企业仅凭同行被查频率是否自发重现 `V` 的跨档位移；
+  - `L3`（在线经验鉴证有效）：`EB_R16_bayes − EB_B`（等权真实 ESG，预测 $> 0$）；
+  - `L4`（Thompson 采样自选逃逸与学习摩擦衰减）：`EB_F16_bayes − EB_R16_bayes`（等权真实 ESG，预测 $< 0$；同步报告漂绿占比上升与 `excess_laxest_wash_concentration` 升高，并检验双边学习相位滞后下逃逸幅度相对 `npv` 理性预期的衰减）；
+  - `L5`（运行时滞回对有限理性企业稳健）：`EB_F100_bayes_smooth − EB_F16_bayes`（等权真实 ESG，预测 $> 0$）。
+- **辅助机制检验**：
+  - `L1b`（在线罚款学习）：`EB_F − EB_B > 0`（检验仅从已查处罚单在线学习 4× 罚款是否产生净改善）；
+  - `L2b`（粗粒度信念下的 Stackelberg 承诺脆弱性）：`EB_S_obs − EB_B`（检验当企业忽略个体化公开承诺 $q_i^*$ 仅依赖粗粒度规模档经验频率时，个体化公开承诺增益是否衰减并向隐藏规则退化，确立 Stackelberg 机制的认知前提边界）。
 
 ---
 

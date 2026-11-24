@@ -1,4 +1,4 @@
-"""Tests for bounded-rationality firm policies: diff_q and peer_imitation (Track 4)."""
+"""Tests for zero-leakage empirical-belief bounded rationality (Phase 3 / L2)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 from abm.disclosure import MarketConfig
+from abm.disclosure.bounded import EmpiricalBeliefLearner
 from abm.disclosure.domain import load_domain
 from abm.disclosure.game import MAINTAIN, DisclosureMarket
 from abm.disclosure.policy import PolicySchedule
@@ -30,7 +31,7 @@ ASSURE_16 = dict(
 )
 
 
-def _small_cfg(policy: str, **overrides) -> MarketConfig:
+def _small_cfg(**overrides) -> MarketConfig:
     params = dict(
         n_investors=50,
         n_firms=30,
@@ -45,95 +46,142 @@ def _small_cfg(policy: str, **overrides) -> MarketConfig:
         financing_repricing_interval=60,
         financing_horizon_days=1260,
         firm_discount_rate=0.05,
-        firm_policy=policy,
-        firm_action_fractions=(0.04, 0.2, 1.0),
-        firm_cost_budget_fraction=0.01,
+        firm_policy="empirical_belief",
     )
     params.update(overrides)
     return MarketConfig(**params)
 
 
-def test_bounded_config_defaults_omitted_and_validated() -> None:
+def test_empirical_belief_config_defaults_omitted_and_validated() -> None:
     plain = MarketConfig()
-    payload = plain.to_dict()
-    for key in (
-        "firm_learning_alpha",
-        "firm_learning_epsilon",
-        "firm_imitation_intensity",
-        "firm_imitation_update_fraction",
-        "firm_imitation_exploration",
-    ):
-        assert key not in payload
+    assert "firm_belief_decay" not in plain.to_dict()
 
-    for pol in ("diff_q", "peer_imitation"):
-        cfg = _small_cfg(pol, firm_learning_alpha=0.2, firm_imitation_exploration=0.08)
-        d = cfg.to_dict()
-        assert d["firm_policy"] == pol
-        assert d["firm_learning_alpha"] == 0.2
-        assert d["firm_imitation_exploration"] == 0.08
-        assert MarketConfig.from_dict(d) == cfg
+    cfg = _small_cfg(firm_belief_decay=0.25)
+    d = cfg.to_dict()
+    assert d["firm_policy"] == "empirical_belief"
+    assert d["firm_belief_decay"] == 0.25
+    assert MarketConfig.from_dict(d) == cfg
 
-    with pytest.raises(ValueError, match="firm_learning_alpha"):
-        MarketConfig(firm_learning_alpha=0.0)
-    with pytest.raises(ValueError, match="firm_learning_epsilon"):
-        MarketConfig(firm_learning_epsilon=1.5)
-    with pytest.raises(ValueError, match="firm_imitation_update_fraction"):
-        MarketConfig(firm_imitation_update_fraction=-0.1)
+    with pytest.raises(ValueError, match="firm_belief_decay"):
+        MarketConfig(firm_belief_decay=0.0)
+    with pytest.raises(ValueError, match="firm_belief_decay"):
+        MarketConfig(firm_belief_decay=1.5)
 
 
-@pytest.mark.parametrize("policy", ["diff_q", "peer_imitation"])
-def test_bounded_policies_run_across_all_enforcement_regimes_with_preswitch_parity(policy: str) -> None:
-    cfg = _small_cfg(policy)
+def test_empirical_belief_strict_zero_leakage_and_thompson_selection() -> None:
+    """Beliefs update ONLY from realized audits/catches/checks (never peeking at true policy params)."""
+    learner = EmpiricalBeliefLearner(n_tiers=3, n_providers=4, decay=0.2)
+    sc = np.array([0] * 10 + [1] * 10 + [2] * 20, dtype=np.int64)
+    zeros = np.zeros(40, dtype=np.float64)
+
+    # 1. With zero catches, emp_fixed_fine_money stays 0 regardless of unobserved statutory fine
+    sel = np.zeros(40, dtype=bool)
+    sel[:3] = True  # 30% audit rate in large tier, 0% in mid/small
+    learner.observe_audits(
+        size_class=sc,
+        selected=sel,
+        caught=np.zeros(40, dtype=bool),
+        realized_fixed_fine_money=zeros,
+        realized_proportional_rate=zeros,
+    )
+    assert learner.emp_fixed_fine_money == 0.0
+    assert learner.tier_audit_probability[0] > learner.tier_audit_probability[2]
+
+    # 2. First catch reveals statutory fine; later 4x catch smoothly raises belief
+    caught = np.zeros(40, dtype=bool)
+    caught[0] = True
+    learner.observe_audits(
+        size_class=sc,
+        selected=sel,
+        caught=caught,
+        realized_fixed_fine_money=np.where(caught, 1e-4, 0.0),
+        realized_proportional_rate=zeros,
+    )
+    assert learner.emp_fixed_fine_money == pytest.approx(1e-4)
+    learner.observe_audits(
+        size_class=sc,
+        selected=sel,
+        caught=caught,
+        realized_fixed_fine_money=np.where(caught, 4e-4, 0.0),
+        realized_proportional_rate=zeros,
+    )
+    assert learner.emp_fixed_fine_money == pytest.approx(0.8 * 1e-4 + 0.2 * 4e-4)
+
+    # 3. Assurance beliefs learn strict vs lax providers purely from checks; Thompson sampling prefers lax
+    client_of = np.repeat(np.arange(4, dtype=np.int64), 10)
+    checked_inf = np.ones(40, dtype=bool)
+    corrected = np.zeros(40, dtype=bool)
+    # Provider 0 catches 0/10 (lax); Providers 1-3 catch 8/10 (strict)
+    corrected[10:18] = True
+    corrected[20:28] = True
+    corrected[30:38] = True
+    for _ in range(3):
+        learner.observe_assurance_period(
+            checked_inflated=checked_inf, corrected=corrected, client_of=client_of,
+        )
+    means = learner.provider_quality_mean
+    assert means[0] < 0.05
+    assert np.all(means[1:] > 0.65)
+
+    rng = np.random.default_rng(7)
+    chosen = learner.choose_providers_thompson(
+        mandated=np.ones(40, dtype=bool),
+        current_providers=client_of,
+        value_fn=lambda a: 1.0 - a,  # strictly prefers lower check probability
+        rng=rng,
+    )
+    # Overwhelming majority of inflating firms select empirically laxest provider 0
+    assert float((chosen == 0).mean()) > 0.90
+
+
+def test_empirical_belief_runs_across_regimes_with_preswitch_parity() -> None:
+    cfg = _small_cfg()
     base = DisclosureMarket(cfg, WASH, PolicySchedule.constant(WASH)).run()
     regimes = [
         {"transparency": 0.6},
         {"fixed_fine": 4.0 * 4.56e-5},
         {"audit_allocation": "value"},
-        {"audit_allocation": "stackelberg_eq"},
+        {"audit_allocation": "stackelberg_obs"},
         ASSURE_16,
         {**ASSURE_16, "assurer_selection": "firm"},
+        {**ASSURE_16, "assurer_selection": "firm", "assurer_smoothing": 0.7},
     ]
     for chg in regimes:
         sched = PolicySchedule.constant(WASH).with_intervention(181, **chg)
         mkt = DisclosureMarket(cfg, WASH, sched)
         res = mkt.run()
-        # Bit-for-bit identical pre-switch history through day 180
         np.testing.assert_array_equal(res.true_goodness[:181], base.true_goodness[:181])
         np.testing.assert_array_equal(res.inflation[:181], base.inflation[:181])
         np.testing.assert_array_equal(res.market.prices[:181], base.market.prices[:181])
         assert np.isfinite(res.true_goodness).all()
         assert np.isfinite(res.inflation).all()
-        # Variance reduction: difference-reward SD is orders of magnitude below raw 190 bp noise
-        assert mkt.bounded_tracker is not None
-        assert len(mkt.bounded_tracker.settled_returns) > 0
-        reward_sd_bp = float(np.std(mkt.bounded_tracker.settled_returns) * 1e4)
-        assert reward_sd_bp < 50.0
+        assert mkt.empirical_belief is not None
+        assert mkt.empirical_belief.audit_updates > 0
 
 
-def test_diff_q_achieves_full_coverage_and_maintains_under_zero_taste() -> None:
-    """With zero impact taste (B = 0), diff_q learns MAINTAIN as optimal (Q <= 0 for costly actions)."""
-    cfg = _small_cfg(
-        "diff_q",
-        n_firms=60,
-        trading_days=900,
-        initial_impact_share=0.0,
-        firm_learning_epsilon=0.05,
-        firm_action_fractions=(0.04, 0.2, 0.5),
-        firm_cost_budget_fraction=0.05,
+def test_empirical_belief_maintains_under_zero_taste() -> None:
+    cfg = _small_cfg(initial_impact_share=0.0)
+    res = DisclosureMarket(cfg, WASH, PolicySchedule.constant(WASH)).run()
+    assert np.all(res.actions == MAINTAIN)
+
+
+def test_empirical_belief_baseline_prior_does_not_leak_intervention() -> None:
+    """Market initializes priors from domain.baseline_* only; post-switch regime is never peeked."""
+    cfg = _small_cfg(trading_days=240, burn_in_days=180)
+    sched = PolicySchedule.constant(WASH).with_intervention(
+        181,
+        fixed_fine=4.0 * WASH.baseline_fixed_fine,
+        audit_probability=0.0,  # zero post-switch audits -> zero post-switch catches -> cannot learn 4x
     )
-    mkt = DisclosureMarket(cfg, WASH, PolicySchedule.constant(WASH))
-    res = mkt.run()
-    assert mkt.diff_learner is not None
-    # Every clean-state cell across all three tiers is visited
-    assert (mkt.diff_learner.counts[:, 0, :] > 0).all()
-    # In the final third of periods, MAINTAIN dominates (> 80% of decisions despite 5% exploration)
-    tail_actions = res.actions[10:]
-    assert float((tail_actions == MAINTAIN).mean()) > 0.80
+    mkt = DisclosureMarket(cfg, WASH, sched)
+    mkt.run()
+    assert mkt.empirical_belief is not None
+    # Because zero catches occurred after day 181, perceived fine stays at baseline 1x, never jumping to 4x
+    assert mkt.empirical_belief.emp_fixed_fine_money == pytest.approx(WASH.baseline_fixed_fine)
 
 
-@pytest.mark.parametrize("policy", ["diff_q", "peer_imitation"])
-def test_bounded_voluntary_assurance_rejected(policy: str) -> None:
-    cfg = _small_cfg(policy)
+def test_empirical_belief_voluntary_assurance_rejected() -> None:
+    cfg = _small_cfg()
     sched = PolicySchedule.constant(WASH).with_intervention(
         181, **{**ASSURE_16, "assurance_scope": "voluntary"},
     )

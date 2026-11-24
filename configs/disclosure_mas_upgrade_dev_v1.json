@@ -2,7 +2,7 @@
   "name": "disclosure_mas_upgrade_dev_v1",
   "purpose": "development",
   "archive": "compact",
-  "_note": "Development pipeline check for contract draft sections 29-31 (Stackelberg audit allocation, bounded-rationality diff_q firms, and partial-observability Bayesian assurance) using the bundled public ESG domain on fresh development seeds 60101-60103. Replace domain with CSI 300 vendor domain and seeds 61001-63030 before freezing confirmatory runs.",
+  "_note": "Development pipeline check for contract draft sections 29-31 (Bayesian dynamic Stackelberg audit allocation, zero-leakage empirical-belief firms, and partial-observability Bayesian assurance with hysteresis remedies) using the bundled public ESG domain on fresh development seeds 60101-60103. Replace domain with CSI 300 vendor domain and seeds 61001-63030 before freezing confirmatory runs.",
   "domain": "domains/esg.json",
   "market": {
     "n_investors": 200,
@@ -175,11 +175,52 @@
       }
     },
     {
-      "name": "diff_q_B",
+      "name": "ALL_R100_bayes_smooth",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_observation": "detected_bayes",
+          "assurer_smoothing": 0.7
+        }
+      }
+    },
+    {
+      "name": "ALL_F100_smooth",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_smoothing": 0.7
+        }
+      }
+    },
+    {
+      "name": "emp_B",
       "market": {
-        "firm_policy": "diff_q",
-        "firm_action_fractions": [0.04, 0.2, 1.0],
-        "firm_cost_budget_fraction": 0.01
+        "firm_policy": "empirical_belief"
       },
       "domain": {
         "baseline_fixed_fine": 4.56e-05,
@@ -190,11 +231,9 @@
       }
     },
     {
-      "name": "diff_q_I",
+      "name": "emp_I",
       "market": {
-        "firm_policy": "diff_q",
-        "firm_action_fractions": [0.04, 0.2, 1.0],
-        "firm_cost_budget_fraction": 0.01
+        "firm_policy": "empirical_belief"
       },
       "domain": {
         "baseline_fixed_fine": 4.56e-05,
@@ -249,8 +288,13 @@
       "primary": true
     },
     {
-      "name": "diff_q_information_minus_baseline",
-      "weights": { "diff_q_I": 1, "diff_q_B": -1 },
+      "name": "assurance_hysteresis_seals_escape",
+      "weights": { "ALL_F100_smooth": 1, "ALL_F16_bayes": -1 },
+      "primary": true
+    },
+    {
+      "name": "empirical_belief_information_minus_baseline",
+      "weights": { "emp_I": 1, "emp_B": -1 },
       "primary": true
     }
   ],
