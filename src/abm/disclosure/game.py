@@ -58,7 +58,7 @@ from numpy.typing import NDArray
 
 from ..manifest import canonical_json_bytes
 from ..tabular import CompanyQLearner
-from .bayesian_audit import BayesianAuditFilter
+from .bayesian_audit import BayesianAuditFilter, quantize_audit_probabilities
 from .bounded import EmpiricalBeliefLearner
 from .config import BOUNDED_FIRM_POLICIES, TRADING_DAYS_PER_YEAR, MarketConfig
 from .domain import DomainSpec
@@ -721,6 +721,9 @@ class DisclosureMarket(CrossSectionMarket):
         self.report_after_audit: FloatArray | None = None
         # Next-period Stackelberg audit commitment announced after audits execute on decision day t.
         self.stackelberg_next_probability: FloatArray | None = None
+        # Optional coarse public risk-band labels (0..G-1) governing the next/just-executed bucketed audit.
+        self.stackelberg_next_band: IntArray | None = None
+        self.stackelberg_next_band_count: int = 0
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
         # Joint persistent-type x Markov-state Bayesian belief filter maintained strictly from public observables.
         bayes_regimes = [r for r in regimes if r.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS]
@@ -1098,7 +1101,7 @@ class DisclosureMarket(CrossSectionMarket):
                 if self.stackelberg_next_probability is not None:
                     probability = self.stackelberg_next_probability
                 else:
-                    probability = self._stackelberg_probabilities(day, regime)
+                    probability, _ = self._stackelberg_probabilities_with_bands(day, regime)
             else:
                 if regime.audit_allocation == "jump" and self.report_after_audit is not None:
                     flagged = self._claimed_report() - self.report_after_audit > regime.audit_jump_threshold
@@ -1160,6 +1163,8 @@ class DisclosureMarket(CrossSectionMarket):
         disclosure_delay = self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
         wash_due = day + max(1, disclosure_delay)
         # Audit probabilities firms plan with: their own ones if the targeting rule is public.
+        executed_band = self.stackelberg_next_band
+        executed_band_count = self.stackelberg_next_band_count
         planned = first_planned = flag_room = None
         cached_benefit: FloatArray | None = None
         if regime.audit_allocation == "value" and regime.audit_rule_public:
@@ -1168,7 +1173,13 @@ class DisclosureMarket(CrossSectionMarket):
             planned, first_planned, flag_room = self._jump_plan(day, regime, flagged)
         elif regime.audit_allocation in STACKELBERG_ALLOCATIONS:
             cached_benefit = self.marginal_financing_saving()
-            next_prob = self._stackelberg_probabilities(day, regime, benefit=cached_benefit)
+            next_prob, next_band = self._stackelberg_probabilities_with_bands(day, regime, benefit=cached_benefit)
+            if next_band is not None and regime.audit_commitment_buckets >= 2 and regime.audit_rule_public:
+                self.stackelberg_next_band = next_band
+                self.stackelberg_next_band_count = regime.audit_commitment_buckets
+            else:
+                self.stackelberg_next_band = None
+                self.stackelberg_next_band_count = 0
             self.stackelberg_next_probability = next_prob
             if regime.audit_rule_public:
                 planned = next_prob
@@ -1246,6 +1257,10 @@ class DisclosureMarket(CrossSectionMarket):
                 inflate_capacity=inflate_capacity,
                 wash_due=wash_due,
                 cached_benefit=cached_benefit,
+                executed_band=executed_band,
+                executed_band_count=executed_band_count,
+                announced_band=self.stackelberg_next_band,
+                announced_band_count=self.stackelberg_next_band_count,
             )
         else:
             choices = self._discrete_decision(day, period, regime, published, penalty,
@@ -1313,6 +1328,13 @@ class DisclosureMarket(CrossSectionMarket):
         self, day: int, regime: PolicyRegime, benefit: FloatArray | None = None,
     ) -> FloatArray:
         """Compute budget-conserving Stackelberg audit probabilities for the next audit date."""
+        prob, _ = self._stackelberg_probabilities_with_bands(day, regime, benefit=benefit)
+        return prob
+
+    def _stackelberg_probabilities_with_bands(
+        self, day: int, regime: PolicyRegime, benefit: FloatArray | None = None,
+    ) -> tuple[FloatArray, IntArray | None]:
+        """Compute budget-conserving Stackelberg probabilities plus optional discrete public risk bands."""
         size = self.config.n_firms
         disclosure_delay = (
             self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
@@ -1321,7 +1343,7 @@ class DisclosureMarket(CrossSectionMarket):
         raw_benefit = self.marginal_financing_saving() if benefit is None else benefit
         if regime.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS:
             assert self.bayesian_audit_filter is not None
-            return self.bayesian_audit_filter.allocate(
+            return self.bayesian_audit_filter.allocate_with_bands(
                 day=day,
                 regime=regime,
                 prices=self.prices,
@@ -1346,7 +1368,7 @@ class DisclosureMarket(CrossSectionMarket):
             if self.attributes.wash_cost_ratio is None
             else self.attributes.wash_cost_ratio
         )
-        return stackelberg_audit_probabilities(
+        prob = stackelberg_audit_probabilities(
             regime=regime,
             prices=self.prices,
             benefit=benefit_est,
@@ -1364,6 +1386,9 @@ class DisclosureMarket(CrossSectionMarket):
             max_change_per_period=self.domain.max_change_per_period,
             has_open_case=(self.attributes.inflation > 0.0),
         )
+        if regime.audit_commitment_buckets >= 2 and regime.audit_rule_public:
+            return quantize_audit_probabilities(prob, regime.audit_commitment_buckets)
+        return prob, None
 
     def _discrete_decision(
         self, day: int, period: int, regime: PolicyRegime, published: NDArray[np.bool_],
@@ -1477,8 +1502,12 @@ class DisclosureMarket(CrossSectionMarket):
         inflate_capacity: FloatArray,
         wash_due: int,
         cached_benefit: FloatArray | None,
+        executed_band: IntArray | None = None,
+        executed_band_count: int = 0,
+        announced_band: IntArray | None = None,
+        announced_band_count: int = 0,
     ) -> FirmChoices:
-        """Zero-leakage empirical-belief decision step (learns q_tier, F, p and a_k strictly online)."""
+        """Zero-leakage empirical-belief decision step (learns q_tier/q_band, F, p and a_k strictly online)."""
         cfg, domain, state = self.config, self.domain, self.attributes
         belief = self.empirical_belief
         assert belief is not None
@@ -1493,12 +1522,17 @@ class DisclosureMarket(CrossSectionMarket):
             caught=caught,
             realized_fixed_fine_money=realized_fixed,
             realized_proportional_rate=realized_prop,
+            public_band=executed_band,
+            n_bands=executed_band_count,
         )
 
         # 2. Construct perceived regime using ONLY empirically learned audit/fine parameters.
         assured_active = self.assurance is not None and regime.assurance_scope != "none"
         emp_q_scalar = belief.pooled_audit_probability
-        emp_q_vec = belief.firm_audit_probabilities(self.firms.size_class)
+        if announced_band is not None and announced_band_count >= 2:
+            emp_q_vec = belief.band_audit_probabilities(announced_band, announced_band_count)
+        else:
+            emp_q_vec = belief.firm_audit_probabilities(self.firms.size_class)
         emp_fine = belief.emp_fixed_fine_money
         emp_regime = replace(
             regime,

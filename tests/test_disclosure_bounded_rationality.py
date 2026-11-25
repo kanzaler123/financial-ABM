@@ -200,3 +200,30 @@ def test_empirical_belief_archives_cleanly_via_runner(tmp_path) -> None:
     assert manifest["status"] == "complete"
     assert (tmp_path / "emp_run" / "metrics.json").exists()
     assert not (tmp_path / "emp_run" / "learning.json").exists()
+
+
+def test_empirical_belief_learns_public_risk_bands_without_peeking() -> None:
+    """EmpiricalBeliefLearner updates per-band audit rates strictly from realized audits in each public band."""
+    learner = EmpiricalBeliefLearner(n_tiers=3, n_providers=4, decay=0.2)
+    sc = np.zeros(30, dtype=np.int64)
+    bands = np.array([0] * 20 + [1] * 6 + [2] * 4, dtype=np.int64)
+    sel = np.zeros(30, dtype=bool)
+    sel[26:] = True  # all 4 high-risk band firms audited; 0 low/mid audited
+    zeros = np.zeros(30, dtype=np.float64)
+    learner.observe_audits(
+        size_class=sc, selected=sel, caught=np.zeros(30, dtype=bool),
+        realized_fixed_fine_money=zeros, realized_proportional_rate=zeros,
+        public_band=bands, n_bands=3,
+    )
+    q_band = learner.band_audit_probabilities(bands, 3)
+    assert q_band[29] > q_band[20] > q_band[0] or q_band[29] > q_band[0] + 0.10
+
+    cfg = _small_cfg(trading_days=360, burn_in_days=120)
+    sched = PolicySchedule.constant(WASH).with_intervention(
+        121, audit_allocation="stackelberg_obs", audit_commitment_buckets=3,
+    )
+    mkt = DisclosureMarket(cfg, WASH, sched)
+    res = mkt.run()
+    assert np.isfinite(res.true_goodness).all()
+    assert mkt.empirical_belief is not None and mkt.empirical_belief.band_alpha is not None
+    assert mkt.empirical_belief.band_alpha.size == 3

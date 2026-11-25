@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from abm.disclosure import MarketConfig
-from abm.disclosure.bayesian_audit import BayesianAuditFilter
+from abm.disclosure.bayesian_audit import BayesianAuditFilter, quantize_audit_probabilities
 from abm.disclosure.domain import load_domain
 from abm.disclosure.game import IMPROVE, INFLATE, DisclosureMarket, npv_choices
 from abm.disclosure.policy import (
@@ -371,3 +371,46 @@ def test_bayesian_hidden_and_value_weighted_allocations_in_market() -> None:
             for period in range(1, res.audit_probability.shape[0]):
                 assert res.audit_probability[period].sum() == pytest.approx(budget, abs=1e-11)
                 assert np.all((res.audit_probability[period] >= 0.0) & (res.audit_probability[period] <= 1.0))
+
+
+def test_quantize_audit_probabilities_and_risk_band_commitments() -> None:
+    """L2-optimal G-band quantization conserves budget, keeps sparse watchlists sharp, and omits default 0."""
+    # Default 0 omitted from PolicyRegime.to_dict()
+    assert "audit_commitment_buckets" not in REGIME.to_dict()
+    reg3 = replace(REGIME, audit_allocation="stackelberg_obs", audit_commitment_buckets=3)
+    assert reg3.to_dict()["audit_commitment_buckets"] == 3
+    with pytest.raises(ValueError, match="audit_commitment_buckets"):
+        replace(REGIME, audit_allocation="stackelberg_obs", audit_commitment_buckets=1)
+    with pytest.raises(ValueError, match="audit_commitment_buckets"):
+        replace(REGIME, audit_allocation="value", audit_commitment_buckets=3)
+    with pytest.raises(ValueError, match="audit_commitment_buckets"):
+        replace(REGIME, audit_allocation="stackelberg_obs", audit_rule_public=False, audit_commitment_buckets=3)
+
+    # Sparse watchlist test: 180 zeros, 15 medium (~0.06), 5 high (~0.22)
+    raw = np.array([0.0] * 180 + [0.06] * 15 + [0.22] * 5, dtype=np.float64)
+    pooled, labels = quantize_audit_probabilities(raw, 3)
+    assert pooled.sum() == pytest.approx(raw.sum(), abs=1e-12)
+    assert len(np.unique(np.round(pooled, 12))) == 3
+    assert np.allclose(pooled[:180], 0.0)
+    assert np.allclose(pooled[180:195], 0.06)
+    assert np.allclose(pooled[195:], 0.22)
+    assert np.all(labels[:180] == 0) and np.all(labels[180:195] == 1) and np.all(labels[195:] == 2)
+
+    # End-to-end market check under Q(kappa_T, s_P) and 3-band public risk tiers
+    q_dom = replace(WASH_DOMAIN, natural_decay=0.0, natural_reversion=0.505, reversion_permanent_share=0.423)
+    cfg = MarketConfig(
+        n_investors=50, n_firms=24, trading_days=360, burn_in_days=120,
+        initial_impact_share=0.2, taste_median=0.0724, seed=61009,
+        intrinsic_value_log_sd=0.915, financing_exposure_fraction=0.5,
+        financing_spread=0.05, financing_repricing_interval=60,
+        financing_horizon_days=1260, firm_discount_rate=0.05,
+    )
+    sched = PolicySchedule.constant(q_dom).with_intervention(
+        121, audit_allocation="stackelberg_obs_sig", audit_commitment_buckets=3,
+    )
+    res = DisclosureMarket(cfg, q_dom, sched).run()
+    assert res.audit_probability is not None
+    budget = cfg.n_firms * q_dom.baseline_audit_probability
+    for period in range(3, res.audit_probability.shape[0]):
+        assert res.audit_probability[period].sum() == pytest.approx(budget, abs=1e-11)
+        assert len(np.unique(np.round(res.audit_probability[period], 10))) <= 3

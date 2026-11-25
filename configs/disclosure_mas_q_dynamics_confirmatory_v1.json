@@ -1,0 +1,181 @@
+{
+  "name": "disclosure_mas_q_dynamics_confirmatory_v1",
+  "purpose": "confirmatory",
+  "archive": "compact",
+  "_note": "Research contract section 32A: robustness of Bayesian dynamic Stackelberg auditing and runtime scrutiny hysteresis under Stage H3 empirically estimated persistent+transitory Q dynamics (kappa_T=0.505, s_P=0.423), 12 scenarios x 30 fresh seeds 74001-74030. Primary comparisons Q1-Q6 are Holm-adjusted.",
+  "domain": "domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 3500,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    74001, 74002, 74003, 74004, 74005, 74006, 74007, 74008, 74009, 74010,
+    74011, 74012, 74013, 74014, 74015, 74016, 74017, 74018, 74019, 74020,
+    74021, 74022, 74023, 74024, 74025, 74026, 74027, 74028, 74029, 74030
+  ],
+  "scenarios": [
+    {
+      "name": "Q_B",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 }
+    },
+    {
+      "name": "Q_I",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "transparency": 0.6 } }
+    },
+    {
+      "name": "Q_V",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "audit_allocation": "value" } }
+    },
+    {
+      "name": "Q_J",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "audit_allocation": "jump" } }
+    },
+    {
+      "name": "Q_S_obs",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "audit_allocation": "stackelberg_obs" } }
+    },
+    {
+      "name": "Q_S_obs_hid",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "audit_allocation": "stackelberg_obs", "audit_rule_public": false } }
+    },
+    {
+      "name": "Q_S_obs_sig",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": { "start_day": 1201, "changes": { "audit_allocation": "stackelberg_obs_sig" } }
+    },
+    {
+      "name": "Q_R16_bayes",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "Q_R100_bayes",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "Q_F16_bayes",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "Q_R100_bayes_smooth",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4,
+          "assurer_observation": "detected_bayes",
+          "assurer_smoothing": 0.7
+        }
+      }
+    },
+    {
+      "name": "Q_F100_bayes_smooth",
+      "domain": { "natural_decay": 0.0, "natural_reversion": 0.505, "reversion_permanent_share": 0.423 },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_count": 4,
+          "assurer_observation": "detected_bayes",
+          "assurer_smoothing": 0.7
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    { "name": "Q1_S_obs_minus_B", "weights": { "Q_S_obs": 1, "Q_B": -1 }, "primary": true },
+    { "name": "Q2_S_obs_minus_S_obs_hid", "weights": { "Q_S_obs": 1, "Q_S_obs_hid": -1 }, "primary": true },
+    { "name": "Q3_S_obs_minus_I", "weights": { "Q_S_obs": 1, "Q_I": -1 }, "primary": true },
+    { "name": "Q4_F16_bayes_minus_R16_bayes", "weights": { "Q_F16_bayes": 1, "Q_R16_bayes": -1 }, "primary": true },
+    { "name": "Q5_R100_bsm_minus_R100_by", "weights": { "Q_R100_bayes_smooth": 1, "Q_R100_bayes": -1 }, "primary": true },
+    { "name": "Q6_F100_bsm_minus_F16_by", "weights": { "Q_F100_bayes_smooth": 1, "Q_F16_bayes": -1 }, "primary": true },
+    { "name": "Q_S_obs_minus_V", "weights": { "Q_S_obs": 1, "Q_V": -1 } },
+    { "name": "Q_S_obs_minus_J", "weights": { "Q_S_obs": 1, "Q_J": -1 } },
+    { "name": "Q_S_obs_sig_minus_S_obs", "weights": { "Q_S_obs_sig": 1, "Q_S_obs": -1 } },
+    { "name": "Q_F100_bsm_minus_I", "weights": { "Q_F100_bayes_smooth": 1, "Q_I": -1 } },
+    { "name": "Q_R100_bsm_minus_I", "weights": { "Q_R100_bayes_smooth": 1, "Q_I": -1 } },
+    {
+      "name": "Q_F16_minus_R16_qgap",
+      "weights": { "Q_F16_bayes": 1, "Q_R16_bayes": -1 },
+      "primary_metric": "assurance.client_minus_unweighted_quality_gap"
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "actions.wash_share_by_size.small",
+      "actions.wash_share_by_size.large",
+      "actions.wash",
+      "actions.detections",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.assurance_effort_cost",
+      "assurance.client_minus_unweighted_quality_gap",
+      "assurance.excess_laxest_wash_concentration"
+    ],
+    "confidence_level": 0.95
+  }
+}

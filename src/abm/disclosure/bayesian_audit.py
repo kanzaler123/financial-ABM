@@ -152,6 +152,249 @@ def _evaluate_type_choices(
     return deterred, step_real, step_wash
 
 
+def _solve_menu_constrained_bands(
+    q_grid: FloatArray,
+    expected_u: FloatArray,
+    budget: float,
+    n_buckets: int,
+    q_raw: FloatArray,
+) -> tuple[FloatArray, IntArray]:
+    """Incentive-compatible G-band Stackelberg allocation via UCE water-filling on discrete rate menus.
+
+    Unlike post-hoc L2 pooling of ``q_raw`` (which averages firms across discontinuous deterrence
+    thresholds and breaks incentive compatibility), this solver restricts water-filling directly
+    to discrete ``G``-level rate menus and absorbs any single-firm quantization residual strictly
+    *upward* into higher bands, guaranteeing exact budget conservation and zero threshold erosion.
+    """
+    n, g_total = expected_u.shape
+    k_bands = min(int(n_buckets), n, g_total)
+    if k_bands < 2 or budget <= 0.0:
+        return np.full(n, budget / max(1, n), dtype=np.float64), np.zeros(n, dtype=np.int64)
+    q_bar = budget / n
+
+    def _absorb_upward(rates: FloatArray, labels: IntArray) -> tuple[FloatArray, IntArray]:
+        """Ensure exact budget sum by adjusting occupied band rates strictly upward (clamped <= 1)."""
+        counts = np.bincount(labels, minlength=rates.size).astype(np.float64)
+        rem = float(budget - np.dot(counts, rates))
+        adj = rates.copy()
+        if rem > 1e-12:
+            # Distribute positive residual upward starting from highest occupied band with headroom
+            for b in range(adj.size - 1, -1, -1):
+                if counts[b] <= 0 or rem <= 1e-12:
+                    continue
+                room = (1.0 - adj[b]) * counts[b]
+                take = min(rem, room)
+                adj[b] += take / counts[b]
+                rem -= take
+        elif rem < -1e-12:
+            need = -rem
+            for b in range(adj.size):
+                if counts[b] <= 0 or need <= 1e-12:
+                    continue
+                room = adj[b] * counts[b]
+                take = min(need, room)
+                adj[b] -= take / counts[b]
+                need -= take
+        return adj[labels], labels
+
+    def _eval_menu(menu_idx: list[int]) -> tuple[float, FloatArray, IntArray]:
+        idx_arr = np.asarray(menu_idx, dtype=np.int64)
+        q_m = q_grid[idx_arr]
+        u_m = expected_u[:, idx_arr]
+        m_len = q_m.size
+        base_budget = n * float(q_m[0])
+        rem = budget - base_budget
+        if rem < -1e-12:
+            return -float("inf"), np.zeros(n, dtype=np.float64), np.zeros(n, dtype=np.int64)
+        labels = np.zeros(n, dtype=np.int64)
+        if m_len == 2:
+            dq = float(q_m[1] - q_m[0])
+            if dq <= 1e-12:
+                return float(u_m[:, 0].sum()), np.full(n, q_bar, dtype=np.float64), labels
+            count_hi = int(np.floor(rem / dq + 1e-12))
+            count_hi = max(1, min(n - 1, count_hi))
+            # Check if absorbing upward into band 1 would exceed 1.0; if so increase count_hi
+            while count_hi < n - 1 and (budget - (n - count_hi) * float(q_m[0])) / count_hi > 1.0 + 1e-12:
+                count_hi += 1
+            gains = u_m[:, 1] - u_m[:, 0]
+            order = np.argsort(-gains, kind="mergesort")
+            labels[order[:count_hi]] = 1
+            prob, labels = _absorb_upward(q_m, labels)
+            obj = float(u_m[np.arange(n), labels].sum())
+            return obj, prob, labels
+
+        # General G >= 3: exact UCE water-filling restricted to the G-point discrete menu
+        segments: list[tuple[float, int, int, int]] = []
+        for i in range(n):
+            # Upper concave hull on the G discrete menu points (index-tracked)
+            hull: list[int] = []
+            for j in range(m_len):
+                while len(hull) >= 2:
+                    j1, j2 = hull[-2], hull[-1]
+                    s1 = (u_m[i, j2] - u_m[i, j1]) / max(1e-15, q_m[j2] - q_m[j1])
+                    s2 = (u_m[i, j] - u_m[i, j2]) / max(1e-15, q_m[j] - q_m[j2])
+                    if s2 >= s1 - 1e-15:
+                        hull.pop()
+                    else:
+                        break
+                hull.append(j)
+            for pos in range(len(hull) - 1):
+                j_lo, j_hi = hull[pos], hull[pos + 1]
+                slope = float((u_m[i, j_hi] - u_m[i, j_lo]) / max(1e-15, q_m[j_hi] - q_m[j_lo]))
+                if slope > 0.0:
+                    segments.append((slope, i, j_lo, j_hi))
+        segments.sort(key=lambda item: (-item[0], item[1], item[2]))
+        leftover = float(rem)
+        for _, i, j_lo, j_hi in segments:
+            dq = float(q_m[j_hi] - q_m[j_lo])
+            if dq <= leftover + 1e-12:
+                labels[i] = j_hi
+                leftover = max(0.0, leftover - dq)
+            else:
+                # Try stepping to the highest intermediate band <= leftover without going fractional
+                for j_mid in range(j_hi - 1, j_lo, -1):
+                    dq_mid = float(q_m[j_mid] - q_m[j_lo])
+                    if dq_mid <= leftover + 1e-12:
+                        labels[i] = j_mid
+                        leftover = max(0.0, leftover - dq_mid)
+                        break
+                break
+        prob, labels = _absorb_upward(q_m, labels)
+        obj = float(u_m[np.arange(n), labels].sum())
+        return obj, prob, labels
+
+    # Candidate baseline floors r_0 <= q_bar
+    low_idxs = [int(j) for j in range(g_total) if q_grid[j] <= q_bar + 1e-12]
+    if not low_idxs:
+        low_idxs = [0]
+    if len(low_idxs) > 6:
+        pick = np.linspace(0, len(low_idxs) - 1, 6).round().astype(int)
+        low_idxs = sorted({low_idxs[p] for p in pick})
+
+    hi_idxs = [int(j) for j in range(g_total) if q_grid[j] > q_bar + 1e-12]
+    if not hi_idxs:
+        return np.full(n, q_bar, dtype=np.float64), np.zeros(n, dtype=np.int64)
+
+    best_obj = -float("inf")
+    best_prob = np.full(n, q_bar, dtype=np.float64)
+    best_labels = np.zeros(n, dtype=np.int64)
+
+    if k_bands == 2:
+        # Global exact search over (r_0, r_1) pairs on q_grid
+        step = max(1, len(hi_idxs) // 24)
+        cand_hi = hi_idxs[::step]
+        if hi_idxs[-1] not in cand_hi:
+            cand_hi.append(hi_idxs[-1])
+        for j0 in low_idxs:
+            for j1 in cand_hi:
+                obj, prob, labels = _eval_menu([j0, j1])
+                if obj > best_obj + 1e-12:
+                    best_obj, best_prob, best_labels = obj, prob, labels
+        return best_prob, best_labels
+
+    # G >= 3: build diverse candidate upper-rate menus from q_raw support + log-spaced grid menus
+    pos_raw = q_raw[q_raw > q_bar + 1e-6]
+    upper_menus: list[list[int]] = []
+    # Menu family 1: empirical quantiles of positive q_raw mapped upward to grid indices
+    if pos_raw.size >= k_bands - 1:
+        for qs in (
+            np.linspace(0.25, 0.95, k_bands - 1),
+            np.linspace(0.15, 1.00, k_bands - 1),
+            np.linspace(0.40, 0.98, k_bands - 1),
+        ):
+            vals = np.quantile(pos_raw, qs)
+            idxs = sorted({min(g_total - 1, int(np.searchsorted(q_grid, v, side="left"))) for v in vals if v > q_bar})
+            if len(idxs) == k_bands - 1:
+                upper_menus.append(idxs)
+    # Menu family 2: geometric/power spacing across hi_idxs (including optional clearing endpoint 1.0)
+    for pwr in (1.0, 1.5, 2.2):
+        u = np.linspace(0.0, 1.0, k_bands - 1) ** pwr
+        pos_in_hi = np.round(u * (len(hi_idxs) - 1)).astype(int)
+        idxs = sorted({hi_idxs[p] for p in pos_in_hi})
+        if len(idxs) == k_bands - 1:
+            upper_menus.append(idxs)
+    if not upper_menus:
+        pos_in_hi = np.linspace(0, len(hi_idxs) - 1, min(k_bands - 1, len(hi_idxs))).round().astype(int)
+        upper_menus.append(sorted({hi_idxs[p] for p in pos_in_hi}))
+
+    seen: set[tuple[int, ...]] = set()
+    for j0 in low_idxs:
+        for up in upper_menus:
+            menu = tuple([j0, *[j for j in up if j > j0]])
+            if len(menu) < 2 or menu in seen:
+                continue
+            seen.add(menu)
+            obj, prob, labels = _eval_menu(list(menu))
+            if obj > best_obj + 1e-12:
+                best_obj, best_prob, best_labels = obj, prob, labels
+    return best_prob, best_labels
+
+
+def quantize_audit_probabilities(
+    probability: FloatArray, n_buckets: int,
+) -> tuple[FloatArray, IntArray]:
+    """Partition audit probabilities into ``n_buckets`` exact budget-conserving L2-optimal risk bands.
+
+    Uses exact 1D dynamic programming (Ckmeans / Jenks) on sorted probabilities so sparse
+    high-risk watchlists are never diluted across zero-risk firms. Returns ``(pooled_prob, labels)``
+    where ``labels`` are ordered ``0`` (lowest-risk band) to ``n_buckets - 1`` (highest-risk band)
+    and ``pooled_prob.sum() == probability.sum()`` to machine precision.
+    """
+    prob = np.asarray(probability, dtype=np.float64)
+    n = prob.size
+    if n_buckets < 2 or n <= 1:
+        return prob.copy(), np.zeros(n, dtype=np.int64)
+    k = min(int(n_buckets), n)
+    # Stable sort preserves deterministic tie-breaking by firm index.
+    order = np.argsort(prob, kind="mergesort")
+    vals = prob[order]
+    prefix = np.concatenate(([0.0], np.cumsum(vals)))
+    prefix_sq = np.concatenate(([0.0], np.cumsum(vals * vals)))
+
+    # cost(a, b) = SSE of vals[a:b] for 0 <= a < b <= n
+    # Exact DP: dp[c, j] = min SSE partitioning vals[0:j] into c nonempty contiguous bands.
+    inf = float("inf")
+    dp = np.full((k + 1, n + 1), inf, dtype=np.float64)
+    back = np.zeros((k + 1, n + 1), dtype=np.int64)
+    dp[0, 0] = 0.0
+
+    # Precompute pairwise segment SSE matrix (n <= ~500 -> tiny & instant)
+    idx = np.arange(n + 1)
+    lengths = idx[None, :] - idx[:, None]  # (a, b) -> b - a
+    sums = prefix[None, :] - prefix[:, None]
+    sum_sqs = prefix_sq[None, :] - prefix_sq[:, None]
+    valid = lengths > 0
+    sse = np.where(valid, np.maximum(0.0, sum_sqs - (sums * sums) / np.where(valid, lengths, 1.0)), inf)
+
+    dp[1, 1:] = sse[0, 1:]
+    for c in range(2, k + 1):
+        for j in range(c, n + 1):
+            # Split point a in [c - 1, j - 1]
+            cand = dp[c - 1, c - 1 : j] + sse[c - 1 : j, j]
+            best_rel = int(np.argmin(cand))
+            dp[c, j] = cand[best_rel]
+            back[c, j] = c - 1 + best_rel
+
+    # Backtrack optimal contiguous band boundaries
+    bounds = [n]
+    cur = n
+    for c in range(k, 1, -1):
+        cur = int(back[c, cur])
+        bounds.append(cur)
+    bounds.append(0)
+    bounds.reverse()
+
+    pooled = np.empty(n, dtype=np.float64)
+    labels = np.empty(n, dtype=np.int64)
+    for band in range(k):
+        a, b = bounds[band], bounds[band + 1]
+        members = order[a:b]
+        band_mean = float(np.clip(vals[a:b].mean(), 0.0, 1.0))
+        pooled[members] = band_mean
+        labels[members] = band
+    return pooled, labels
+
+
 class BayesianAuditFilter:
     """Maintains persistent-type x Markov-state posterior beliefs purely from public observables."""
 
@@ -228,9 +471,11 @@ class BayesianAuditFilter:
         decayed = np.maximum(g_est - decay, low)
         reversion = getattr(self.domain, "natural_reversion", 0.0) or 0.0
         if reversion > 0.0:
+            perm = float(getattr(self.domain, "reversion_permanent_share", 0.0) or 0.0)
             retention = float(np.exp(-reversion * self.period_days / TRADING_DAYS_PER_YEAR))
+            eff_retention = perm + (1.0 - perm) * retention
             mean_g = float(decayed.mean())
-            decayed = mean_g + retention * (decayed - mean_g)
+            decayed = mean_g + eff_retention * (decayed - mean_g)
         return np.minimum(decayed, upper_bound)
 
     def record_commitment(
@@ -305,9 +550,10 @@ class BayesianAuditFilter:
             decay = self.domain.natural_decay * self.period_days / TRADING_DAYS_PER_YEAR
             reversion = getattr(self.domain, "natural_reversion", 0.0) or 0.0
             if reversion > 0.0:
+                perm = float(getattr(self.domain, "reversion_permanent_share", 0.0) or 0.0)
                 retention = float(np.exp(-reversion * self.period_days / TRADING_DAYS_PER_YEAR))
-                rev_drift = -(1.0 - retention) * (snap.report_ref - float(snap.report_ref.mean()))
-                sigma_r = max(0.05, float(np.sqrt(max(1e-6, 1.0 - retention**2))))
+                rev_drift = -(1.0 - perm) * (1.0 - retention) * (snap.report_ref - float(snap.report_ref.mean()))
+                sigma_r = max(0.05, float(np.sqrt(max(1e-6, (1.0 - perm) * (1.0 - retention**2)))))
             else:
                 rev_drift = np.zeros(self.n_firms, dtype=np.float64)
                 sigma_r = 0.035
@@ -383,15 +629,34 @@ class BayesianAuditFilter:
         post_audit_report: FloatArray,
     ) -> FloatArray:
         """Compute budget-conserving RMAB-Stackelberg (public) or optimal-clearing (hidden) audits."""
+        prob, _ = self.allocate_with_bands(
+            day=day,
+            regime=regime,
+            prices=prices,
+            benefit=benefit,
+            post_audit_report=post_audit_report,
+        )
+        return prob
+
+    def allocate_with_bands(
+        self,
+        *,
+        day: int,
+        regime: PolicyRegime,
+        prices: FloatArray,
+        benefit: FloatArray,
+        post_audit_report: FloatArray,
+    ) -> tuple[FloatArray, IntArray | None]:
+        """Compute budget-conserving audits plus optional discrete public risk-band labels (0..G-1)."""
         prices_arr = np.asarray(prices, dtype=np.float64)
         benefit_arr = np.asarray(benefit, dtype=np.float64)
         rep_arr = np.asarray(post_audit_report, dtype=np.float64)
         size = self.n_firms
         budget = size * regime.audit_probability
         if budget <= 0.0:
-            return np.zeros(size, dtype=np.float64)
+            return np.zeros(size, dtype=np.float64), (np.zeros(size, dtype=np.int64) if regime.audit_commitment_buckets >= 2 else None)
         if budget >= size:
-            return np.ones(size, dtype=np.float64)
+            return np.ones(size, dtype=np.float64), (np.zeros(size, dtype=np.int64) if regime.audit_commitment_buckets >= 2 else None)
 
         disclosure_delay = (
             self.domain.disclosure_delay_days
@@ -421,7 +686,9 @@ class BayesianAuditFilter:
             max_benefit=float(np.max(np.maximum(benefit_arr, 0.0))),
         )
         if q_star <= 1e-12:
-            return np.full(size, regime.audit_probability, dtype=np.float64)
+            return np.full(size, regime.audit_probability, dtype=np.float64), (
+                np.zeros(size, dtype=np.int64) if regime.audit_commitment_buckets >= 2 else None
+            )
 
         weights = prices_arr if self.value_weighted else np.ones(size, dtype=np.float64)
 
@@ -501,7 +768,7 @@ class BayesianAuditFilter:
             # Expected clearing value per unit q_i
             clear_val = weights * np.sum(self.w_dirty * (1.0 + delta_j_dirty), axis=1)
             if float(clear_val.max()) <= 1e-12:
-                return np.full(size, regime.audit_probability, dtype=np.float64)
+                return np.full(size, regime.audit_probability, dtype=np.float64), None
             order = sorted(range(size), key=lambda i: (-float(clear_val[i]), i))
             prob = np.zeros(size, dtype=np.float64)
             rem = float(budget)
@@ -511,7 +778,7 @@ class BayesianAuditFilter:
                 alloc = min(1.0, rem)
                 prob[idx] = alloc
                 rem = max(0.0, rem - alloc)
-            return prob
+            return prob, None
 
         # Public Stackelberg commitment: exact Bellman expected value U_i(q) over q_grid
         q_row = q_grid[None, None, :]
@@ -550,4 +817,12 @@ class BayesianAuditFilter:
 
         if remaining > 1e-15:
             _distribute_budget_proportionally(probability, remaining, weights, np.ones(size, dtype=bool))
-        return probability
+        if regime.audit_commitment_buckets >= 2:
+            return _solve_menu_constrained_bands(
+                q_grid=q_grid,
+                expected_u=expected_u,
+                budget=budget,
+                n_buckets=regime.audit_commitment_buckets,
+                q_raw=probability,
+            )
+        return probability, None

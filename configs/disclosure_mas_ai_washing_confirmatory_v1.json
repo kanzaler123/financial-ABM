@@ -1,0 +1,142 @@
+{
+  "name": "disclosure_mas_ai_washing_confirmatory_v1",
+  "purpose": "confirmatory",
+  "archive": "compact",
+  "_note": "Research contract section 32C-2: non-ESG second-domain generalization on ai_washing.json (linear [0,1] scale, equal size cost multipliers [1,1,1], decay=0.3, wash_cost_ratio=0.1, 180d/10d delays, statutory case fine F1, taste_median=0.22, trading_days=2400, burn_in=600), 9 scenarios x 30 fresh seeds 77001-77030.",
+  "domain": "domains/ai_washing.json",
+  "market": {
+    "n_investors": 1000,
+    "n_firms": 200,
+    "trading_days": 2400,
+    "burn_in_days": 600,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.22,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    77001, 77002, 77003, 77004, 77005, 77006, 77007, 77008, 77009, 77010,
+    77011, 77012, 77013, 77014, 77015, 77016, 77017, 77018, 77019, 77020,
+    77021, 77022, 77023, 77024, 77025, 77026, 77027, 77028, 77029, 77030
+  ],
+  "scenarios": [
+    {
+      "name": "AI_B",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 }
+    },
+    {
+      "name": "AI_I",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": { "start_day": 601, "changes": { "transparency": 0.6 } }
+    },
+    {
+      "name": "AI_V",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": { "start_day": 601, "changes": { "audit_allocation": "value" } }
+    },
+    {
+      "name": "AI_S_obs",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": { "start_day": 601, "changes": { "audit_allocation": "stackelberg_obs" } }
+    },
+    {
+      "name": "AI_S_obs_hid",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": { "start_day": 601, "changes": { "audit_allocation": "stackelberg_obs", "audit_rule_public": false } }
+    },
+    {
+      "name": "AI_S_obs_sig",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": { "start_day": 601, "changes": { "audit_allocation": "stackelberg_obs_sig" } }
+    },
+    {
+      "name": "AI_R16_bayes",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": {
+        "start_day": 601,
+        "changes": {
+          "assurance_scope": "all", "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675, "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06, "assurer_count": 4,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "AI_F16_bayes",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": {
+        "start_day": 601,
+        "changes": {
+          "assurance_scope": "all", "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675, "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06, "assurer_count": 4,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "AI_F100_bayes_smooth",
+      "domain": { "baseline_penalty": 0.0, "baseline_fixed_fine": 4.5614908036639594e-05 },
+      "policy": {
+        "start_day": 601,
+        "changes": {
+          "assurance_scope": "all", "assurer_selection": "firm",
+          "assurer_liability": 0.00228074540183198, "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06, "assurer_count": 4,
+          "assurer_observation": "detected_bayes", "assurer_smoothing": 0.7
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "A1_AI_S_obs_minus_B_wash",
+      "weights": { "AI_S_obs": 1, "AI_B": -1 },
+      "primary_metric": "actions.wash",
+      "primary": true
+    },
+    {
+      "name": "A2_AI_S_obs_minus_V_wash",
+      "weights": { "AI_S_obs": 1, "AI_V": -1 },
+      "primary_metric": "actions.wash",
+      "primary": true
+    },
+    { "name": "A3_AI_R16_bayes_minus_B", "weights": { "AI_R16_bayes": 1, "AI_B": -1 }, "primary": true },
+    { "name": "A4_AI_F16_bayes_minus_R16_bayes", "weights": { "AI_F16_bayes": 1, "AI_R16_bayes": -1 }, "primary": true },
+    {
+      "name": "A5_AI_F16_minus_R16_qgap",
+      "weights": { "AI_F16_bayes": 1, "AI_R16_bayes": -1 },
+      "primary_metric": "assurance.client_minus_unweighted_quality_gap",
+      "primary": true
+    },
+    { "name": "A6_AI_F100_bsm_minus_F16_by", "weights": { "AI_F100_bayes_smooth": 1, "AI_F16_bayes": -1 }, "primary": true },
+    { "name": "AI_S_obs_minus_B_eq", "weights": { "AI_S_obs": 1, "AI_B": -1 } },
+    { "name": "AI_S_obs_minus_S_obs_hid_wash", "weights": { "AI_S_obs": 1, "AI_S_obs_hid": -1 }, "primary_metric": "actions.wash" },
+    { "name": "AI_S_obs_sig_minus_B_eq", "weights": { "AI_S_obs_sig": 1, "AI_B": -1 } },
+    { "name": "AI_F100_bsm_minus_I", "weights": { "AI_F100_bayes_smooth": 1, "AI_I": -1 } }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "actions.wash_share_by_size.small",
+      "actions.wash_share_by_size.large",
+      "actions.wash",
+      "actions.detections",
+      "costs.resource_cost_fraction_initial_cap",
+      "costs.assurance_effort_cost",
+      "assurance.client_minus_unweighted_quality_gap",
+      "assurance.excess_laxest_wash_concentration"
+    ],
+    "confidence_level": 0.95
+  }
+}

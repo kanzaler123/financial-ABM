@@ -101,6 +101,8 @@ class PolicyRegime:
     audit_rule_public: bool = True
     # Rise of a firm's report (true value plus inflation) since the previous audit that flags it.
     audit_jump_threshold: float = 0.125
+    # Optional coarse public risk-band quantization for Stackelberg commitments (0 = exact per-firm q_i, >=2 = G bands).
+    audit_commitment_buckets: int = 0
     # "none", "voluntary", "large" (the large size class) or "all"; see the module docstring.
     assurance_scope: str = "none"
     # "assigned": mandated firms are assigned at random once; "firm": they pick a provider every year.
@@ -163,6 +165,12 @@ class PolicyRegime:
             raise ValueError("audit_rule_public must be boolean")
         if not isfinite(self.audit_jump_threshold) or self.audit_jump_threshold <= 0:
             raise ValueError("audit_jump_threshold must be finite and positive")
+        if type(self.audit_commitment_buckets) is not int or self.audit_commitment_buckets < 0 or self.audit_commitment_buckets == 1:
+            raise ValueError("audit_commitment_buckets must be 0 (exact) or an integer >= 2")
+        if self.audit_commitment_buckets >= 2 and (
+            self.audit_allocation not in STACKELBERG_ALLOCATIONS or not self.audit_rule_public
+        ):
+            raise ValueError("audit_commitment_buckets requires a public Stackelberg audit_allocation")
         if not 0 <= self.audit_probability <= 1 or not 0 <= self.transparency <= 1:
             raise ValueError("audit_probability and transparency must be in [0, 1]")
         if self.penalty < 0 or self.subsidy < 0:
@@ -203,6 +211,8 @@ class PolicyRegime:
             payload.pop("audit_rule_public")
         if self.audit_allocation != "jump":
             payload.pop("audit_jump_threshold")
+        if self.audit_commitment_buckets == 0:
+            payload.pop("audit_commitment_buckets")
         for name, value in ASSURANCE_DEFAULTS.items():
             if payload[name] == value:
                 payload.pop(name)

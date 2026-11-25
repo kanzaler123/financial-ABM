@@ -53,6 +53,8 @@ class EmpiricalBeliefLearner:
     penalty_seen: bool = field(init=False)
     provider_alpha: FloatArray = field(init=False)
     provider_beta: FloatArray = field(init=False)
+    band_alpha: FloatArray | None = field(init=False, default=None)
+    band_beta: FloatArray | None = field(init=False, default=None)
     audit_updates: int = 0
     assurance_updates: int = 0
 
@@ -94,6 +96,14 @@ class EmpiricalBeliefLearner:
         """Map each firm to its size tier's empirically learned audit probability."""
         return self.tier_audit_probability[size_class]
 
+    def band_audit_probabilities(self, public_band: IntArray, n_bands: int) -> FloatArray:
+        """Map each firm to its public risk band's empirically learned audit probability (zero oracle peeking)."""
+        if self.band_alpha is None or self.band_beta is None or self.band_alpha.size != n_bands:
+            q0 = self.audit_prior_alpha / max(1e-12, self.audit_prior_alpha + self.audit_prior_beta)
+            return np.full(public_band.size, q0, dtype=np.float64)
+        means = self.band_alpha / (self.band_alpha + self.band_beta)
+        return means[public_band]
+
     def observe_audits(
         self,
         *,
@@ -102,8 +112,10 @@ class EmpiricalBeliefLearner:
         caught: BoolArray,
         realized_fixed_fine_money: FloatArray,
         realized_proportional_rate: FloatArray,
+        public_band: IntArray | None = None,
+        n_bands: int = 0,
     ) -> None:
-        """Update tier audit hazards and statutory penalty beliefs strictly from realized audits."""
+        """Update tier/band audit hazards and statutory penalty beliefs strictly from realized audits."""
         retain = 1.0 - self.decay
         for tier in range(self.n_tiers):
             mask = size_class == tier
@@ -116,6 +128,22 @@ class EmpiricalBeliefLearner:
                 self.audit_beta[tier] = (
                     retain * self.audit_beta[tier] + self.decay * self.audit_prior_beta + (n_tier - k_sel)
                 )
+
+        if public_band is not None and n_bands >= 2:
+            if self.band_alpha is None or self.band_beta is None or self.band_alpha.size != n_bands:
+                self.band_alpha = np.full(n_bands, self.audit_prior_alpha, dtype=np.float64)
+                self.band_beta = np.full(n_bands, self.audit_prior_beta, dtype=np.float64)
+            for band in range(n_bands):
+                mask = public_band == band
+                n_b = int(mask.sum())
+                if n_b > 0:
+                    k_sel = float(selected[mask].sum())
+                    self.band_alpha[band] = (
+                        retain * self.band_alpha[band] + self.decay * self.audit_prior_alpha + k_sel
+                    )
+                    self.band_beta[band] = (
+                        retain * self.band_beta[band] + self.decay * self.audit_prior_beta + (n_b - k_sel)
+                    )
 
         if caught.any():
             mean_fixed = float(np.mean(realized_fixed_fine_money[caught]))
