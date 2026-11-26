@@ -50,7 +50,7 @@ would manufacture a "transition" out of the update rule itself.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from statistics import NormalDist
 
 import numpy as np
@@ -58,13 +58,22 @@ from numpy.typing import NDArray
 
 from ..manifest import canonical_json_bytes
 from ..tabular import CompanyQLearner
-from .config import TRADING_DAYS_PER_YEAR, MarketConfig
+from .bayesian_audit import BayesianAuditFilter, quantize_audit_probabilities
+from .bounded import EmpiricalBeliefLearner
+from .config import BOUNDED_FIRM_POLICIES, TRADING_DAYS_PER_YEAR, MarketConfig
 from .domain import DomainSpec
 from .financing import financing_signal_factors
 from .harness import CrossSectionMarket, CrossSectionResult, _cap_buys_to_cash
 from .investors import IMPACT_INVESTOR, PROFIT_MAXIMIZER
 from .learning import batch_update, choose_actions, context_states, discrete_candidates, npv_discrete, realized_rewards, table_fingerprint
-from .policy import PolicyRegime, PolicySchedule, audit_probabilities
+from .policy import (
+    BAYESIAN_STACKELBERG_ALLOCATIONS,
+    STACKELBERG_ALLOCATIONS,
+    PolicyRegime,
+    PolicySchedule,
+    audit_probabilities,
+    stackelberg_audit_probabilities,
+)
 
 FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int64]
@@ -248,6 +257,8 @@ class AssuranceState:
     signed_by: IntArray
     year_checks: IntArray
     year_inflated: IntArray
+    year_corrected: IntArray
+    year_liable: IntArray
     history: dict[str, NDArray]
     origin: int | None = None
 
@@ -260,6 +271,8 @@ class AssuranceState:
             client_of=np.full(n_firms, -1, dtype=np.int64), quality=np.zeros(count), share=np.zeros(count),
             signed_by=np.full(n_firms, -1, dtype=np.int64), year_checks=np.zeros(count, dtype=np.int64),
             year_inflated=np.zeros(count, dtype=np.int64),
+            year_corrected=np.zeros(count, dtype=np.int64),
+            year_liable=np.zeros(count, dtype=np.int64),
             history={
                 "assurer_assignment": np.full((decisions, n_firms), -1, dtype=np.int64),
                 "assurance_checked_inflated": np.zeros((decisions, n_firms), dtype=bool),
@@ -287,6 +300,19 @@ class AssuranceState:
     def check_share(self) -> FloatArray:
         """Share of each provider's checks in the past year whose report carried inflation (0 without checks)."""
         return np.divide(self.year_inflated, self.year_checks, out=np.zeros(self.count), where=self.year_checks > 0)
+
+    def detected_bayes_share(self, audit_probability: float, prior_strength: float) -> FloatArray:
+        """Empirical-Bayes contamination estimate using only own corrections and regulatory liability events.
+
+        Each truly inflated check is observed either via pre-publication correction (prob a_k) or via a
+        regulatory audit on a passed report (prob (1 - a_k) * q), giving total detection rate
+        p_obs = a_k + (1 - a_k) * q. Smooths around the previous year's estimate with weight ``prior_strength``.
+        """
+        p_obs = self.quality + (1.0 - self.quality) * audit_probability
+        effective_n = self.year_checks * p_obs
+        observed = self.year_corrected + self.year_liable
+        estimate = (prior_strength * self.share + observed) / (prior_strength + effective_n)
+        return np.clip(np.where(self.year_checks > 0, estimate, self.share), 0.0, 1.0)
 
 
 def real_persistence(domain: DomainSpec, n_firms: int, horizon_days: int) -> FloatArray | None:
@@ -673,24 +699,51 @@ class DisclosureMarket(CrossSectionMarket):
             raise ValueError("reverting true values are modelled only with daily reports and unpublished audits")
         regimes = [regime for regime in (policy.baseline, policy.intervention) if regime is not None]
         self.audit_targeting = any(regime.audit_allocation != "uniform" for regime in regimes)
-        if self.audit_targeting and (config.firm_policy != "npv" or any(
+        allowed_modern = ("npv", *BOUNDED_FIRM_POLICIES)
+        if self.audit_targeting and (config.firm_policy not in allowed_modern or any(
             regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes
         )):
-            raise ValueError("targeted audits are modelled only with NPV firms, daily reports and unpublished audits")
+            raise ValueError("targeted audits are modelled only with NPV or bounded-rationality firms, daily reports and unpublished audits")
         assured = policy.intervention is not None and policy.intervention.assurance_scope != "none"
         if policy.baseline.assurance_scope != "none":
             raise ValueError("assurance is modelled only as a policy switch")
         if assured:
+            if policy.intervention.assurance_scope == "voluntary" and config.firm_policy in BOUNDED_FIRM_POLICIES:
+                raise ValueError("voluntary assurance is modelled only with NPV firms")
             delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
                      else policy.intervention.disclosure_delay_days)
-            if (config.firm_policy != "npv" or self.audit_targeting
+            if (config.firm_policy not in allowed_modern or self.audit_targeting
                     or any(regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes)
                     or not 0 < delay < config.firm_decision_interval):
-                raise ValueError("assurance is modelled only with NPV firms, daily reports, unpublished random audits "
+                raise ValueError("assurance is modelled only with NPV or bounded-rationality firms, daily reports, unpublished random audits "
                                  "and a disclosure delay shorter than a decision period")
         # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
         self.report_after_audit: FloatArray | None = None
+        # Next-period Stackelberg audit commitment announced after audits execute on decision day t.
+        self.stackelberg_next_probability: FloatArray | None = None
+        # Optional coarse public risk-band labels (0..G-1) governing the next/just-executed bucketed audit.
+        self.stackelberg_next_band: IntArray | None = None
+        self.stackelberg_next_band_count: int = 0
         self.real_persistence = real_persistence(domain, config.n_firms, config.financing_horizon_days)
+        # Joint persistent-type x Markov-state Bayesian belief filter maintained strictly from public observables.
+        bayes_regimes = [r for r in regimes if r.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS]
+        if bayes_regimes:
+            alloc_name = bayes_regimes[0].audit_allocation
+            self.bayesian_audit_filter: BayesianAuditFilter | None = BayesianAuditFilter(
+                domain=domain,
+                size_class=self.firms.size_class,
+                initial_report=self._claimed_report(),
+                report_bound=self.report_bound,
+                discount_rate=config.firm_discount_rate,
+                horizon_days=config.financing_horizon_days,
+                repricing_interval=config.financing_repricing_interval,
+                period_days=config.firm_decision_interval,
+                real_persistence=self.real_persistence,
+                use_report_signal=(alloc_name == "stackelberg_obs_sig"),
+                value_weighted=(alloc_name == "stackelberg_obs_val"),
+            )
+        else:
+            self.bayesian_audit_filter = None
 
         investors = self.investors
         self.latent_taste = config.taste_median * self.learning_rng.lognormal(
@@ -746,7 +799,8 @@ class DisclosureMarket(CrossSectionMarket):
         self.choice_history = None
         self.coverage_forced_history = None
         self.learning_update_history = None
-        if config.firm_policy != "npv":
+        self.empirical_belief: EmpiricalBeliefLearner | None = None
+        if config.firm_policy in ("npv_discrete", "q_learning"):
             self.pending_resource_cost = np.zeros(firms)
             self.pending_fine = np.zeros(firms)
             self.pending_subsidy = np.zeros(firms)
@@ -765,6 +819,16 @@ class DisclosureMarket(CrossSectionMarket):
                     self.coverage_forced_history = np.zeros((decisions, firms), dtype=bool)
                 if common_prepolicy_sha256 is not None:
                     self.learning_update_history = np.zeros((decisions, firms), dtype=bool)
+        elif config.firm_policy in BOUNDED_FIRM_POLICIES:
+            n_providers = policy.intervention.assurer_count if assured else 4
+            self.empirical_belief = EmpiricalBeliefLearner(
+                n_tiers=3,
+                n_providers=n_providers,
+                decay=config.firm_belief_decay,
+                baseline_audit_probability=domain.baseline_audit_probability,
+                baseline_fixed_fine=domain.baseline_fixed_fine,
+                baseline_penalty=domain.baseline_penalty,
+            )
         self.signal_day = -1
         self._prepare_signals(0)
         # Quoted after the day-0 signal, so the initial rate carries the day-0 rating term.
@@ -928,16 +992,23 @@ class DisclosureMarket(CrossSectionMarket):
         assurance.signed_by[passed] = assurance.client_of[passed]
         np.add.at(assurance.year_checks, assurance.client_of[checked], 1)
         np.add.at(assurance.year_inflated, assurance.client_of[inflated], 1)
+        np.add.at(assurance.year_corrected, assurance.client_of[corrected], 1)
         period = decision_day // period_days
         assurance.history["assurance_checked_inflated"][period] = inflated
         assurance.history["assurance_corrections"][period] = corrected
+        if self.empirical_belief is not None:
+            self.empirical_belief.observe_assurance_period(
+                checked_inflated=inflated,
+                corrected=corrected,
+                client_of=assurance.client_of,
+            )
         self.assurance_fee_history[day, checked] = regime.assurance_fee
         self.assurance_effort_cost_history[day, checked] = (
             regime.assurer_effort_cost * assurance.firm_quality()[checked] ** 2
         )
         self.pending_value_change[checked] -= regime.assurance_fee
 
-    def _assurance_year(self, day: int, regime: PolicyRegime, values) -> None:
+    def _assurance_year(self, day: int, regime: PolicyRegime, values, provider_selector=None) -> None:
         """At the start of an assurance year: clients, then each provider's quality, then firms' picks.
 
         In the first year mandated firms are assigned at random, evenly, and each provider's share
@@ -959,26 +1030,51 @@ class DisclosureMarket(CrossSectionMarket):
             members = np.flatnonzero(mandated)
             order = assurance.rng.permutation(members.size)
             assurance.client_of[members[order]] = np.arange(members.size) % assurance.count
-            share = assurance.client_share(self.attributes.inflation)
+            if regime.assurer_observation == "detected_bayes":
+                share = np.full(assurance.count, regime.assurer_prior_share, dtype=np.float64)
+            else:
+                share = assurance.client_share(self.attributes.inflation)
+        elif regime.assurer_observation == "detected_bayes":
+            share = assurance.detected_bayes_share(regime.audit_probability, regime.assurer_prior_strength)
         else:
             share = assurance.check_share()
         assurance.year_checks[:] = 0
         assurance.year_inflated[:] = 0
+        assurance.year_corrected[:] = 0
+        assurance.year_liable[:] = 0
         assurance.share = share
-        assurance.quality = np.minimum(1.0, regime.assurer_slope * share)
+        target_quality = np.minimum(1.0, regime.assurer_slope * share)
+        if first or regime.assurer_smoothing == 0.0:
+            quality = target_quality
+        else:
+            gamma = regime.assurer_smoothing
+            quality = gamma * assurance.quality + (1.0 - gamma) * target_quality
+        if regime.assurer_min_quality > 0.0:
+            quality = np.maximum(regime.assurer_min_quality, quality)
+        assurance.quality = quality
+        if not first and regime.assurer_selection == "rotating" and scope != "voluntary":
+            members = np.flatnonzero(mandated)
+            order = assurance.rng.permutation(members.size)
+            assurance.client_of[:] = -1
+            assurance.client_of[members[order]] = np.arange(members.size) % assurance.count
         if scope == "voluntary":
+            if provider_selector is not None:
+                raise ValueError("voluntary assurance is modelled only with NPV firms")
             options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
             best = np.argmax(options, axis=1)
             fees = ASSURANCE_YEAR_PERIODS * regime.assurance_fee / self.prices
             buy = options[np.arange(size), best] - fees > values(np.zeros(size))
             assurance.client_of[:] = np.where(buy, best, -1)
         elif regime.assurer_selection == "firm":
-            options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
-            best = np.argmax(options, axis=1)
-            current = np.maximum(assurance.client_of, 0)
-            rows = np.arange(size)
-            switch = mandated & (options[rows, best] > options[rows, current])
-            assurance.client_of[switch] = best[switch]
+            if provider_selector is not None:
+                assurance.client_of[:] = provider_selector(mandated, assurance.client_of)
+            else:
+                options = np.column_stack([values(np.full(size, a)) for a in assurance.quality])
+                best = np.argmax(options, axis=1)
+                current = np.maximum(assurance.client_of, 0)
+                rows = np.arange(size)
+                switch = mandated & (options[rows, best] > options[rows, current])
+                assurance.client_of[switch] = best[switch]
 
     def _post_trade(self, day: int) -> None:
         cfg = self.config
@@ -996,21 +1092,33 @@ class DisclosureMarket(CrossSectionMarket):
         self.slope_history[day] = pricing_slope(k, self.signal_z(day))
         draws = self.audit_rng.random(state.inflation.size)
         flagged = probability = None
+        pre_audit_report = self._claimed_report() if self.bayesian_audit_filter is not None else None
+        if self.bayesian_audit_filter is not None and day > 0:
+            assert pre_audit_report is not None
+            self.bayesian_audit_filter.predict(day=day, pre_audit_report=pre_audit_report)
         if self.audit_targeting:
-            if regime.audit_allocation == "jump" and self.report_after_audit is not None:
-                flagged = self._claimed_report() - self.report_after_audit > regime.audit_jump_threshold
-                self.audit_flag_history[period] = flagged
-            probability = audit_probabilities(regime, self.prices, flagged)
+            if regime.audit_allocation in STACKELBERG_ALLOCATIONS:
+                if self.stackelberg_next_probability is not None:
+                    probability = self.stackelberg_next_probability
+                else:
+                    probability, _ = self._stackelberg_probabilities_with_bands(day, regime)
+            else:
+                if regime.audit_allocation == "jump" and self.report_after_audit is not None:
+                    flagged = self._claimed_report() - self.report_after_audit > regime.audit_jump_threshold
+                    self.audit_flag_history[period] = flagged
+                probability = audit_probabilities(regime, self.prices, flagged)
             self.audit_probability_history[period] = probability
             selected = draws < probability
         else:
             selected = draws < regime.audit_probability
-        caught = selected & (state.inflation > 0)
+        had_inflation_before_audit = state.inflation > 0
+        caught = selected & had_inflation_before_audit
         if self.assurance is not None:
             # The provider that passed the inflated report pays its liability.
             signed = self.assurance.signed_by
             liable = caught & (signed >= 0)
             np.add.at(self.assurance.history["assurer_liability_events"][period], signed[liable], 1)
+            np.add.at(self.assurance.year_liable, signed[liable], 1)
             signed[caught] = -1
         # One detected case: the proportional fine on its size plus one fixed
         # fine, or one fixed fine per inflated report in it.
@@ -1022,8 +1130,20 @@ class DisclosureMarket(CrossSectionMarket):
         state.inflation[caught] = 0.0
         if state.false_reports is not None:
             state.false_reports[caught] = 0
-        if self.audit_targeting:
-            self.report_after_audit = self._claimed_report()
+        post_audit_report: FloatArray | None = None
+        if self.audit_targeting or self.bayesian_audit_filter is not None:
+            post_audit_report = self._claimed_report()
+            if self.audit_targeting:
+                self.report_after_audit = post_audit_report
+        if self.bayesian_audit_filter is not None:
+            assert pre_audit_report is not None and post_audit_report is not None
+            self.bayesian_audit_filter.condition_on_audit(
+                day=day,
+                pre_audit_report=pre_audit_report,
+                post_audit_report=post_audit_report,
+                selected=selected,
+                caught=caught,
+            )
         self.report_cache[selected] = state.observed(regime.transparency)[selected] + self.disclosure_error_history[day, selected]
         published = selected & regime.publish_audit_results
         self.audit_selected_history[period] = selected
@@ -1043,11 +1163,43 @@ class DisclosureMarket(CrossSectionMarket):
         disclosure_delay = self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
         wash_due = day + max(1, disclosure_delay)
         # Audit probabilities firms plan with: their own ones if the targeting rule is public.
+        executed_band = self.stackelberg_next_band
+        executed_band_count = self.stackelberg_next_band_count
         planned = first_planned = flag_room = None
+        cached_benefit: FloatArray | None = None
         if regime.audit_allocation == "value" and regime.audit_rule_public:
             planned = probability
         elif regime.audit_allocation == "jump" and regime.audit_rule_public:
             planned, first_planned, flag_room = self._jump_plan(day, regime, flagged)
+        elif regime.audit_allocation in STACKELBERG_ALLOCATIONS:
+            cached_benefit = self.marginal_financing_saving()
+            next_prob, next_band = self._stackelberg_probabilities_with_bands(day, regime, benefit=cached_benefit)
+            if next_band is not None and regime.audit_commitment_buckets >= 2 and regime.audit_rule_public:
+                self.stackelberg_next_band = next_band
+                self.stackelberg_next_band_count = regime.audit_commitment_buckets
+            else:
+                self.stackelberg_next_band = None
+                self.stackelberg_next_band_count = 0
+            self.stackelberg_next_probability = next_prob
+            if regime.audit_rule_public:
+                planned = next_prob
+        if self.bayesian_audit_filter is not None:
+            assert post_audit_report is not None
+            if cached_benefit is None:
+                cached_benefit = self.marginal_financing_saving()
+            planned_q = (
+                np.full(self.config.n_firms, regime.audit_probability, dtype=np.float64)
+                if planned is None
+                else np.broadcast_to(np.asarray(planned, dtype=np.float64), (self.config.n_firms,))
+            )
+            self.bayesian_audit_filter.record_commitment(
+                day=day,
+                prices=self.prices,
+                benefit=cached_benefit,
+                planned_q=planned_q,
+                regime=regime,
+                post_audit_report=post_audit_report,
+            )
         new_case_fine = None
         if regime.fixed_fine and regime.fixed_fine_basis == "report":
             # Every new inflated report carries its own fine whatever the stock it joins.
@@ -1059,7 +1211,7 @@ class DisclosureMarket(CrossSectionMarket):
                 audit_probability=regime.audit_probability if planned is None else planned,
             )
         if self.config.firm_policy == "npv":
-            benefit = self.marginal_financing_saving()
+            benefit = self.marginal_financing_saving() if cached_benefit is None else cached_benefit
 
             def decide(assurance_probability: FloatArray | None = None) -> FirmChoices:
                 return npv_choices(
@@ -1093,6 +1245,23 @@ class DisclosureMarket(CrossSectionMarket):
                 choices = decide(self.assurance.firm_quality())
             else:
                 choices = decide()
+        elif self.config.firm_policy in BOUNDED_FIRM_POLICIES:
+            choices = self._bounded_decision(
+                day=day,
+                period=period,
+                regime=regime,
+                published=published,
+                selected=selected,
+                caught=caught,
+                improve_capacity=improve_capacity,
+                inflate_capacity=inflate_capacity,
+                wash_due=wash_due,
+                cached_benefit=cached_benefit,
+                executed_band=executed_band,
+                executed_band_count=executed_band_count,
+                announced_band=self.stackelberg_next_band,
+                announced_band_count=self.stackelberg_next_band_count,
+            )
         else:
             choices = self._discrete_decision(day, period, regime, published, penalty,
                                               improve_capacity, inflate_capacity, new_case_fine)
@@ -1154,6 +1323,72 @@ class DisclosureMarket(CrossSectionMarket):
             retention = np.exp(-self.domain.natural_reversion / TRADING_DAYS_PER_YEAR)
             room = room + (1.0 - retention**period) * (transitory - transitory.mean())
         return float(unflagged), float(expected[0]), room
+
+    def _stackelberg_probabilities(
+        self, day: int, regime: PolicyRegime, benefit: FloatArray | None = None,
+    ) -> FloatArray:
+        """Compute budget-conserving Stackelberg audit probabilities for the next audit date."""
+        prob, _ = self._stackelberg_probabilities_with_bands(day, regime, benefit=benefit)
+        return prob
+
+    def _stackelberg_probabilities_with_bands(
+        self, day: int, regime: PolicyRegime, benefit: FloatArray | None = None,
+    ) -> tuple[FloatArray, IntArray | None]:
+        """Compute budget-conserving Stackelberg probabilities plus optional discrete public risk bands."""
+        size = self.config.n_firms
+        disclosure_delay = (
+            self.domain.disclosure_delay_days if regime.disclosure_delay_days is None else regime.disclosure_delay_days
+        )
+        wash_due = day + max(1, disclosure_delay)
+        raw_benefit = self.marginal_financing_saving() if benefit is None else benefit
+        if regime.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS:
+            assert self.bayesian_audit_filter is not None
+            return self.bayesian_audit_filter.allocate_with_bands(
+                day=day,
+                regime=regime,
+                prices=self.prices,
+                benefit=raw_benefit,
+                post_audit_report=self._claimed_report(),
+            )
+        benefit_est = raw_benefit
+        cost_est = self.attributes.marginal_cost(self.domain)
+        if regime.fixed_fine_basis == "report":
+            pi_est = np.ones(size, dtype=np.float64)
+        else:
+            pi_est = new_case_probability(
+                self.attributes.inflation,
+                self.attributes.pending,
+                decision_day=day,
+                wash_due=wash_due,
+                period_days=self.config.firm_decision_interval,
+                audit_probability=regime.audit_probability,
+            )
+        w_est = (
+            self.domain.wash_cost_ratio
+            if self.attributes.wash_cost_ratio is None
+            else self.attributes.wash_cost_ratio
+        )
+        prob = stackelberg_audit_probabilities(
+            regime=regime,
+            prices=self.prices,
+            benefit=benefit_est,
+            marginal_cost=cost_est,
+            new_case_prob=pi_est,
+            wash_cost_ratio=w_est,
+            discount_rate=self.config.firm_discount_rate,
+            decision_day=day,
+            horizon_days=self.config.financing_horizon_days,
+            repricing_interval=self.config.financing_repricing_interval,
+            period_days=self.config.firm_decision_interval,
+            implementation_delay=self.domain.implementation_delay_days,
+            disclosure_delay=disclosure_delay,
+            real_persistence=self.real_persistence,
+            max_change_per_period=self.domain.max_change_per_period,
+            has_open_case=(self.attributes.inflation > 0.0),
+        )
+        if regime.audit_commitment_buckets >= 2 and regime.audit_rule_public:
+            return quantize_audit_probabilities(prob, regime.audit_commitment_buckets)
+        return prob, None
 
     def _discrete_decision(
         self, day: int, period: int, regime: PolicyRegime, published: NDArray[np.bool_],
@@ -1253,6 +1488,121 @@ class DisclosureMarket(CrossSectionMarket):
         self.choice_history[period] = actions
         return FirmChoices(candidates.kinds[actions], candidates.amounts[rows, actions], values,
                            candidates.cost_fraction[rows, actions], candidates.subsidy_fraction[rows, actions])
+
+    def _bounded_decision(
+        self,
+        *,
+        day: int,
+        period: int,
+        regime: PolicyRegime,
+        published: NDArray[np.bool_],
+        selected: NDArray[np.bool_],
+        caught: NDArray[np.bool_],
+        improve_capacity: FloatArray,
+        inflate_capacity: FloatArray,
+        wash_due: int,
+        cached_benefit: FloatArray | None,
+        executed_band: IntArray | None = None,
+        executed_band_count: int = 0,
+        announced_band: IntArray | None = None,
+        announced_band_count: int = 0,
+    ) -> FirmChoices:
+        """Zero-leakage empirical-belief decision step (learns q_tier/q_band, F, p and a_k strictly online)."""
+        cfg, domain, state = self.config, self.domain, self.attributes
+        belief = self.empirical_belief
+        assert belief is not None
+        size = cfg.n_firms
+
+        # 1. Update empirical enforcement beliefs solely from realized public audit & fine outcomes.
+        realized_fixed = np.where(caught, regime.fixed_fine, 0.0)
+        realized_prop = np.where(caught, regime.penalty, 0.0)
+        belief.observe_audits(
+            size_class=self.firms.size_class,
+            selected=selected,
+            caught=caught,
+            realized_fixed_fine_money=realized_fixed,
+            realized_proportional_rate=realized_prop,
+            public_band=executed_band,
+            n_bands=executed_band_count,
+        )
+
+        # 2. Construct perceived regime using ONLY empirically learned audit/fine parameters.
+        assured_active = self.assurance is not None and regime.assurance_scope != "none"
+        emp_q_scalar = belief.pooled_audit_probability
+        if announced_band is not None and announced_band_count >= 2:
+            emp_q_vec = belief.band_audit_probabilities(announced_band, announced_band_count)
+        else:
+            emp_q_vec = belief.firm_audit_probabilities(self.firms.size_class)
+        emp_fine = belief.emp_fixed_fine_money
+        emp_regime = replace(
+            regime,
+            audit_probability=emp_q_scalar,
+            fixed_fine=emp_fine,
+            penalty=belief.emp_penalty_rate,
+        )
+        emp_audit_arg: FloatArray | None = None if assured_active else emp_q_vec
+
+        emp_new_case_fine: FloatArray | None = None
+        if emp_fine > 0.0:
+            if regime.fixed_fine_basis == "report":
+                emp_new_case_fine = emp_fine / self.prices
+            else:
+                emp_new_case_fine = emp_fine / self.prices * new_case_probability(
+                    state.inflation,
+                    state.pending,
+                    decision_day=day,
+                    wash_due=wash_due,
+                    period_days=cfg.firm_decision_interval,
+                    audit_probability=emp_q_scalar if assured_active else emp_q_vec,
+                )
+
+        benefit = self.marginal_financing_saving() if cached_benefit is None else cached_benefit
+        marginal_cost = state.marginal_cost(domain)
+        cost_of_capital = np.full(size, cfg.firm_discount_rate, dtype=np.float64)
+
+        def decide(assurance_probability: FloatArray | None = None) -> FirmChoices:
+            return npv_choices(
+                benefit=benefit,
+                cost_of_capital=cost_of_capital,
+                marginal_cost=marginal_cost,
+                regime=emp_regime,
+                domain=domain,
+                period_days=cfg.firm_decision_interval,
+                improve_capacity=improve_capacity,
+                inflate_capacity=inflate_capacity,
+                horizon_days=cfg.financing_horizon_days,
+                repricing_interval=cfg.financing_repricing_interval,
+                decision_day=day,
+                published_now=published,
+                new_case_fine=emp_new_case_fine,
+                wash_cost_ratio=state.wash_cost_ratio,
+                real_persistence=self.real_persistence,
+                audit_probability=emp_audit_arg,
+                assurance_probability=assurance_probability,
+            )
+
+        # 3. Assurance year (Discounted Thompson Sampling over empirical provider Beta posteriors;
+        # zero access to true provider quality self.assurance.quality).
+        if assured_active:
+            assert self.assurance is not None
+            provider_draws = belief.sample_provider_qualities(size, self.firm_rng)
+            selector = lambda mandated, current: belief.choose_providers_thompson(
+                mandated=mandated,
+                current_providers=current,
+                value_fn=lambda a: decide(a).npv,
+                rng=self.firm_rng,
+                draws=provider_draws,
+            )
+            self._assurance_year(day, regime, None, provider_selector=selector)
+            history = self.assurance.history
+            history["assurer_assignment"][period] = self.assurance.client_of
+            history["assurer_quality"][period] = self.assurance.quality
+            history["assurer_inflation_share"][period] = self.assurance.share
+            client_of = self.assurance.client_of
+            rows = np.arange(size)
+            emp_firm_a = np.where(client_of >= 0, provider_draws[rows, np.maximum(client_of, 0)], 0.0)
+            return decide(emp_firm_a)
+        return decide()
 
     def _imitate(self) -> None:
         cfg, investors = self.config, self.investors

@@ -1,0 +1,321 @@
+{
+  "name": "disclosure_mas_upgrade_dev_v1",
+  "purpose": "development",
+  "archive": "compact",
+  "_note": "Development pipeline check for contract draft sections 29-31 (Bayesian dynamic Stackelberg audit allocation, zero-leakage empirical-belief firms, and partial-observability Bayesian assurance with hysteresis remedies) using the bundled public ESG domain on fresh development seeds 60101-60103. Replace domain with CSI 300 vendor domain and seeds 61001-63030 before freezing confirmatory runs.",
+  "domain": "domains/esg.json",
+  "market": {
+    "n_investors": 200,
+    "n_firms": 60,
+    "trading_days": 2400,
+    "burn_in_days": 1200,
+    "initial_impact_share": 0.2,
+    "taste_median": 0.0724,
+    "imitation_rule": "pairwise",
+    "financing_exposure_fraction": 0.5,
+    "financing_spread": 0.05,
+    "financing_repricing_interval": 60,
+    "financing_horizon_days": 1260,
+    "firm_discount_rate": 0.05,
+    "intrinsic_value_log_sd": 0.9151544344205937
+  },
+  "seeds": [
+    60101,
+    60102,
+    60103
+  ],
+  "scenarios": [
+    {
+      "name": "B",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      }
+    },
+    {
+      "name": "V",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "value"
+        }
+      }
+    },
+    {
+      "name": "S_obs",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs"
+        }
+      }
+    },
+    {
+      "name": "S_obs_hid",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs",
+          "audit_rule_public": false
+        }
+      }
+    },
+    {
+      "name": "S_obs_sig",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs_sig"
+        }
+      }
+    },
+    {
+      "name": "S_obs_val",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_obs_val"
+        }
+      }
+    },
+    {
+      "name": "S_oracle_eq",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "audit_allocation": "stackelberg_eq"
+        }
+      }
+    },
+    {
+      "name": "ALL_R16_bayes",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "ALL_F16_bayes",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00036491926429311675,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_observation": "detected_bayes"
+        }
+      }
+    },
+    {
+      "name": "ALL_R100_bayes_smooth",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "assigned",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_observation": "detected_bayes",
+          "assurer_smoothing": 0.7
+        }
+      }
+    },
+    {
+      "name": "ALL_F100_smooth",
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "assurance_scope": "all",
+          "assurer_selection": "firm",
+          "assurer_liability": 0.00228074540183198,
+          "assurance_fee": 5.430346194838047e-07,
+          "assurer_effort_cost": 2.172138477935219e-06,
+          "assurer_smoothing": 0.7
+        }
+      }
+    },
+    {
+      "name": "emp_B",
+      "market": {
+        "firm_policy": "empirical_belief"
+      },
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      }
+    },
+    {
+      "name": "emp_I",
+      "market": {
+        "firm_policy": "empirical_belief"
+      },
+      "domain": {
+        "baseline_fixed_fine": 4.56e-05,
+        "baseline_penalty": 0.0,
+        "baseline_audit_probability": 0.01,
+        "baseline_transparency": 0.1,
+        "natural_decay": 0.2
+      },
+      "policy": {
+        "start_day": 1201,
+        "changes": {
+          "transparency": 0.6
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "bayesian_obs_minus_baseline",
+      "weights": { "S_obs": 1, "B": -1 },
+      "primary": true
+    },
+    {
+      "name": "bayesian_obs_minus_value",
+      "weights": { "S_obs": 1, "V": -1 },
+      "primary": true
+    },
+    {
+      "name": "bayesian_obs_commitment_value",
+      "weights": { "S_obs": 1, "S_obs_hid": -1 },
+      "primary": true
+    },
+    {
+      "name": "bayesian_obs_val_minus_value",
+      "weights": { "S_obs_val": 1, "V": -1 },
+      "primary_metric": "true_change.fixed_start_cap_weight_sd",
+      "primary": true
+    },
+    {
+      "name": "bayesian_sig_minus_obs",
+      "weights": { "S_obs_sig": 1, "S_obs": -1 },
+      "primary": true
+    },
+    {
+      "name": "oracle_private_info_value",
+      "weights": { "S_oracle_eq": 1, "S_obs_sig": -1 },
+      "primary": false
+    },
+    {
+      "name": "assurance_bayes_choice_cost",
+      "weights": { "ALL_F16_bayes": 1, "ALL_R16_bayes": -1 },
+      "primary": true
+    },
+    {
+      "name": "assurance_bayes_quality_gap",
+      "weights": { "ALL_F16_bayes": 1, "ALL_R16_bayes": -1 },
+      "primary_metric": "assurance.client_minus_unweighted_quality_gap",
+      "primary": true
+    },
+    {
+      "name": "assurance_hysteresis_seals_escape",
+      "weights": { "ALL_F100_smooth": 1, "ALL_F16_bayes": -1 },
+      "primary": true
+    },
+    {
+      "name": "empirical_belief_information_minus_baseline",
+      "weights": { "emp_I": 1, "emp_B": -1 },
+      "primary": true
+    }
+  ],
+  "analysis": {
+    "primary_metric": "true_change.equal_weight_sd",
+    "metrics": [
+      "true_change.equal_weight_sd",
+      "true_change.fixed_start_cap_weight_sd",
+      "inflation.mean_sd",
+      "size.large_minus_small_sd",
+      "actions.wash_share_by_size.small",
+      "actions.wash_share_by_size.large",
+      "costs.resource_cost_fraction_initial_cap",
+      "assurance.client_minus_unweighted_quality_gap"
+    ],
+    "confidence_level": 0.95
+  }
+}

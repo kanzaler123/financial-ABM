@@ -15,6 +15,8 @@ from typing import Any, Mapping
 TRADING_DAYS_PER_YEAR = 252
 IMITATION_RULES = ("type_mean", "pairwise")
 LEARNING_CONTEXTS = ("exposure", "signal_tercile", "improvement_stock")
+BOUNDED_FIRM_POLICIES = ("empirical_belief",)
+FIRM_POLICIES = ("npv", "npv_discrete", "q_learning", *BOUNDED_FIRM_POLICIES)
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +141,8 @@ class MarketConfig:
     # n ** -w (Even-Dar and Mansour 2003); zero keeps the constant rate.
     firm_learning_context: str = "exposure"
     firm_learning_rate_power: float = 0.0
+    # Empirical-belief bounded rationality ("empirical_belief"; default omitted from identity).
+    firm_belief_decay: float = 0.15
     # Shared-grid rules only (npv_discrete, q_learning): a positive value makes
     # a candidate illegal when its resource cost exceeds this fraction of the
     # current market cap. Zero keeps the value-anchor rule alone.
@@ -156,8 +160,10 @@ class MarketConfig:
     firm_discount_rate: float = 0.05
 
     def __post_init__(self) -> None:
-        if self.firm_policy not in ("npv", "npv_discrete", "q_learning"):
-            raise ValueError("firm_policy must be 'npv', 'npv_discrete' or 'q_learning'")
+        if self.firm_policy not in FIRM_POLICIES:
+            raise ValueError(f"firm_policy must be one of {FIRM_POLICIES}")
+        if not 0 < self.firm_belief_decay <= 1:
+            raise ValueError("firm_belief_decay must be in (0, 1]")
         if self.imitation_rule not in IMITATION_RULES:
             raise ValueError(f"imitation_rule must be one of {IMITATION_RULES}")
         if self.firm_learning_context not in LEARNING_CONTEXTS:
@@ -238,6 +244,8 @@ class MarketConfig:
             payload.pop("firm_learning_context")
         if self.firm_learning_rate_power == 0.0:
             payload.pop("firm_learning_rate_power")
+        if self.firm_belief_decay == 0.15:
+            payload.pop("firm_belief_decay")
         if self.firm_cost_budget_fraction == 0.0:
             payload.pop("firm_cost_budget_fraction")
         if self.financing_rating_slope == 0.0:

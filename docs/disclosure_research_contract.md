@@ -1937,3 +1937,145 @@ I 只改变透明度；F 只改变罚金。核查概率分别固定，不用等 
    - 从已提交的 `h3_v1_analysis.json`（SHA-256 `fcfeefa7817017fc85d68a55b0f664682130c10504eb5436224f41f4f8d0b6b2`）的 30 种子场景均值可算得：V−B = −0.020926597892002977 SD，J−B = −0.009767268907335078 SD。原 V−A2 = −0.030915642378042292、J−A2 = −0.019756313393374393 的数值保留，但只解释为与双倍随机核查的比较。
    - **同预算配对区间待逐种子档案复算。** 不从场景均值推断标准误、p 值或显著性，不复用 A2 的区间。`python scripts/recompute_research_corrections.py h3` 公开复现点差；有原始档案时加 `--archive <h3_v1档案>`，核验一致身份、完整且唯一的种子对及场景均值后，计算未作多重校正的配对 95% t 区间。这仍是描述性辅助勘误，不替换八项主要问题。
 3. **已完成与未解决事项。** 上述代码由不依赖授权数据的合成案例验证；原始证据未改动，未运行新的大规模实验。H2 的拟合与恢复问题、H3 下政策幅度明显缩小、阶段 I 的融资激励与评级动态冲突、阶段 J 的投资者响应差异仍须分别保留。联合校准、样本外政策验证和等成本政策比较未因本次修复而完成。
+
+## 29. MAS 升级一：联合类型-状态贝叶斯动态 Stackelberg 核查机制（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节在既有主设定（第 20.1 条：1000 名投资者、200 家企业、3500 个交易日、预热 1200 日、沪深 300 分位-copula 定额罚款饱和域 `configs/domains/csi300_huazheng_esg_quantile_copula_fixed_fine_saturated.json`、连续 NPV 企业、紧凑归档）下，检验完全可落地的联合类型-状态贝叶斯动态 Stackelberg 核查机制，并分解公开承诺价值（VoC）与私有信息价值（VoI）。本节不改变第 20–28 条的任何判定。
+
+1. **理论依据与实现。** 依据 [disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 5（$D(q)$ 严格凹性、反序定理、两状态 RMAB 动态清案 Bellman 上凹包络水填求解器及无混杂隐藏规则最优清案解）。核心实现为 [`BayesianAuditFilter`](../src/abm/disclosure/bayesian_audit.py)（零私有信息泄露的 25 节点 Gauss-Hermite 持久成本类型 $\times$ Markov 未结案状态联合贝叶斯滤波，在预热期被动跟踪以保持切换前逐位一致）与 [`stackelberg_audit_probabilities`](../src/abm/disclosure/policy.py)（全信息先知上界），集成于 [`DisclosureMarket._stackelberg_probabilities`](../src/abm/disclosure/game.py)。
+2. **种子与谱系核查。** 已消耗开发诊断种子 `60901–60903`；流水线检查种子 `60101–60103`。起草阶段原拟使用 `61001–63030`，冻结前全仓 JSON 谱系扫描（2,823 个历史种子）检出 `61001–61006` 与 `62001–62003` 曾出现于 `reports/disclosure_m1_candidates_20261011/` 与 `reports/disclosure_market_public_20261011/`；因此本节改用全新未用种子段 **`71001–71030`**（与全部历史种子、开发种子及第 30–31 节种子零重叠）。
+3. **实验矩阵（11 场景 × 30 种子 = 330 次运行，均在第 1201 日切换，等期望预算 $K = N\bar q = 2.0$，`A2` 除外）。**
+   - 参照与公开启发式：`B`（1% 随机）、`V`（公开市值加权）、`J`（公开评分跳升）、`A2`（2% 双倍随机预算，$K = 4.0$）；
+   - 100% 可落地贝叶斯算法：`S_obs`（纯历史公开贝叶斯 Stackelberg，等权）、`S_obs_hid`（无混杂隐藏规则最优贝叶斯清案对照，等权）、`S_obs_sig`（融合公开报告变动 $\Delta r_i$ 平滑似然更新，等权）、`S_obs_val`（纯历史公开贝叶斯 Stackelberg，市值加权）；
+   - 全信息先知上界（仅用于 VoI 分解，不进主 Holm 族）：`S_oracle_eq`、`S_oracle_val`、`S_oracle_hid`。
+4. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日，全部针对可落地算法）：**
+   - **S1（超越随机核查）：** `S_obs − B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S2a（超越公开市值加权）：** `S_obs − V`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S2b（超越公开跳升核查）：** `S_obs − J`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **S3（无混杂公开承诺价值）：** `S_obs − S_obs_hid`（`true_change.equal_weight_sd`，预测 $> 0$；同步对比两者命中率以检验命中率悖论）；
+   - **S4（市值加权正面对决）：** `S_obs_val − V`（`true_change.fixed_start_cap_weight_sd`，预测 $> 0$）；
+   - **S5（公开报告贝叶斯滤波增益）：** `S_obs_sig − S_obs`（`true_change.equal_weight_sd`，预测 $> 0$）。
+   - *判定：* Holm $p < 0.05$ 且符号与预测一致记 `supported`，符号相反记 `unsupported`，否则记 `unresolved`。
+5. **辅助分解（未校正 95% 配对 $t$ 区间）：** `S_obs − A2`、`S_obs_sig − A2`（1× 预算贝叶斯承诺 vs. 2× 随机预算）；`S_oracle_eq − S_obs` 与 `S_oracle_eq − S_obs_sig`（私有信息价值 VoI）；`S_oracle_eq − S_oracle_hid`（先知承诺价值）；`S_oracle_val − S_obs_val`；核查命中率（`actions.detections` / 审计次数）。
+6. **流水线检查与冻结身份（2026-11-24，确认性运行之前）。**
+   - 公开合成域开发流水线运行 `configs/disclosure_mas_upgrade_dev_v1.json`（种子 `60101–60103`，39 次运行）：首次运行 `runs/disclosure_mas_upgrade_dev_v1` 检出 `runner.py` 第 410 行对非 `npv` 政策无条件调用离散表格 `learning_report` 的缺陷（导致 `emp_B`/`emp_I` 失败，其余 33/33 完成），保留失败档案不删档，修复为仅对 `("npv_discrete", "q_learning")` 生成 `learning.json` 并补充单元测试后，在 `runs/disclosure_mas_upgrade_dev_v1_r2` 39/39 全部通过，核心验证失败 0。
+   - **冻结规格：** `configs/disclosure_mas_stackelberg_confirmatory_v1.json`
+   - **`experiment_id`：** `f8297bce3f57482b05db71f0e2f76413035b631f2501031916904e60a83b0c24`
+   - **规格 SHA-256（LF）：** `ac423e7bb53f4770c3a42fee04659aef7c67dcd6c8c24b40df31933778dd1c2e`
+   - **源码摘要（`source_hashes` 规范 JSON SHA-256）：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
+7. **确认性结果（2026-11-25，[汇总报告](../reports/disclosure_mas_upgrade_20261125/README.md)）。** 自冻结提交 `ff10f5b` 启动，330/330 一次完成（0 次中断尝试），`experiment.json` 与 `summary_manifest.json` 哈希校验通过，切换前 300/300 场景-种子对逐位一致。22 个运行未通过核心验证（种子 `71022`、`71028` 各 11 场景，均为单次 `no_price_caps` 价格截断，其余机械与风格化检验全通）；按第 20.9 条保留于主分析，剔除后（$n=28$）六项主判定全部不变。
+   - **六个主要检验（Holm 校正，$n = 30$，6/6 `supported`）：**
+     - `S1`（`S_obs − B`）：`+0.1204` `[+0.1109, +0.1299]`，Holm $p = 4.82 \times 10^{-21}$（30/30）；
+     - `S2a`（`S_obs − V`）：`+0.3132` `[+0.2893, +0.3371]`，Holm $p = 2.53 \times 10^{-21}$（30/30）；
+     - `S2b`（`S_obs − J`）：`+0.2572` `[+0.2411, +0.2734]`，Holm $p = 1.28 \times 10^{-23}$（30/30）；
+     - `S3`（`S_obs − S_obs_hid`，无混杂承诺价值）：`+0.1281` `[+0.1168, +0.1394]`，Holm $p = 8.12 \times 10^{-20}$（30/30）；同步观测到强命中率悖论：`S_obs_hid`（命中率 `92.1%`，等权 `-1.2007`）与 `S_oracle_hid`（命中率 `100.0%`，等权 `-1.1853`）几无威慑增益，而 `S_obs`（命中率 `23.8%`，等权 `-1.0726`）显著领先；
+     - `S4`（`S_obs_val − V`，市值加权）：`+0.1885` `[+0.1695, +0.2075]`，Holm $p = 2.22 \times 10^{-18}$（30/30）；
+     - `S5`（`S_obs_sig − S_obs`）：`+0.0322` `[+0.0256, +0.0388]`，Holm $p = 6.73 \times 10^{-11}$（29/30）。
+   - **辅助分解：** 1× 预算 `S_obs` 与 2× 随机预算 `A2` 等权持平（`-0.0001` `[-0.0139, +0.0137]`）且市值加权更优（`-1.1688` vs `-1.2065`）；`S_obs_sig − A2 = +0.0321` `[+0.0202, +0.0440]`（$p = 5.78 \times 10^{-6}$，26/30 严格超越双倍预算）。VoI 阶梯：`S_oracle_eq − S_obs = +0.1474`，`S_oracle_eq − S_obs_sig = +0.1152`（纯公开 `S_obs_sig` 捕获全信息先知相对 `B` 总增益的 `57.0%`）。
+
+## 30. MAS 升级二：零泄露三层有限理性阶梯与在线经验信念学习（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节在阶段 D.3（第 23 条，L0：原始账户无模型表格 Q-learning，确立 0.07 bp 信号 vs. 190 bp 账户回报噪声物理边界）与零泄露 L1 真实账户控制变量诊断（20 期融资回报标准差减去同规模组均值仅由 73.0 bp 降至 70.6 bp，一阶差分减组均值仍为 0.84 bp，证明 >95% 方差为企业特质基本面噪声）的基础上，在 L2 层级以严格零泄露的在线经验信念学习器 `EmpiricalBeliefLearner` 检验核心制度机制对松弛执法理性预期的稳健性及认知边界。
+
+1. **实现与零泄露约束。** `firm_policy="empirical_belief"`（默认 `firm_belief_decay=0.15`，省略于默认序列化身份中，保持旧身份向后兼容），实现于 [`EmpiricalBeliefLearner`](../src/abm/disclosure/bounded.py) 与 [`DisclosureMarket._bounded_decision`](../src/abm/disclosure/game.py)。企业保留与 `npv` 相同的连续动作空间（消除离散网格混杂）与本地企业财务估值，但**绝不读取干预后的 `regime.audit_probability`、定向规则 `q_i`、`regime.fixed_fine`、`regime.penalty` 或真实鉴证质量 `assurance.quality`**；初始先验仅取模拟前历史基线 `domain.baseline_*`，政策切换后完全依据已发生的公开审计抽查、已查处罚单与已发生的发布前鉴证纠错事件，通过折扣 Beta-Binomial 后验与一致折扣 Thompson 采样在线更新信念。
+2. **种子与矩阵（8 场景 × 30 种子 = 240 次运行，全新未用种子段 `72001–72030`）。**
+   - 场景：`EB_B`、`EB_I`（$\tau = 0.6$）、`EB_F`（4× 法定罚款）、`EB_V`（市值加权核查）、`EB_S_obs`（公开贝叶斯 Stackelberg 核查，检验粗粒度规模档信念下个体承诺的退化边界）、`EB_R16_bayes`（指派鉴证 16×，`detected_bayes`）、`EB_F16_bayes`（自选鉴证 16×，`detected_bayes`）、`EB_F100_bayes_smooth`（自选鉴证 100×，`detected_bayes`，运行时滞回 $\gamma = 0.7$）。
+3. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）：**
+   - **L1（透明度稳健）：** `EB_I − EB_B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **L2a（无公式知晓下的小企业漂绿位移）：** `EB_V − EB_B`（`actions.wash_share_by_size.small`，预测 $> 0$）；
+   - **L2b（无公式知晓下的大企业漂绿下降）：** `EB_V − EB_B`（`actions.wash_share_by_size.large`，预测 $< 0$）；
+   - **L3（在线经验鉴证有效）：** `EB_R16_bayes − EB_B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **L4（Thompson 采样自选逃逸）：** `EB_F16_bayes − EB_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$；同步报告漂绿占比、`excess_laxest_wash_concentration` 与双边学习相位滞后下的衰减幅度）；
+   - **L5（运行时滞回对有限理性企业稳健）：** `EB_F100_bayes_smooth − EB_F16_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）。
+4. **辅助检验：** `L1b`（`EB_F − EB_B`：仅凭罚单在线学到 4× 罚款的净增益）；`L2c`（`EB_V − EB_B` 等权变化）；`L2d`（`EB_S_obs − EB_B`：粗粒度规模档信念下的 Stackelberg 承诺脆弱性）；`L5b`（`EB_F100_bayes_smooth − EB_I`）。
+5. **冻结身份（2026-11-24，确认性运行之前）：**
+   - **冻结规格：** `configs/disclosure_mas_empirical_belief_confirmatory_v1.json`
+   - **`experiment_id`：** `394a6af463c7c8b08ee0326aea3d94fa92141f1c119f7119e2af182fc7984fb6`
+   - **规格 SHA-256（LF）：** `4c87a2754a785f9e187e04b205b94b8f9880f3178308e47f11180455bbf01286`
+   - **源码摘要：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
+6. **确认性结果（2026-11-25，[汇总报告](../reports/disclosure_mas_upgrade_20261125/README.md)）。** 自冻结提交 `ff10f5b` 启动；2026-11-25 12:49 因服务端重启中断（此时已完成 204/240，12 个在途 `attempt_001` 按规范留档），随后以同一冻结身份 `--resume` 完成剩余 36 次（240/240 完整归档）。哈希校验全通，切换前 210/210 场景-种子对逐位一致。8 个运行未通过核心验证（种子 `72006` 全部 8 场景，均为单次 `no_price_caps`）；保留于主分析，剔除后（$n=29$）六项主判定全部不变。
+   - **六个主要检验（Holm 校正，$n = 30$，6/6 `supported`）：**
+     - `L1`（`EB_I − EB_B`）：`+0.3547` `[+0.3212, +0.3883]`，Holm $p = 1.19 \times 10^{-18}$（30/30）；
+     - `L2a`（`EB_V − EB_B` 小企业漂绿占比）：`+0.1691` `[+0.1396, +0.1986]`，Holm $p = 3.17 \times 10^{-12}$（30/30）；
+     - `L2b`（`EB_V − EB_B` 大企业漂绿占比）：`-0.1928` `[-0.2224, -0.1631]`，Holm $p = 2.89 \times 10^{-13}$（30/30）；
+     - `L3`（`EB_R16_bayes − EB_B`）：`+0.3170` `[+0.2814, +0.3525]`，Holm $p = 9.79 \times 10^{-17}$（30/30）；
+     - `L4`（`EB_F16_bayes − EB_R16_bayes`）：`-0.0475` `[-0.0683, -0.0267]`，Holm $p = 6.31 \times 10^{-5}$（26/30，漂绿占比由 `8.5%` 升至 `13.0%`，较理性预期逃逸幅度因双边学习摩擦衰减约 80%）；
+     - `L5`（`EB_F100_bayes_smooth − EB_F16_bayes`）：`+0.0874` `[+0.0728, +0.1020]`，Holm $p = 1.73 \times 10^{-12}$（30/30，漂绿压至 `2.1%`，等权 `-0.8555` 与 `EB_I = -0.8576` 不可分辨）。
+   - **辅助检验：** `L1b` 在线学 4× 罚款 `EB_F − EB_B = +0.1070` `[+0.0907, +0.1233]`（30/30，$p = 5.47 \times 10^{-14}$）；`L2c` 等权 `EB_V − EB_B = -0.0662`（27/30）；`L2d` 粗粒度信念 Stackelberg 边界 `EB_S_obs − EB_B = -0.0496` `[-0.0716, -0.0276]`（23/30 为负，$p = 7.48 \times 10^{-5}$），确立个体化 Stackelberg 承诺依赖企业读取个体承诺概率 $q_i^*$ 的认知边界。
+
+## 31. MAS 升级三：鉴证方部分可观测监控盲区与运行时滞回/轮换制度修复（2026-11-24 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节检验 [disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) 命题 3–4 与命题 6 的动态机制预测：当鉴证方无法读取全市场真实漂绿率、仅能依据自身查出并更正数 $C_k$ 与事后追责罚单数 $E_k$ 作贝叶斯估计（`assurer_observation="detected_bayes"`）时，强责任鉴证、自选逃逸周期、50.5× 逆向监控盲区是否稳健；以及运行时审查滞回（`assurer_smoothing=0.7`）与年度强制轮换（`assurer_selection="rotating"`）能否在不禁止企业自选或重塑指派规则的前提下治愈高责任 3-周期并封堵自选逃逸口。
+
+1. **种子与矩阵（15 场景 × 30 种子 = 450 次运行，全新未用种子段 `73001–73030`，连续 NPV 企业，沪深 300 主设定）。**
+   - 基准与参照：`B`、`I`；
+   - `exact` 复核：`ALL_R16`、`ALL_R100`、`ALL_F16`；
+   - `detected_bayes` 部分可观测稳健性：`ALL_R16_bayes`、`ALL_R100_bayes`、`ALL_F16_bayes`；
+   - 制度修复矩阵：`ALL_R16_smooth`、`ALL_R100_smooth`、`ALL_R100_bayes_smooth`、`ALL_F16_smooth`、`ALL_F100_smooth`、`ALL_F100_bayes_smooth`（`detected_bayes` + 企业自选 + 100× + 滞回 $\gamma=0.7$）、`ALL_ROT16_bayes`（`detected_bayes` + 16× + 年度强制轮换）。
+2. **六个主要检验（双侧配对 $t$ 检验，Holm 校正，政策窗口第 1200–3500 日）：**
+   - **N1（部分可观测强责任指派有效）：** `ALL_R16_bayes − B`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **N2（自选逃逸对部分可观测性稳健）：** `ALL_F16_bayes − ALL_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$）；
+   - **N3（命题 4(2) 平局安全协方差排序）：** `ALL_F16_bayes − ALL_R16_bayes`（`assurance.client_minus_unweighted_quality_gap`，预测 $< 0$）；
+   - **N4（监控盲区保留高责任非单调性）：** `ALL_R100_bayes − ALL_R16_bayes`（`true_change.equal_weight_sd`，预测 $< 0$）；
+   - **N5（运行时滞回治愈 3-周期与监控盲区）：** `ALL_R100_bayes_smooth − ALL_R100_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）；
+   - **N6（运行时滞回封堵部分可观测自选逃逸口）：** `ALL_F100_bayes_smooth − ALL_F16_bayes`（`true_change.equal_weight_sd`，预测 $> 0$）。
+3. **辅助检验：** `N3b`（`excess_laxest_wash_concentration`）；`N5b`（`ALL_R100_smooth − ALL_R100`）；`N5c`（`ALL_R100_smooth − ALL_R16_smooth`，验证滞回恢复单调性）；`N6b`（`ALL_F100_smooth − ALL_F16`）；`N6c`（`ALL_F16_smooth − ALL_F16`）；`N6d`（`ALL_ROT16_bayes − ALL_F16_bayes`，年度强制轮换封堵逃逸）；`N6e`/`N6f`（滞回修复与透明度基准 `I` 的比较）；`Exact_vs_Bayes_R16`/`R100`。
+4. **失败与基础设施处理规范（第 29–31 节通用）。** 沿用第 20.9 条与第 24.10 条：模型内失败或价格截断保留在统计中，不换种子、不追加；基础设施中断按冻结身份用 `--resume` 续跑并保留中断尝试；全部确认性运行留在当前特性分支 `feat/mas-theory-and-mechanisms` 本地 `runs/` 归档，不合并至 `main`。
+5. **冻结身份（2026-11-24，确认性运行之前）：**
+   - **冻结规格：** `configs/disclosure_mas_assurance_confirmatory_v1.json`
+   - **`experiment_id`：** `ede705da4e1256c6f267b68ff7546078ebf0f2dbe8fdb119fbfe3bbd1febbe70`
+   - **规格 SHA-256（LF）：** `5fa99977533a20b93780c34b09e43045856d67f5c57d395277c05e16074b1b73`
+   - **源码摘要：** `8cc9fa92f1114b9d0b41d399c4c88c0fcc7fe5d5d103f1b7f10fe1ba2fb10cf7`
+6. **确认性结果（2026-11-25，[汇总报告](../reports/disclosure_mas_upgrade_20261125/README.md)）。** 自冻结提交 `ff10f5b` 启动，450/450 一次完成（0 次中断尝试），哈希校验全通，切换前 420/420 场景-种子对逐位一致。31 个运行未通过核心验证（种子 `73015` 1 个场景、`73022` 15 场景、`73024` 15 场景，均为 1–2 次 `no_price_caps`）；保留于主分析，剔除后（$n=27$）六项主判定全部不变。
+   - **六个主要检验（Holm 校正，$n = 30$，6/6 `supported`）：**
+     - `N1`（`ALL_R16_bayes − B`）：`+0.3187` `[+0.2806, +0.3567]`，Holm $p = 4.15 \times 10^{-16}$（30/30）；
+     - `N2`（`ALL_F16_bayes − ALL_R16_bayes`）：`-0.2460` `[-0.2793, -0.2127]`，Holm $p = 8.54 \times 10^{-15}$（30/30）；
+     - `N3`（`ALL_F16_bayes − ALL_R16_bayes`，平局安全协方差缺口 `client_minus_unweighted_quality_gap`）：`-0.0269` `[-0.0321, -0.0217]`，Holm $p = 3.69 \times 10^{-11}$（30/30 严格为负，随机指派精确 `0.0000`）；
+     - `N4`（`ALL_R100_bayes − ALL_R16_bayes`）：`-0.0514` `[-0.0706, -0.0322]`，Holm $p = 6.79 \times 10^{-6}$（24/30 为负）；
+     - `N5`（`ALL_R100_bayes_smooth − ALL_R100_bayes`）：`+0.0931` `[+0.0828, +0.1035]`，Holm $p = 9.20 \times 10^{-17}$（30/30，漂绿由 `14.2%` 降至 `1.8%`）；
+     - `N6`（`ALL_F100_bayes_smooth − ALL_F16_bayes`）：`+0.2850` `[+0.2530, +0.3170]`，Holm $p = 1.02 \times 10^{-16}$（30/30，漂绿由 `26.7%` 降至 `3.2%`，`q_gap` 缩至 `-0.0012`，不禁止企业自选即封堵逃逸口）。
+   - **辅助检验：** `N3b` `excess_laxest_wash_concentration` 差 `+38.4pp`（30/30，$p = 1.23 \times 10^{-17}$）；`N5c` `ALL_R100_smooth − ALL_R16_smooth = +0.0006`（消除高责任非单调性）；`N6b` `ALL_F100_smooth − ALL_F16 = +0.2539`（30/30）；`N6c` `ALL_F16_smooth − ALL_F16 = +0.1149`（29/30）；`N6d` 年度强制轮换 `ALL_ROT16_bayes − ALL_F16_bayes = +0.2589`（30/30，$p = 3.58 \times 10^{-15}$，`q_gap = 0.0000`）；`Exact_vs_Bayes_R100 = -0.0151`（$p = 3.06 \times 10^{-3}$，证实命题 6(2) 监控盲区的净损耗）；`N6f` `ALL_F100_bayes_smooth − I = -0.0106` `[-0.0221, +0.0008]`（恢复透明度 `I` 收益的 `97.3%`）。
+
+## 32. MAS 升级四：机制边界扩展——经验持久回归动态、制度相变与帕累托前沿、沟通粒度信息设计及非 ESG 第二域泛化（2026-11-25 冻结，用户于同日批准；先于任何本节确认性运行）
+
+本节围绕顶刊审稿最核心的四项外推与边界问题，在四个全新、彼此及与历史全部种子（2,914 个）完全不相交的 30 种子段（`74001–77030`）上冻结四份独立确认性规格，检验核心机制在自然动态切换、二次努力成本帕累托边界、公开承诺比特数限制以及领域无关第二场景下的稳健性与相变规律。
+
+1. **新增实现与向后兼容性。**
+   - `BayesianAuditFilter`（[bayesian_audit.py](../src/abm/disclosure/bayesian_audit.py)）在 `natural_reversion > 0` 且 `reversion_permanent_share > 0`（`Q` 动态）下纳入永久分量占比 $s_P$ 修正漂移与创新方差（当 $s_P = 0$ 时与第 29–31 节逐位一致）；
+   - `PolicyRegime` 新增可选字段 `audit_commitment_buckets: int = 0`（默认 `0` 表示精确个体承诺，默认时省略于 `to_dict()` 以保持全部旧身份不变；取整数 $G \ge 2$ 时，在 `BayesianAuditFilter.allocate_with_bands` 中求解**激励相容的菜单约束 RMAB-UCE $G$ 档公开风险桶**，仅在向上方向吸收单企业分桶余量以保证零门槛跌穿与精确预算守恒）；
+   - `EmpiricalBeliefLearner`（[bounded.py](../src/abm/disclosure/bounded.py)）在存在公开离散风险桶标签 $g \in \{0, \dots, G-1\}$ 时仅凭各桶已发生核查频率在线更新 $\hat q_{\text{band}}[g]$（零泄露，绝不读取公告概率 $\bar q_g$）；无风险桶时与第 30 节逐位一致。
+   - **冻结源码摘要（`source_hashes` 规范 JSON SHA-256）：** `7a916d264eac9ab09547e4961837a9aa4d7f346e598612cf696e9ea7902d3999`。
+
+2. **§32A：阶段 H3 经验估计 `Q(κ_T = 0.505, s_P = 0.423)` 动态稳健性（`74001–74030`，12 场景 × 30 种子 = 360 次）。**
+   - **规格：** `configs/disclosure_mas_q_dynamics_confirmatory_v1.json`
+   - **`experiment_id`：** `de019a78da1c45098c5406614edb1c2c096e6e45775f4d8a9aefc674e9a1a613`；**SHA-256（LF）：** `7bd59c6747d6c1bf5a35f2829e0ddbad8d9ddf7372de3b0760c25dc4edb8fed4`。
+   - **六项主检验（Holm 校正，`true_change.equal_weight_sd`）：**
+     - `Q1`（`Q_S_obs − Q_B > 0`）；`Q2`（`Q_S_obs − Q_S_obs_hid > 0`）；`Q3`（`Q_S_obs − Q_I > 0`，检验纯历史贝叶斯 Stackelberg 在均值回归削弱透明度 `I` 时是否反超 `I`）；
+     - `Q4`（`Q_F16_bayes − Q_R16_bayes < 0`）；`Q5`（`Q_R100_bayes_smooth − Q_R100_bayes > 0`）；`Q6`（`Q_F100_bayes_smooth − Q_F16_bayes > 0`）。
+   - **辅助分解：** `Q_S_obs_sig − Q_S_obs`（高外生噪声 $\sigma_r = 0.351$ 下报告差分滤波的信噪比退化边界）、`Q_F100_bayes_smooth − Q_I`、`Q_S_obs − Q_V`/`Q_J` 及 `q_gap`。
+
+3. **§32B：命题 6(3)–(4) 制度相变与二次努力成本帕累托前沿（`75001–75030`，11 场景 × 30 种子 = 330 次）。**
+   - **规格：** `configs/disclosure_mas_phase_pareto_confirmatory_v1.json`
+   - **`experiment_id`：** `b388700c1ce8463805d96f6d620c162e431ce2bb7dca1bfb936c66c3e6a49501`；**SHA-256（LF）：** `a47ecca96fa8a63a7c7fb057dd96a115020d0437946b69d2945e6ba95f45ea0f`。
+   - **矩阵（均在无限制企业自选 + `detected_bayes` 下）：** `B`、滞回扫描 `F100_g00 / g03 / g05 / g07 / g09`（$\gamma \in \{0.0, 0.3, 0.5, 0.7, 0.9\}$）、法定底线相变扫描 `F16_m000 / m003 / m006 / m015 / m025`（跨越理论失稳门槛 $a_{\text{ins}} = 0.0346$ 与威慑门槛 $a^* \approx 0.25$）。
+   - **六项主检验（Holm 校正）：**
+     - `P1`（`F100_g05 − F100_g00 > 0`）；`P2`（`F100_g07 − F100_g05 > 0`）；`P3`（`F100_g07 − F100_g00 < 0`，指标 `costs.resource_cost_fraction_initial_cap`，验证滞回降低总社会资源消耗）；
+     - `P4`（`F16_m006 − F16_m003 > 0`，跨越 $a_{\text{ins}}$ 相变）；`P5`（`F16_m015 − F16_m006 > 0`，进入零漂绿区）；`P6`（`F16_m025 − F100_g07 < 0`，指标 `costs.assurance_effort_cost`，验证二次努力成本 Jensen 不等式下已知门槛定值底线相对脉冲滞回的努力成本帕累托优势）。
+
+4. **§32C-1：沟通粒度信息设计曲线与偏差-方差权衡（`76001–76030`，9 场景 × 30 种子 = 270 次）。**
+   - **规格：** `configs/disclosure_mas_granularity_confirmatory_v1.json`
+   - **`experiment_id`：** `51e6ec0b972453be12c0e503261e3edf84b355a6b9a7ff5c7bc96773f87a1766`；**SHA-256（LF）：** `972cfd41f9bdab1744f475ebffa03487bfd21068c5f7bf7b25306e4294d940c6`。
+   - **矩阵：** `NPV_B`（$G=1$）、`NPV_g2 / g3 / g5 / g8`（激励相容 $G$ 档风险桶）、`NPV_S_obs`（$G=N$），以及零泄露有限理性对照 `EB_B`、`EB_g2`、`EB_S_obs`。
+   - **五项主检验（Holm 校正，`true_change.equal_weight_sd`）：** `G1`（`NPV_g3 − NPV_B > 0`）、`G2`（`NPV_g5 − NPV_g3 > 0`）、`G3`（`NPV_g8 − NPV_g5 > 0`）、`G4`（`NPV_S_obs − NPV_g8 > 0`）、`G5`（`EB_g2 − EB_S_obs > 0`，验证粗粒度公开风险标签缓解有限理性企业下的承诺退化）。
+
+5. **§32C-2：非 ESG 第二域（`ai_washing.json`）跨域泛化验证（`77001–77030`，9 场景 × 30 种子 = 270 次）。**
+   - **规格：** `configs/disclosure_mas_ai_washing_confirmatory_v1.json`
+   - **`experiment_id`：** `f9992a2311cf5d16240d9ff88393f57b1c7e4965bcb44ae2ebcc88193723d544`；**SHA-256（LF）：** `f026a869271d2d97cedceebcb6ed9c468005b3585e17f38beab0b66d00edbd2a`。
+   - **域与设定：** 保留 `configs/domains/ai_washing.json` 的全部非 ESG 结构参数（线性 `[0, 1]` 边界、无规模成本优势 `[1, 1, 1]`、衰减 `0.3`、虚报成本比 `0.1`、延迟 `180/10` 日、成本离散度 `0.6`），启用活跃法定案件罚款 `F1`、`taste_median = 0.22`、`trading_days = 2400`、`burn_in_days = 600`（第 601 日切换）。
+   - **六项主检验（Holm 校正）：** `A1`（`AI_S_obs − AI_B < 0`，指标 `actions.wash`）、`A2`（`AI_S_obs − AI_V < 0`，指标 `actions.wash`）、`A3`（`AI_R16_bayes − AI_B > 0`）、`A4`（`AI_F16_bayes − AI_R16_bayes < 0`）、`A5`（`AI_F16_bayes − AI_R16_bayes < 0`，指标 `assurance.client_minus_unweighted_quality_gap`）、`A6`（`AI_F100_bayes_smooth − AI_F16_bayes > 0`）；辅助对比 `AI_F100_bayes_smooth − AI_I` 与命中率悖论 `AI_S_obs − AI_S_obs_hid`。
+
+6. **确认性结果（2026-11-26，[§32 汇总报告](../reports/disclosure_mas_upgrade_20261125/README_sec32.md) 与 [审计摘要](../reports/disclosure_mas_upgrade_20261125/audit_sec32.json)）。** 四组实验均自冻结提交 `6144298` 一次跑完，合计 `1,230/1,230` 完成、0 次中断，全部 `experiment.json`/`summary_manifest.json` 哈希校验通过，切换前 `1,080/1,080` 场景-种子对逐位完全一致（0 偏差）。四组总计 **`22/23` 主假设 `supported`（Holm $p \le 8.88 \times 10^{-6}$）、`1/23`（`G5`）`unresolved`**；剔除全部含 `mechanical.no_price_caps` 价格截断的种子后（clean $n = 30 / 29 / 28 / 15$），全部 `23/23` 项判定完全不变。
+   - **§32A（`Q(0.505, 0.423)`，360/360，核心验证失败 0，6/6 `supported`）：** `Q1` `Q_S_obs − Q_B = +0.0304`（30/30，Holm $p = 2.44 \times 10^{-13}$）、`Q2` `Q_S_obs − Q_S_obs_hid = +0.0268`（30/30，Holm $p = 8.85 \times 10^{-12}$，命中率 `38.3%` vs `87.5%`）、`Q3` `Q_S_obs − Q_I = +0.0122`（30/30，Holm $p = 3.42 \times 10^{-11}$，反超透明度 `I`）、`Q4` `Q_F16_bayes − Q_R16_bayes = -0.0156`（28/30，Holm $p = 3.17 \times 10^{-6}$）、`Q5` `Q_R100_bayes_smooth − Q_R100_bayes = +0.0192`（30/30，Holm $p = 2.71 \times 10^{-10}$）、`Q6` `Q_F100_bayes_smooth − Q_F16_bayes = +0.0489`（30/30，Holm $p = 4.74 \times 10^{-11}$）；辅助 `Q_F100_bayes_smooth − Q_I = +0.0363`（30/30，净收益超透明度 3 倍），`Q_S_obs_sig − Q_S_obs = -0.0174`（0/30，确证高外生噪声 $\sigma_r=0.351$ 下报告差分滤波的信噪比退化边界）。
+   - **§32B（相变与帕累托前沿，330/330，核心验证失败 2 [种子 `75021`]，6/6 `supported`）：** `P1` `F100_g05 − g00 = +0.1264`（Holm $p = 2.16 \times 10^{-10}$）、`P2` `F100_g07 − g05 = +0.1083`（Holm $p = 9.37 \times 10^{-8}$）、`P3` 滞回降低总资源成本 `-2.89 bp`（`5.55 → 2.66 bp`，30/30，Holm $p = 2.10 \times 10^{-17}$）、`P4` 跨过 $a_{\text{ins}}=0.0346$ 相变 `F16_m006 − m003 = +0.1125`（30/30，Holm $p = 3.53 \times 10^{-14}$；而 $a_{\text{ins}}$ 之下 `m003 − m000 = +0.0084`, $p=0.052$）、`P5` `F16_m015 − m006 = +0.1324`（30/30，漂绿清零且随后饱和）、`P6` 二次努力成本 Jensen 优势 `F16_m025 − F100_g07 = -0.00277`（-73% 努力成本，`m015` 省 90%，30/30，Holm $p = 3.77 \times 10^{-42}$）。
+   - **§32C-1（沟通粒度曲线，270/270，核心验证失败 18 [种子 `76016, 76023`]，4/5 `supported`、1/5 `unresolved`）：** `G1` `NPV_g3 − B = +0.0335`（Holm $p = 4.34 \times 10^{-13}$）、`G2` `NPV_g5 − g3 = +0.0454`（5 档捕获 `62.8%` 全个体增益，Holm $p = 4.54 \times 10^{-20}$）、`G3` `NPV_g8 − g5 = +0.0116`（3 比特 8 档捕获 `72.0%`，Holm $p = 8.88 \times 10^{-6}$）、`G4` `NPV_S_obs − g8 = +0.0352`（Holm $p = 3.40 \times 10^{-11}$）；`G5` `EB_g2 − EB_S_obs = -0.0124`（Holm $p = 0.539$，`unresolved`；`EB_g2 − EB_B = -0.0649`），证实无定量概率公告的风险标签在低预算下无法挽救纯经验频率学习者。
+   - **§32C-2（非 ESG `ai_washing` 第二域，270/270，核心验证失败 98 [15 种子 `no_price_caps`]，6/6 `supported`，clean $n=15$ 仍 6/6 `supported`）：** `A1` `AI_S_obs − AI_B` 漂绿减 `584.6` 次（`65.9% → 56.2%`，30/30，Holm $p = 2.54 \times 10^{-19}$）、`A2` `AI_S_obs − AI_V` 减 `1,432.5` 次（30/30，Holm $p = 1.54 \times 10^{-23}$）、`A3` `AI_R16_bayes − AI_B = +0.2797`（30/30，Holm $p = 3.12 \times 10^{-10}$）、`A4` `AI_F16_bayes − AI_R16_bayes = -0.1842`（30/30，Holm $p = 7.39 \times 10^{-15}$）、`A5` `q_gap = -0.0978`（29/30，Holm $p = 6.41 \times 10^{-19}$）、`A6` `AI_F100_bayes_smooth − AI_F16_bayes = +0.3484`（30/30，Holm $p = 8.63 \times 10^{-15}$，漂绿 `57.6% → 4.4%`）；辅助 `AI_F100_bayes_smooth − AI_I = +0.2677`（30/30，大幅反超透明度 `I`），`AI_S_obs − AI_S_obs_hid` 漂绿减 `229.4` 次（命中率 `60.9%` vs `82.5%`，命中率悖论跨域复现）。

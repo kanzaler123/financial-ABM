@@ -407,7 +407,7 @@ def run_and_archive(
                 raise RuntimeError("evaluation changed the frozen learning table")
             save_frozen(destination / "output_model.npz", learner, learning_metadata)
             model_artifacts.append("output_model.npz")
-        if config.firm_policy != "npv":
+        if config.firm_policy in ("npv_discrete", "q_learning"):
             report = learning_report(result, config, learner, training=training, coverage_target=coverage_target)
             if learner is not None:
                 report.update({"initial_table_fingerprint": learning["initial_table_fingerprint"],

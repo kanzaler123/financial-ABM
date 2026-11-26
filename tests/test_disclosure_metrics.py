@@ -228,3 +228,33 @@ def test_nonfinite_required_observations_are_rejected(result, field):
 def test_invalid_window_is_rejected(result, start):
     with pytest.raises(ValueError, match="start_day"):
         compute_metrics(result, CONFIG, DOMAIN, start_day=start)
+
+
+def test_assurance_concentration_metrics_handle_quality_ties_and_sorting(result):
+    # Case 1: all 4 providers tied at q=0.0 -> raw share is 1.0, excess is exactly 0.0, strict is None
+    tied = replace(
+        result,
+        assurer_assignment=np.array([[-1, -1, -1], [0, 1, 2], [0, 1, 2]], dtype=np.int64),
+        assurer_quality=np.zeros((3, 4), dtype=np.float64),
+    )
+    m_tied = compute_metrics(tied, CONFIG, DOMAIN)["assurance"]
+    assert m_tied["assured_wash_decisions"] == 1
+    assert m_tied["raw_laxest_wash_share"] == pytest.approx(1.0)
+    assert m_tied["chance_laxest_wash_share"] == pytest.approx(1.0)
+    assert m_tied["excess_laxest_wash_concentration"] == pytest.approx(0.0)
+    assert m_tied["strict_laxest_wash_share"] is None
+    assert m_tied["client_minus_unweighted_quality_gap"] == pytest.approx(0.0)
+
+    # Case 2: provider 0 is uniquely laxest (0.0 vs 0.2, 0.2, 0.2); inflating firm 1 switches to provider 0
+    sorted_res = replace(
+        result,
+        assurer_assignment=np.array([[-1, -1, -1], [0, 0, 1], [0, 0, 1]], dtype=np.int64),
+        assurer_quality=np.array([[0., 0., 0., 0.], [0.0, 0.2, 0.2, 0.2], [0.0, 0.2, 0.2, 0.2]], dtype=np.float64),
+    )
+    m_sort = compute_metrics(sorted_res, CONFIG, DOMAIN)["assurance"]
+    assert m_sort["raw_laxest_wash_share"] == pytest.approx(1.0)
+    assert m_sort["chance_laxest_wash_share"] == pytest.approx(0.25)
+    assert m_sort["excess_laxest_wash_concentration"] == pytest.approx(0.75)
+    assert m_sort["strict_laxest_wash_share"] == pytest.approx(1.0)
+    # 2 of 3 firms at 0.0, 1 at 0.2 -> client_q = 0.2/3 < unweighted_q = 0.6/4 = 0.15
+    assert m_sort["client_minus_unweighted_quality_gap"] == pytest.approx(0.2 / 3.0 - 0.15)

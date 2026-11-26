@@ -127,6 +127,8 @@ def _expected_id(frozen: dict, scenario: dict, seed: int) -> str:
 def _metric(metrics: dict, key: str):
     value = metrics
     for part in key.split("."):
+        if not isinstance(value, dict) or part not in value:
+            return None
         value = value[part]
     return value
 

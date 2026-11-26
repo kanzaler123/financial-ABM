@@ -13,6 +13,7 @@ Inputs (all tracked in git):
   reports/disclosure_joint_robustness_20261023/joint_v1_analysis.json
   reports/disclosure_stage_h3_20261027/h3_v1_analysis.json
   reports/disclosure_stage_i_20261027/stage_i_v2_analysis.json
+  reports/disclosure_mas_upgrade_20261125/mas_upgrade_analysis.json
 
 Outputs: paper/figures/fig_*.pdf (vector, for LaTeX) and fig_*.png (for
 previews and social posts). The PNGs carry a note under the chart (setting,
@@ -43,6 +44,7 @@ ROBUST = ROOT / "reports/disclosure_robustness_20261018/robust_v1_analysis.json"
 JOINT = ROOT / "reports/disclosure_joint_robustness_20261023/joint_v1_analysis.json"
 STAGE_H3 = ROOT / "reports/disclosure_stage_h3_20261027/h3_v1_analysis.json"
 STAGE_I = ROOT / "reports/disclosure_stage_i_20261027/stage_i_v2_analysis.json"
+MAS_UPGRADE = ROOT / "reports/disclosure_mas_upgrade_20261125/mas_upgrade_analysis.json"
 OUT = ROOT / "paper/figures"
 
 INFO = "#2a78d6"
@@ -607,6 +609,436 @@ def fig_regimes(stage_f: dict, rob: dict, joint: dict, h3: dict, stage_i: dict) 
          "compressing cross-tier displacement shares while preserving every contrast sign.")
 
 
+def fig_stackelberg(mas: dict) -> None:
+    """Bayesian dynamic RMAB-Stackelberg audits (§29) and G-band communication granularity (§32C-1)."""
+    s29 = mas["studies"]["sec29_stackelberg"]["scenarios"]
+    s32c = mas["studies"]["sec32C1_granularity"]["scenarios"]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.75, 3.25), gridspec_kw={"width_ratios": [1.16, 1.0]})
+
+    # Panel (a): Hit-rate vs. deterrence paradox 2.0 & VoC / VoI ladder (§29)
+    ax1.axhline(0.0, color=INK_2, linewidth=0.6)
+    pts = [
+        ("B", "B (1% rand.)", INK, "o", True, (6, -10), "left"),
+        ("V", "V (public)", FIXED, "o", True, (-6, -10), "right"),
+        ("J", "J (public)", FIXED, "s", True, (-6, -10), "right"),
+        ("A2", "A2 (2× rand.)", INK_2, "^", False, (0, 10), "center"),
+        ("S_obs_hid", "$S_{\\mathrm{obs}}^{\\mathrm{hid}}$ (92%)", INFO, "o", False, (-6, -11), "right"),
+        ("S_oracle_hid", "$S_{\\mathrm{orc}}^{\\mathrm{hid}}$ (100%)", PROP, "D", False, (-5, 13), "right"),
+        ("S_obs", "$S_{\\mathrm{obs}}$ (1×)", INFO, "o", True, (6, -9), "left"),
+        ("S_obs_sig", "$S_{\\mathrm{obs}}^{\\mathrm{sig}}$ (1×)", INFO, "s", True, (7, -2), "left"),
+        ("S_oracle_eq", "$S_{\\mathrm{orc}}$ (upper bd.)", PROP, "D", True, (7, 0), "left"),
+    ]
+    coords = {}
+    for key, label, col, mk, filled, off, ha in pts:
+        sc = s29[key]
+        hx = 100.0 * sc["hit_rate_mean"]
+        if key == "B":
+            ym, lo, hi = 0.0, None, None
+        else:
+            vb = sc["vs_baseline_eq"]
+            ym, lo, hi = vb["mean"], vb["ci_low"], vb["ci_high"]
+        coords[key] = (hx, ym)
+        if lo is not None and hi is not None:
+            ax1.vlines(hx, lo, hi, color=col, linewidth=1.25, zorder=2)
+        ax1.plot(hx, ym, marker=mk, markersize=5.6, color=col,
+                 markerfacecolor=col if filled else "white", markeredgewidth=1.35, zorder=4)
+        ax1.annotate(label, (hx, ym), xytext=off, textcoords="offset points",
+                     ha=ha, va="center", fontsize=7.0, color=col if col != INK_2 else INK)
+
+    # Value of Commitment arrow: S_obs_hid -> S_obs
+    ax1.annotate(
+        "", xy=(coords["S_obs"][0] + 2.5, coords["S_obs"][1] - 0.008),
+        xytext=(coords["S_obs_hid"][0] - 2.5, coords["S_obs_hid"][1] + 0.012),
+        arrowprops=dict(arrowstyle="->", color=INFO, linewidth=1.0, connectionstyle="arc3,rad=0.14"),
+    )
+    ax1.text(73.0, 0.122, "Commitment (VoC)\n+0.128 SD", ha="center", va="center",
+             fontsize=7.0, color=INFO)
+
+    # Residual VoI arrow: S_obs_sig -> S_oracle_eq
+    ax1.annotate(
+        "", xy=(coords["S_oracle_eq"][0] - 0.7, coords["S_oracle_eq"][1] - 0.014),
+        xytext=(coords["S_obs_sig"][0] + 0.7, coords["S_obs_sig"][1] + 0.014),
+        arrowprops=dict(arrowstyle="->", color=PROP, linewidth=0.95, linestyle="--"),
+    )
+    ax1.text(30.5, 0.228, "VoI\n+0.115", ha="right", va="center", fontsize=6.9, color=PROP)
+
+    ax1.set_xlim(7, 107)
+    ax1.set_ylim(-0.245, 0.315)
+    ax1.set_xlabel("Audit hit rate (% of audits finding inflation)")
+    ax1.set_ylabel("True ESG vs. random B (SD)")
+    ax1.set_title("(a) RMAB-Stackelberg VoC & VoI (§29)", loc="left", fontsize=8.6, color=INK)
+    grid_y(ax1)
+
+    # Panel (b): Communication-granularity curve (§32C-1)
+    ax2.axhline(0.0, color=INK_2, linewidth=0.6)
+    g_keys = ["NPV_B", "NPV_g2", "NPV_g3", "NPV_g5", "NPV_g8", "NPV_S_obs"]
+    g_x = [0, 1, 2, 3, 4, 5]
+    g_labels = ["1\n(B)", "2\n(1 bit)", "3\n(1.6 b)", "5\n(2.3 b)", "8\n(3.0 b)", "$N$\n(exact)"]
+    ys, lo, hi = [], [], []
+    for k in g_keys:
+        if k == "NPV_B":
+            ys.append(0.0), lo.append(0.0), hi.append(0.0)
+        else:
+            vb = s32c[k]["vs_baseline_eq"]
+            ys.append(vb["mean"]), lo.append(vb["ci_low"]), hi.append(vb["ci_high"])
+    ax2.plot(g_x, ys, color=INFO, linewidth=1.6, zorder=3, label="Forward-looking NPV (vs. B)")
+    ax2.vlines(g_x[1:], lo[1:], hi[1:], color=INFO, linewidth=1.25, zorder=3)
+    ax2.plot(g_x, ys, linestyle="none", marker="o", markersize=5.4, color=INFO, zorder=4)
+
+    full_gain = ys[-1]
+    for idx, off in ((1, (0, 8)), (3, (0, 8)), (4, (0, 8)), (5, (-4, 8))):
+        pct = 100.0 * ys[idx] / full_gain
+        ax2.annotate(f"{pct:.0f}%", (g_x[idx], ys[idx]), xytext=off, textcoords="offset points",
+                     ha="center", va="bottom", fontsize=7.0, color=INFO)
+
+    # Bounded-learner cognitive boundary (vs. EB_B)
+    eb_x = [0, 1, 5]
+    eb_ys = [0.0, s32c["EB_g2"]["vs_eb_baseline_eq"]["mean"], s32c["EB_S_obs"]["vs_eb_baseline_eq"]["mean"]]
+    eb_lo = [0.0, s32c["EB_g2"]["vs_eb_baseline_eq"]["ci_low"], s32c["EB_S_obs"]["vs_eb_baseline_eq"]["ci_low"]]
+    eb_hi = [0.0, s32c["EB_g2"]["vs_eb_baseline_eq"]["ci_high"], s32c["EB_S_obs"]["vs_eb_baseline_eq"]["ci_high"]]
+    ax2.plot(eb_x, eb_ys, color=FIXED, linestyle="--", linewidth=1.25, zorder=2,
+             label="Empirical-belief learner (vs. EB_B)")
+    ax2.vlines(eb_x[1:], eb_lo[1:], eb_hi[1:], color=FIXED, linewidth=1.2, zorder=2)
+    ax2.plot(eb_x, eb_ys, linestyle="none", marker="D", markersize=5.2, color=FIXED,
+             markerfacecolor="white", markeredgewidth=1.35, zorder=4)
+    ax2.text(3.0, -0.095, "Unquantified label fails ($G5$:\nunresolved, $p=0.54$)",
+             ha="center", va="center", fontsize=6.9, color=FIXED,
+             bbox=dict(facecolor="white", edgecolor="none", alpha=0.85, pad=0.8))
+
+    ax2.set_xticks(g_x)
+    ax2.set_xticklabels(g_labels, fontsize=7.6)
+    ax2.set_xlim(-0.35, 5.45)
+    ax2.set_ylim(-0.145, 0.182)
+    ax2.set_xlabel("Published risk bands $G$ ($\\log_2 G$ bits)")
+    ax2.set_ylabel("True ESG vs. own random B (SD)")
+    ax2.set_title("(b) Communication granularity (§32C-1)", loc="left", fontsize=8.6, color=INK)
+    grid_y(ax2)
+    ax2.legend(loc="upper left", frameon=True, facecolor="white", edgecolor="none",
+               framealpha=0.9, fontsize=6.9, handletextpad=0.35)
+
+    fig.tight_layout(w_pad=1.35)
+    save(fig, "fig_stackelberg",
+         "Bayesian dynamic RMAB-Stackelberg audits (§29, seeds 71001–71030) and G-band communication granularity (§32C-1, "
+         "seeds 76001–76030; 30 paired seeds each, paired 95% intervals). (a) Pure-public history-only S_obs matches 2× "
+         "random budget A2 at 1× budget and beats hidden Bayes clearing S_obs_hid (92.1% hit rate) by +0.128 SD; adding "
+         "public report signals S_obs_sig beats A2 (+0.032 SD). (b) Incentive-compatible G-band menus capture 63% (G=5) "
+         "and 72% (G=8, 3 bits) of exact S_obs gain for forward-looking firms, whereas unquantified 2-band labels fail to "
+         "rescue empirical-belief learners (G5 unresolved, Holm p = 0.539).")
+
+
+def fig_remedies(mas: dict) -> None:
+    """Partial-observability assurance blindness, hysteresis/floor phase transitions, and Pareto frontier (§31, §32B)."""
+    from matplotlib.gridspec import GridSpec
+
+    s31 = mas["studies"]["sec31_assurance"]["scenarios"]
+    s32b = mas["studies"]["sec32B_phase_pareto"]["scenarios"]
+
+    fig = plt.figure(figsize=(6.75, 5.35))
+    gs = GridSpec(2, 2, figure=fig, hspace=0.45, wspace=0.34)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[1, 0])
+    ax4 = fig.add_subplot(gs[1, 1])
+
+    # Panel (a): §31 Partial observability (detected_bayes) & institutional remedies
+    i_gain = s31["I"]["vs_baseline_eq"]["mean"]
+    rows_a = [
+        ("R100 + hyst. ($\\gamma$=0.7)", "ALL_R100_bayes_smooth", PROP, "o", True),
+        ("F100 + hyst. (choice)", "ALL_F100_bayes_smooth", INFO, "D", True),
+        ("ROT16 (annual rot.)", "ALL_ROT16_bayes", INFO, "^", True),
+        ("R16 (assigned)", "ALL_R16_bayes", PROP, "o", False),
+        ("R100 (3-cycle dip)", "ALL_R100_bayes", PROP, "s", False),
+        ("F16 (choice escape)", "ALL_F16_bayes", FIXED, "D", False),
+    ]
+    ys_a = list(range(len(rows_a) - 1, -1, -1))
+    ax1.axvline(0.0, color=INK_2, linewidth=0.6)
+    ax1.axvline(i_gain, color=INFO, linestyle="--", linewidth=1.0, zorder=1)
+    ax1.text(i_gain + 0.014, 0.24, f"$I$ ($\\tau$=0.6)\n+{i_gain:.3f}", ha="left", va="center",
+             fontsize=6.8, color=INFO)
+    for y, (label, key, col, mk, filled) in zip(ys_a, rows_a):
+        vb = s31[key]["vs_baseline_eq"]
+        w = 100.0 * s31[key]["wash_share"]
+        ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.45, zorder=2)
+        ax1.plot(vb["mean"], y, marker=mk, markersize=5.2, color=col,
+                 markerfacecolor=col if filled else "white", markeredgewidth=1.3, zorder=4)
+        ax1.text(vb["ci_high"] + 0.008, y, f"+{vb['mean']:.3f} ({w:.1f}%)",
+                 ha="left", va="center", fontsize=6.7, color=INK,
+                 bbox=dict(facecolor="white", edgecolor="none", alpha=0.75, pad=0.4))
+    ax1.set_yticks(ys_a)
+    ax1.set_yticklabels([r[0] for r in rows_a], fontsize=7.2)
+    ax1.set_xlim(-0.01, 0.56)
+    ax1.set_xlabel("True ESG vs. B (SD); label = gain (wash %)")
+    ax1.set_title("(a) Partial-obs. remedies (§31, detected_bayes)", loc="left", fontsize=8.3, color=INK)
+    ax1.grid(axis="x", color=GRID, linewidth=0.5)
+    ax1.set_axisbelow(True)
+
+    # Panel (b): §32B Hysteresis sweep (gain vs. total social resource cost)
+    gammas = [0.0, 0.3, 0.5, 0.7, 0.9]
+    g_keys = ["F100_g00", "F100_g03", "F100_g05", "F100_g07", "F100_g09"]
+    g_m = [s32b[k]["vs_baseline_eq"]["mean"] for k in g_keys]
+    g_lo = [s32b[k]["vs_baseline_eq"]["ci_low"] for k in g_keys]
+    g_hi = [s32b[k]["vs_baseline_eq"]["ci_high"] for k in g_keys]
+    g_res = [s32b[k]["resource_cost_bp"] for k in g_keys]
+    b_res = s32b["B"]["resource_cost_bp"]
+
+    ax2.plot(gammas, g_m, color=INFO, linewidth=1.6, marker="o", markersize=5.2, zorder=3,
+             label="True ESG vs. B (SD)")
+    ax2.vlines(gammas, g_lo, g_hi, color=INFO, linewidth=1.25, zorder=3)
+    ax2.set_xticks(gammas)
+    ax2.set_xlim(-0.06, 0.97)
+    ax2.set_ylim(0.0, 0.375)
+    ax2.set_xlabel("Runtime hysteresis weight $\\gamma$ (F100, choice)")
+    ax2.set_ylabel("True ESG vs. B (SD)", color=INFO)
+    ax2.tick_params(axis="y", colors=INFO)
+    grid_y(ax2)
+
+    ax2r = ax2.twinx()
+    ax2r.spines["top"].set_visible(False)
+    ax2r.spines["right"].set_visible(True)
+    ax2r.spines["right"].set_color(FIXED)
+    ax2r.plot(gammas, g_res, color=FIXED, linestyle="--", linewidth=1.4, marker="s", markersize=4.8,
+              markerfacecolor="white", markeredgewidth=1.3, zorder=2, label="Resource cost (bp)")
+    ax2r.axhline(b_res, color=INK_2, linestyle=":", linewidth=0.8)
+    ax2r.text(0.01, b_res - 0.14, f"B ({b_res:.2f} bp)", ha="left", va="top", fontsize=6.6, color=INK_2)
+    ax2r.annotate("−2.89 bp\nfree lunch", xy=(0.68, g_res[3]), xytext=(0.43, 2.35),
+                  ha="center", va="center", fontsize=6.8, color=FIXED,
+                  arrowprops=dict(arrowstyle="->", color=FIXED, linewidth=0.75))
+    ax2r.set_ylim(1.8, 6.2)
+    ax2r.set_ylabel("Total resource cost (bp)", color=FIXED)
+    ax2r.tick_params(axis="y", colors=FIXED)
+    ax2.set_title("(b) Hysteresis & resource free lunch (§32B)", loc="left", fontsize=8.3, color=INK)
+
+    # Panel (c): §32B Statutory floor phase transition
+    mins = [0.00, 0.03, 0.06, 0.15, 0.25]
+    m_keys = ["F16_m000", "F16_m003", "F16_m006", "F16_m015", "F16_m025"]
+    m_y = [s32b[k]["vs_baseline_eq"]["mean"] for k in m_keys]
+    m_lo = [s32b[k]["vs_baseline_eq"]["ci_low"] for k in m_keys]
+    m_hi = [s32b[k]["vs_baseline_eq"]["ci_high"] for k in m_keys]
+
+    ax3.axvspan(0.0, 0.0346, color=FIXED, alpha=0.14, zorder=1)
+    ax3.axvline(0.0346, color=FIXED, linestyle="--", linewidth=0.95, zorder=2)
+    ax3.axvline(0.0827, color=INK, linestyle="--", linewidth=0.95, zorder=2)
+    ax3.plot(mins, m_y, color=PROP, linewidth=1.6, marker="o", markersize=5.2, zorder=4)
+    ax3.vlines(mins, m_lo, m_hi, color=PROP, linewidth=1.25, zorder=4)
+    ax3.text(0.038, 0.355, "$a_{\\mathrm{ins}}$\n0.035", ha="left", va="top", fontsize=6.6, color=FIXED)
+    ax3.text(0.087, 0.355, "$a^* = 0.0827$", ha="left", va="top", fontsize=6.7, color=INK)
+    ax3.annotate("0% wash\nsaturated", xy=(0.15, m_y[3] - 0.008), xytext=(0.185, 0.165),
+                 ha="center", va="center", fontsize=6.8, color=PROP,
+                 arrowprops=dict(arrowstyle="->", color=PROP, linewidth=0.75))
+    ax3.set_xlim(-0.012, 0.27)
+    ax3.set_ylim(0.0, 0.375)
+    ax3.set_xlabel("Statutory minimum quality $a_{\\min}$ (F16, choice)")
+    ax3.set_ylabel("True ESG vs. B (SD)")
+    ax3.set_title("(c) Statutory floor phase transition (§32B)", loc="left", fontsize=8.3, color=INK)
+    grid_y(ax3)
+
+    # Panel (d): §32B Quadratic effort-cost Pareto frontier
+    h_eff = [1000.0 * s32b[k]["assurance_effort_cost"] for k in g_keys]
+    f_eff = [1000.0 * s32b[k]["assurance_effort_cost"] for k in m_keys]
+    ax4.plot(h_eff, g_m, color=INFO, linewidth=1.5, marker="o", markersize=5.0, zorder=3,
+             label="Hysteresis $\\gamma$ ($a^*$ unknown)")
+    ax4.plot(f_eff, m_y, color=PROP, linewidth=1.5, marker="s", markersize=5.0, zorder=4,
+             label="Floor $a_{\\min}$ ($a^*$ known)")
+    for idx, txt, off in ((0, "$\\gamma$=0", (-6, -2)), (1, "0.3", (-6, 1)), (2, "0.5", (-6, 0)), (3, "0.7", (6, -5)), (4, "0.9", (-2, -10))):
+        ax4.annotate(txt, (h_eff[idx], g_m[idx]), xytext=off, textcoords="offset points",
+                     ha="left" if off[0] > 0 else "right", va="center", fontsize=6.6, color=INFO)
+    for idx, txt, off in ((2, "0.06", (6, 0)), (3, "0.15", (-2, 8)), (4, "0.25", (6, 4))):
+        ax4.annotate(txt, (f_eff[idx], m_y[idx]), xytext=off, textcoords="offset points",
+                     ha="center" if off[0] < 0 else "left", va="center", fontsize=6.6, color=PROP)
+    ax4.annotate("", xy=(f_eff[4] + 0.20, m_y[4] - 0.010), xytext=(h_eff[3] - 0.15, g_m[3] + 0.005),
+                 arrowprops=dict(arrowstyle="->", color=INK, linewidth=0.9))
+    ax4.text(2.45, 0.240, "Jensen: −73%\n(−90% at 0.15)", ha="center", va="center",
+             fontsize=6.6, color=INK, bbox=dict(facecolor="white", edgecolor="none", alpha=0.85, pad=0.5))
+    ax4.set_xlim(-0.2, 8.95)
+    ax4.set_ylim(0.0, 0.375)
+    ax4.set_xlabel("Verifier effort cost ($\\times 10^{-3}$ model units)")
+    ax4.set_ylabel("True ESG vs. B (SD)")
+    ax4.set_title("(d) Effort-cost Pareto frontier (§32B)", loc="left", fontsize=8.3, color=INK)
+    grid_y(ax4)
+    ax4.legend(loc="center right", bbox_to_anchor=(1.0, 0.43), frameon=True, facecolor="white", edgecolor="none",
+               framealpha=0.92, fontsize=6.5, handletextpad=0.3)
+
+    save(fig, "fig_remedies",
+         "Partial-observability assurance remedies (§31, seeds 73001–73030) and phase-transition / Pareto frontier sweeps "
+         "(§32B, seeds 75001–75030; 30 paired seeds, paired 95% intervals, detected_bayes). (a) Under 50.5× monitoring "
+         "blindness, runtime hysteresis (γ=0.7) cures both 100× 3-cycles and firm-choice escape cycles (recovering 97.3% "
+         "of transparency I); annual rotation also closes escape. (b) Hysteresis cuts total resource cost by −2.89 bp "
+         "(5.55 to 2.66 bp). (c) Statutory floor exhibits a sharp phase transition across a_ins = 0.0346 to a* = 0.0827. "
+         "(d) Under quadratic effort cost, a fixed floor saves 73%–90% verifier effort over pulsed hysteresis when a* is known.")
+
+
+def fig_bounded(mas: dict) -> None:
+    """Zero-leakage online empirical-belief bounded rationality (§30): robustness vs. cognitive boundary."""
+    s30 = mas["studies"]["sec30_empirical_belief"]["scenarios"]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.65, 3.2), gridspec_kw={"width_ratios": [1.18, 1.0]})
+
+    # Panel (a): Policy contrasts vs. EB_B
+    rows = [
+        ("F100 + hyst. (choice)", "EB_F100_bayes_smooth", PROP, "D", True),
+        ("Information ($\\tau$=0.6)", "EB_I", INFO, "o", True),
+        ("R16 assigned (bayes)", "EB_R16_bayes", PROP, "o", True),
+        ("F16 choice (bayes)", "EB_F16_bayes", FIXED, "D", False),
+        ("Fixed fine 4× (learned)", "EB_F", INK_2, "s", True),
+        ("Stackelberg $S_{\\mathrm{obs}}$", "EB_S_obs", FIXED, "o", False),
+        ("Value targeting (V)", "EB_V", FIXED, "o", True),
+    ]
+    ys = list(range(len(rows) - 1, -1, -1))
+    ax1.axvline(0.0, color=INK_2, linewidth=0.6)
+    for y, (label, key, col, mk, filled) in zip(ys, rows):
+        vb = s30[key]["vs_baseline_eq"]
+        ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.45, zorder=2)
+        ax1.plot(vb["mean"], y, marker=mk, markersize=5.3, color=col,
+                 markerfacecolor=col if filled else "white", markeredgewidth=1.35, zorder=4)
+        if vb["mean"] >= 0:
+            ax1.text(vb["ci_high"] + 0.010, y, f"+{vb['mean']:.3f}", ha="left", va="center", fontsize=7.0, color=INK)
+        else:
+            ax1.text(vb["ci_low"] - 0.010, y, f"\u2212{abs(vb['mean']):.3f}", ha="right", va="center", fontsize=7.0, color=FIXED)
+    ax1.annotate("Coarse-belief\nfragility", xy=(-0.050, 1.0), xytext=(0.14, 0.9),
+                 ha="left", va="center", fontsize=6.9, color=FIXED,
+                 arrowprops=dict(arrowstyle="->", color=FIXED, linewidth=0.75))
+    ax1.set_yticks(ys)
+    ax1.set_yticklabels([r[0] for r in rows], fontsize=7.5)
+    ax1.set_xlim(-0.19, 0.485)
+    ax1.set_xlabel("True ESG vs. baseline EB_B (SD)")
+    ax1.set_title("(a) Online belief learning (§30, zero leakage)", loc="left", fontsize=8.5, color=INK)
+    ax1.grid(axis="x", color=GRID, linewidth=0.5)
+    ax1.set_axisbelow(True)
+
+    # Panel (b): Within-tier inflating rates (%)
+    x = [0, 1, 2]
+    tiers = ("wash_share_large", "wash_share_mid", "wash_share_small")
+    series = [
+        ("EB_B", "Baseline (EB_B)", INK, ":", "o", True),
+        ("EB_V", "Value target (EB_V)", FIXED, "-", "o", True),
+        ("EB_F16_bayes", "Choice 16× (EB_F16)", INFO, "--", "D", False),
+        ("EB_F100_bayes_smooth", "Hysteresis (EB_F100_sm)", PROP, "-", "D", True),
+    ]
+    for key, label, col, ls, mk, filled in series:
+        vals = [100.0 * s30[key][t] for t in tiers]
+        ax2.plot(x, vals, color=col, linestyle=ls, linewidth=1.5 if filled else 1.25,
+                 marker=mk, markersize=5.1, markerfacecolor=col if filled else "white",
+                 markeredgewidth=1.3, label=label, zorder=4 if filled else 3)
+    ax2.annotate("Small: 6.5% → 23.4%\n(no formula known)",
+                 xy=(2.0, 23.4 + 1.5), xytext=(1.42, 46.5),
+                 ha="center", va="bottom", fontsize=6.9, color=FIXED,
+                 arrowprops=dict(arrowstyle="->", color=FIXED, linewidth=0.75))
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(["Large (10%)", "Mid (30%)", "Small (60%)"])
+    ax2.set_xlim(-0.25, 2.25)
+    ax2.set_ylim(-2, 85)
+    ax2.set_xlabel("Firm size tier")
+    ax2.set_ylabel("Within-tier inflating rate (%)")
+    ax2.set_title("(b) Tier displacement & hysteresis cure", loc="left", fontsize=8.5, color=INK)
+    grid_y(ax2)
+    ax2.legend(loc="upper right", frameon=True, facecolor="white", edgecolor="none",
+               framealpha=0.92, fontsize=6.7, handletextpad=0.35)
+
+    fig.tight_layout(w_pad=1.35)
+    save(fig, "fig_bounded",
+         "Zero-leakage online empirical-belief bounded rationality (§30, seeds 72001–72030, 30 paired seeds, paired 95% "
+         "intervals). Firms never read post-switch policy parameters, updating audit, fine and assurance beliefs strictly "
+         "from realised events via discounted Beta-Binomial posteriors and Thompson sampling. (a) Assurance hysteresis "
+         "matches transparency I (+0.357 vs +0.355 SD), whereas coarse-belief Stackelberg S_obs degrades below EB_B "
+         "(−0.050 SD). (b) Value targeting spontaneously displaces greenwashing from large to small firms (L2a/L2b).")
+
+
+def fig_generalization(mas: dict) -> None:
+    """Cross-regime (empirical Q, §32A) and cross-domain (non-ESG ai_washing, §32C-2) generalization."""
+    s32a = mas["studies"]["sec32A_q_dynamics"]["scenarios"]
+    s32c2 = mas["studies"]["sec32C2_ai_washing"]["scenarios"]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.75, 3.5), gridspec_kw={"width_ratios": [1.02, 1.08]})
+
+    # Panel (a): Empirical persistence Q(0.505, 0.423) (§32A)
+    qi = s32a["Q_I"]["vs_baseline_eq"]["mean"]
+    rows_q = [
+        ("R100 + hyst. ($\\gamma$=0.7)", "Q_R100_bayes_smooth", PROP, "o", True),
+        ("F100 + hyst. (choice)", "Q_F100_bayes_smooth", PROP, "D", True),
+        ("Stackelberg $S_{\\mathrm{obs}}$", "Q_S_obs", INFO, "o", True),
+        ("R16 assigned", "Q_R16_bayes", PROP, "o", False),
+        ("Information ($\\tau$=0.6)", "Q_I", INFO, "s", False),
+        ("$S_{\\mathrm{obs}}^{\\mathrm{sig}}$ (noisy $\\Delta r$)", "Q_S_obs_sig", INK_2, "s", True),
+        ("F16 choice", "Q_F16_bayes", FIXED, "D", False),
+        ("$S_{\\mathrm{obs}}^{\\mathrm{hid}}$ (88% hit)", "Q_S_obs_hid", INK_2, "o", False),
+        ("Jump target (J)", "Q_J", FIXED, "s", True),
+        ("Value target (V)", "Q_V", FIXED, "o", True),
+    ]
+    yq = list(range(len(rows_q) - 1, -1, -1))
+    ax1.axvline(0.0, color=INK_2, linewidth=0.6)
+    ax1.axvline(qi, color=INFO, linestyle="--", linewidth=0.95, zorder=1)
+    ax1.text(qi + 0.002, 0.25, f"$Q_I$\n+{qi:.3f}", ha="left", va="bottom", fontsize=6.7, color=INFO)
+    for y, (label, key, col, mk, filled) in zip(yq, rows_q):
+        vb = s32a[key]["vs_baseline_eq"]
+        ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.4, zorder=2)
+        ax1.plot(vb["mean"], y, marker=mk, markersize=4.9, color=col,
+                 markerfacecolor=col if filled else "white", markeredgewidth=1.3, zorder=4)
+        if vb["mean"] >= 0:
+            ax1.text(vb["ci_high"] + 0.002, y, f"+{vb['mean']:.3f}", ha="left", va="center", fontsize=6.7, color=INK,
+                     bbox=dict(facecolor="white", edgecolor="none", alpha=0.78, pad=0.3))
+        else:
+            ax1.text(vb["ci_low"] - 0.002, y, f"\u2212{abs(vb['mean']):.3f}", ha="right", va="center", fontsize=6.7, color=FIXED)
+    ax1.set_yticks(yq)
+    ax1.set_yticklabels([r[0] for r in rows_q], fontsize=7.1)
+    ax1.set_xlim(-0.050, 0.098)
+    ax1.set_xlabel("True ESG vs. Q_B (SD)")
+    ax1.set_title("(a) Empirical persistence $Q$ (§32A)", loc="left", fontsize=8.4, color=INK)
+    ax1.grid(axis="x", color=GRID, linewidth=0.5)
+    ax1.set_axisbelow(True)
+
+    # Panel (b): Non-ESG domain ai_washing (§32C-2), full n=30 + clean n=15 overlaid
+    ai_i = s32c2["AI_I"]["vs_baseline_eq"]["mean"]
+    rows_ai = [
+        ("F100 + hyst. (choice)", "AI_F100_bayes_smooth", PROP, "D"),
+        ("R16 assigned", "AI_R16_bayes", PROP, "o"),
+        ("Information ($\\tau$=0.6)", "AI_I", INFO, "s"),
+        ("F16 choice", "AI_F16_bayes", FIXED, "D"),
+        ("$S_{\\mathrm{obs}}^{\\mathrm{sig}}$ (1×)", "AI_S_obs_sig", INFO, "s"),
+        ("Stackelberg $S_{\\mathrm{obs}}$", "AI_S_obs", INFO, "o"),
+        ("$S_{\\mathrm{obs}}^{\\mathrm{hid}}$ (83% hit)", "AI_S_obs_hid", INK_2, "o"),
+        ("Value target (V)", "AI_V", FIXED, "o"),
+    ]
+    yai = list(range(len(rows_ai) - 1, -1, -1))
+    ax2.axvline(0.0, color=INK_2, linewidth=0.6)
+    ax2.axvline(ai_i, color=INFO, linestyle="--", linewidth=0.95, zorder=1)
+    ax2.text(ai_i + 0.012, 0.2, f"AI_I\n+{ai_i:.3f}", ha="left", va="bottom", fontsize=6.7, color=INFO)
+    for y, (label, key, col, mk) in zip(yai, rows_ai):
+        vb = s32c2[key]["vs_baseline_eq"]
+        vbc = s32c2[key]["vs_baseline_eq_clean"]
+        w = 100.0 * s32c2[key]["wash_share"]
+        # Full n=30 slightly above center, clean n=15 slightly below
+        ax2.hlines(y + 0.11, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.4, zorder=3)
+        ax2.plot(vb["mean"], y + 0.11, marker=mk, markersize=4.9, color=col,
+                 markerfacecolor=col, markeredgewidth=1.1, zorder=4)
+        ax2.hlines(y - 0.13, vbc["ci_low"], vbc["ci_high"], color=col, linewidth=0.95, alpha=0.65, zorder=2)
+        ax2.plot(vbc["mean"], y - 0.13, marker=mk, markersize=4.1, color=col,
+                 markerfacecolor="white", markeredgewidth=1.05, zorder=4)
+        x_txt = max(vb["ci_high"], vbc["ci_high"]) + 0.015
+        ax2.text(x_txt, y, f"({w:.1f}%)", ha="left", va="center", fontsize=6.6, color=INK_2)
+
+    ax2.plot([], [], marker="o", color=INK, linestyle="none", markersize=4.8, label="All $n=30$")
+    ax2.plot([], [], marker="o", color=INK, markerfacecolor="white", linestyle="none", markersize=4.3, label="Clean $n=15$")
+    ax2.set_yticks(yai)
+    ax2.set_yticklabels([r[0] for r in rows_ai], fontsize=7.1)
+    ax2.set_xlim(-0.07, 0.72)
+    ax2.set_xlabel("True level vs. AI_B (SD); (wash %)")
+    ax2.set_title("(b) Non-ESG domain: ai_washing (§32C-2)", loc="left", fontsize=8.4, color=INK)
+    ax2.grid(axis="x", color=GRID, linewidth=0.5)
+    ax2.set_axisbelow(True)
+    ax2.legend(loc="lower right", frameon=True, facecolor="white", edgecolor="none",
+               framealpha=0.92, fontsize=6.7, handletextpad=0.25)
+
+    fig.tight_layout(w_pad=1.4)
+    save(fig, "fig_generalization",
+         "Cross-regime and cross-domain generalization (30 paired seeds each, paired 95% intervals). (a) Under empirically "
+         "estimated persistence Q(0.505, 0.423) (§32A, seeds 74001–74030, 0 core-val failures), pure-history S_obs beats "
+         "transparency Q_I (+0.012 SD) and assurance hysteresis achieves >3× Q_I's gain; noisy score filtering S_obs_sig "
+         "degrades below S_obs (−0.017 SD) under high exogenous noise (sigma_r = 0.351). (b) In the non-ESG ai_washing "
+         "domain (§32C-2, seeds 77001–77030; baseline wash 65.9%), all 6 primary contrasts hold identically across full "
+         "n=30 (filled) and clean n=15 without price-cap hits (hollow), with hysteresis cutting washing to 4.4%.")
+
+
 def main() -> None:
     stage_f = load(STAGE_F)
     decay = load(DECAY)
@@ -616,6 +1048,7 @@ def main() -> None:
     joint = load(JOINT)
     h3 = load(STAGE_H3)
     stage_i = load(STAGE_I)
+    mas = load(MAS_UPGRADE)
     fig_decay(decay)
     fig_frontier(stage_f)
     fig_threshold(stage_f)
@@ -623,6 +1056,10 @@ def main() -> None:
     fig_targeted(audits)
     fig_assurance(ass)
     fig_regimes(stage_f, rob, joint, h3, stage_i)
+    fig_stackelberg(mas)
+    fig_remedies(mas)
+    fig_bounded(mas)
+    fig_generalization(mas)
     print(f"wrote figures to {OUT.relative_to(ROOT)}")
 
 
