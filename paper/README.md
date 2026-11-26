@@ -27,8 +27,9 @@ python make_figures.py
 | `reports/disclosure_assurance_20261021/assurance_v1_analysis.json` | `fig_assurance` |
 | `reports/disclosure_stage_h3_20261027/h3_v1_analysis.json` | `fig_regimes` |
 | `reports/disclosure_stage_i_20261027/stage_i_v2_analysis.json` | `fig_regimes` |
+| `reports/disclosure_mas_upgrade_20261125/mas_upgrade_analysis.json` | `fig_stackelberg`, `fig_remedies`, `fig_bounded`, `fig_generalization` |
 
-Outputs are written to `paper/figures/` as both vector PDF and PNG (`fig_decay`, `fig_frontier`, `fig_threshold`, `fig_size`, `fig_targeted`, `fig_assurance`, and `fig_regimes`).
+Outputs are written to `paper/figures/` as both vector PDF and PNG (`fig_decay`, `fig_frontier`, `fig_threshold`, `fig_size`, `fig_targeted`, `fig_assurance`, `fig_regimes`, `fig_stackelberg`, `fig_remedies`, `fig_bounded`, and `fig_generalization`). To regenerate `mas_upgrade_analysis.json` from local confirmatory run archives under `runs/`, run `python reports/disclosure_mas_upgrade_20261125/extract_analysis.py`.
 
 ## Descriptive composition shares
 
