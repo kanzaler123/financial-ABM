@@ -1,32 +1,35 @@
-# React + TypeScript + Vite
+# Financial ABM Local Web UI (Stage 1–3 Single-Asset Market)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Local React 19 + TypeScript + Vite + ECharts frontend for the **Stage 1–3 single-asset artificial market** backend (`src/abm/web.py`).
 
-Currently, two official plugins are available:
+> **Scope note:** This application runs, monitors, compares, and replays local **single-asset** market runs (Stages 1–3) via FastAPI. For the **multi-asset ESG / MAS disclosure policy desk** (Stages F & §§29–32, Panels ①–④), use the static offline exhibit in [`../showcase/`](../showcase/README.md) or visit [https://kanzaler123.github.io/financial-ABM/](https://kanzaler123.github.io/financial-ABM/).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Prerequisites
 
-## React Compiler
+- Node.js `>= 22.12`
+- Python `>= 3.12` with `pip install -c requirements-lock.txt -e ".[plot,web]"` in the repository root
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Build and Run
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+# From repository root:
+cd web
+npm ci
+npm run build
+cd ..
+python -m abm.web --open
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The FastAPI server serves `web/dist` at `http://127.0.0.1:8765` (with Chinese / English toggle in the top bar).
+
+## Development & Checks
+
+```sh
+cd web
+npm run dev      # Vite dev server (proxies API requests when backend runs)
+npm run lint     # Oxlint static analysis
+npm test         # Node unit tests (api.test.mjs, comparison.test.mjs)
+npm run build    # TypeScript check + production bundle into web/dist
+```
+
+For full operating instructions, Stage 2 configuration options, and replay workflows, see [`../OPERATIONS.md`](../OPERATIONS.md).
