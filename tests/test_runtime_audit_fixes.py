@@ -11,7 +11,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from fastapi.testclient import TestClient
 
 from abm.config import load_stage1_config
 from abm.harness import MarketHarness, run_stage1
@@ -26,7 +25,6 @@ from abm.telemetry import (
     read_telemetry,
     write_telemetry,
 )
-from abm.web import ActiveRun, RunRegistry, create_app
 
 ROOT = Path(__file__).resolve().parents[1]
 AUTH = {"Authorization": "Bearer audit"}
@@ -49,6 +47,10 @@ def encoded(item):
 
 
 def client_for(tmp_path):
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+    from abm.web import create_app
+
     app = create_app(runs_root=tmp_path / "runs", configs_root=ROOT / "configs",
                      reports_root=tmp_path / "reports", web_root=tmp_path / "web",
                      auth_token="audit")
@@ -217,6 +219,9 @@ def test_cursor_restarts_after_journal_truncation_or_replacement(tmp_path):
 
 
 def test_failed_run_without_success_summary_stays_visible_and_downloadable(tmp_path):
+    pytest.importorskip("fastapi")
+    from abm.web import RunRegistry
+
     config = short_config()
     harness = MarketHarness(config)
     harness.step(0)
@@ -259,6 +264,9 @@ def test_initialization_failure_with_valid_config_is_archived(tmp_path, monkeypa
     assert not (run / "summary.json").exists()
     manifest = json.loads((run / "run_manifest.json").read_text())
     assert manifest["failures"] == ["OSError: initial input unavailable"]
+    pytest.importorskip("fastapi")
+    from abm.web import RunRegistry
+
     record, = RunRegistry(tmp_path / "runs").list_runs()
     assert record["state"] == "failed"
     assert record["current_day"] == 0
@@ -324,6 +332,8 @@ def test_overflowing_numeric_metadata_is_isolated_from_valid_runs(tmp_path):
 
 def test_sse_io_runs_off_event_loop_and_drains_after_completion(tmp_path, monkeypatch):
     app, client = client_for(tmp_path)
+    from abm.web import ActiveRun
+
     app.state.registry.active["run"] = ActiveRun(
         name="run", config=short_config(), output_dir=tmp_path / "runs/run",
         process=SimpleNamespace(is_alive=lambda: False, exitcode=0),

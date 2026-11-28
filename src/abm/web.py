@@ -369,7 +369,7 @@ def create_app(
             active = registry.get(name)
             if active is not None:
                 return active.metadata()
-            path = registry.path_for(name)
+            registry.path_for(name)
         except ValueError as exc:
             raise HTTPException(status.HTTP_404_NOT_FOUND) from exc
         record = next((item for item in registry.list_runs() if item["id"] == name), None)

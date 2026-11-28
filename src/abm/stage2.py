@@ -22,7 +22,7 @@ from .policies import RuleBasedPolicy
 from .schemas import Edge, Message, RunManifest
 from .tabular import (COMPANY_ACTIONS, COMPANY_THRESHOLDS, TRADER_ACTIONS,
                       TRADER_THRESHOLDS, CompanyQLearner, ContextualBandit, ternary_states)
-from .telemetry import TelemetryEvent, TelemetrySink
+from .telemetry import TelemetrySink
 
 EPOCH = datetime(2026, 1, 5, tzinfo=timezone.utc)
 

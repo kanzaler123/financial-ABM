@@ -7,7 +7,6 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
 
 from abm.config import load_stage1_config
 from abm.harness import run_stage1
@@ -20,7 +19,6 @@ from abm.telemetry import (
     write_telemetry,
 )
 from abm.visualization import create_stage1_visualizations
-from abm.web import create_app
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = PROJECT_ROOT / "configs" / "stage1.json"
@@ -48,6 +46,10 @@ def _event(sequence_no: int) -> TelemetryEvent:
 
 
 def _client(tmp_path):
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+    from abm.web import create_app
+
     app = create_app(
         runs_root=tmp_path / "runs",
         configs_root=PROJECT_ROOT / "configs",
@@ -295,6 +297,10 @@ def test_run_path_traversal_and_unknown_artifact_are_rejected(tmp_path) -> None:
 
 
 def test_reports_distinguish_superseded_and_formal_status(tmp_path) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+    from abm.web import create_app
+
     reports_root = tmp_path / "reports"
     legacy = reports_root / "legacy"
     formal = reports_root / "formal"

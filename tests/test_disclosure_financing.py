@@ -88,7 +88,7 @@ def test_discount_factors_match_enumerated_audit_paths(probability):
         real += discount if quote >= 5 else 0
         if quote >= 4:
             chance = 1.0
-            for audit_day in range(4, quote, 4):
+            for _ in range(4, quote, 4):
                 chance *= 1 - probability
             wash += discount * chance
     fine = sum(probability * (1 - probability)**index * np.exp(-rate * (1 + 4 * index) / 252)

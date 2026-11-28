@@ -25,10 +25,11 @@ def text_keys(language: str, page: str = "sandbox") -> set[str]:
 CJK = re.compile(r"[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]")
 
 
+_VOID_TAGS = frozenset({"meta", "link", "br", "img", "input", "hr", "source", "stop", "circle", "ellipse", "path"})
+
+
 class UntranslatedText(HTMLParser):
     """Chinese text or aria-labels in a template that no i18n attribute (or script-set id) covers."""
-
-    VOID = {"meta", "link", "br", "img", "input", "hr", "source", "stop", "circle", "ellipse", "path"}
 
     def __init__(self, dynamic_ids: set[str]):
         super().__init__()
@@ -38,7 +39,7 @@ class UntranslatedText(HTMLParser):
         attrs = dict(attrs)
         if CJK.search(attrs.get("aria-label") or "") and "data-i18n-aria" not in attrs:
             self.problems.append(f"<{tag}> aria-label {attrs['aria-label']}")
-        if tag not in self.VOID:
+        if tag not in _VOID_TAGS:
             self.stack.append((tag, attrs))
 
     def handle_startendtag(self, tag, attrs):
@@ -205,7 +206,7 @@ class ShowcaseTests(unittest.TestCase):
             "}\n"
             "console.log('csvCell ok');\n"
         )
-        result = subprocess.run([node, "-e", script], capture_output=True, text=True, timeout=30)
+        result = subprocess.run([node, "-e", script], capture_output=True, text=True, timeout=30, check=False)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
     def test_pages_open_in_english_unless_chinese_was_chosen(self):
@@ -237,8 +238,13 @@ class ShowcaseTests(unittest.TestCase):
         used = set(re.findall(r'data-i18n(?:-aria)?="(\w+)"', template))
         app = (HERE / "sandbox" / "app.js").read_text(encoding="utf-8")
         used |= set(re.findall(r"\bt\('(\w+)'", app))
-        used |= set(re.findall(r"'((?:action|size|class|contrast|bracket)[A-Z]\w*)'", app))
+        used |= set(re.findall(r"'((?:action|size|class|contrast|bracket|mechMetric)[A-Z]\w*)'", app))
         used |= {row["name"] for row in self.data["sandbox"]["stage_f"]["primary"]}
+        used |= {
+            f"mech_{row['name']}"
+            for study in self.data["sandbox"]["mas_upgrade"]["studies"].values()
+            for row in study["primary"]
+        }
         self.assertEqual(used - zh, set())
 
     def test_stage1_text_keys_exist_in_both_languages(self):
@@ -276,6 +282,17 @@ class ShowcaseTests(unittest.TestCase):
         for domain in firms["domains"].values():
             self.assertEqual(set(domain["firms"]), build_module.SANDBOX_FIRM_FIELDS)
             self.assertEqual(len(domain["firms"]["benefit"]), 200)
+        mas = payload["mas_upgrade"]
+        mas_path = build_module.ROOT / mas["source"]["path"]
+        self.assertEqual(hashlib.sha256(mas_path.read_bytes()).hexdigest(), mas["source"]["sha256"])
+        self.assertEqual(set(mas["studies"]), set(build_module.MAS_UPGRADE_STUDIES))
+        self.assertEqual(mas["totals"]["runs"], 2250)
+        self.assertEqual(mas["totals"]["primary_total"], 41)
+        self.assertEqual(mas["totals"]["supported"], 40)
+        self.assertEqual(mas["totals"]["unresolved"], 1)
+        self.assertEqual(mas["totals"]["parity_mismatches"], 0)
+        for element in ('id="mechanisms"', 'id="mech-tabs"', 'id="mech-primary-table"', 'id="mech-provenance"'):
+            self.assertIn(element, self.sandbox_html)
 
     def test_readme_stage_f_numbers_match_the_exported_results(self):
         stage_f = self.data["sandbox"]["stage_f"]

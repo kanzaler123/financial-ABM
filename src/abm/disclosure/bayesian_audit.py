@@ -25,7 +25,13 @@ from numpy.typing import NDArray
 
 from .config import TRADING_DAYS_PER_YEAR
 from .domain import DomainSpec
-from .policy import PolicyRegime, _distribute_budget_proportionally, _upper_concave_hull_segments
+from .policy import (
+    BAYESIAN_STACKELBERG_ALLOCATIONS,
+    PolicyRegime,
+    _distribute_budget_proportionally,
+    _timing_factors,
+    _upper_concave_hull_segments,
+)
 
 FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int64]
@@ -41,42 +47,6 @@ class _PlanSnapshot:
     regime: PolicyRegime
     report_ref: FloatArray
     g_dirty_ref: FloatArray
-
-
-def _timing_factors(
-    *,
-    discount_rate: float,
-    decision_day: int,
-    horizon_days: int,
-    repricing_interval: int,
-    period_days: int,
-    implementation_delay: int,
-    disclosure_delay: int,
-    real_persistence: FloatArray | None,
-) -> tuple[float, FloatArray, FloatArray, float, float]:
-    """Return ``(a_real, wash_weights, audit_counts, beta_1, beta)`` for the decision calendar."""
-    times = np.arange(1, horizon_days + 1)
-    calendar = decision_day + times
-    quoted_day = (calendar // repricing_interval) * repricing_interval - 1
-    real_due = decision_day + max(1, implementation_delay)
-    wash_due = decision_day + max(1, disclosure_delay)
-    real_visible = quoted_day >= real_due
-    wash_visible = quoted_day >= wash_due
-    first_audit = ((wash_due + period_days - 1) // period_days) * period_days
-    audits = np.maximum(0, (quoted_day - 1 - first_audit) // period_days + 1)
-    discount = np.exp(-times * discount_rate / TRADING_DAYS_PER_YEAR)
-
-    if real_persistence is None:
-        a_real = float((real_visible @ discount) / TRADING_DAYS_PER_YEAR)
-    else:
-        days_since = np.clip(quoted_day - real_due, 0, None)
-        a_real = float(((real_visible * real_persistence[days_since]) @ discount) / TRADING_DAYS_PER_YEAR)
-
-    wash_weights = np.bincount(audits, weights=(wash_visible * discount) / TRADING_DAYS_PER_YEAR)
-    audit_counts = np.arange(wash_weights.size, dtype=np.float64)
-    beta_1 = float(np.exp(-discount_rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR))
-    beta = float(np.exp(-discount_rate * period_days / TRADING_DAYS_PER_YEAR))
-    return a_real, wash_weights, audit_counts, beta_1, beta
 
 
 def _solve_zero_fine_threshold(
@@ -172,7 +142,7 @@ def _solve_menu_constrained_bands(
         return np.full(n, budget / max(1, n), dtype=np.float64), np.zeros(n, dtype=np.int64)
     q_bar = budget / n
 
-    def _absorb_upward(rates: FloatArray, labels: IntArray) -> tuple[FloatArray, IntArray]:
+    def _absorb_upward(rates: FloatArray, labels: IntArray) -> tuple[FloatArray, IntArray, FloatArray]:
         """Ensure exact budget sum by adjusting occupied band rates strictly upward (clamped <= 1)."""
         counts = np.bincount(labels, minlength=rates.size).astype(np.float64)
         rem = float(budget - np.dot(counts, rates))
@@ -195,7 +165,27 @@ def _solve_menu_constrained_bands(
                 take = min(need, room)
                 adj[b] -= take / counts[b]
                 need -= take
-        return adj[labels], labels
+        return adj[labels], labels, adj
+
+    def _eval_expected_u_at(rates: FloatArray, labels: IntArray) -> float:
+        """Evaluate total expected value at the actual (post-absorption) band rates via ``q_grid`` interpolation."""
+        total = 0.0
+        for b in range(rates.size):
+            members = np.flatnonzero(labels == b)
+            if members.size == 0:
+                continue
+            r = float(np.clip(rates[b], float(q_grid[0]), float(q_grid[-1])))
+            hi = int(np.searchsorted(q_grid, r, side="left"))
+            if hi == 0:
+                total += float(expected_u[members, 0].sum())
+            elif hi >= g_total:
+                total += float(expected_u[members, -1].sum())
+            else:
+                lo = hi - 1
+                span = float(q_grid[hi] - q_grid[lo])
+                alpha = 0.0 if span <= 1e-15 else (r - float(q_grid[lo])) / span
+                total += float(((1.0 - alpha) * expected_u[members, lo] + alpha * expected_u[members, hi]).sum())
+        return total
 
     def _eval_menu(menu_idx: list[int]) -> tuple[float, FloatArray, IntArray]:
         idx_arr = np.asarray(menu_idx, dtype=np.int64)
@@ -211,6 +201,9 @@ def _solve_menu_constrained_bands(
             dq = float(q_m[1] - q_m[0])
             if dq <= 1e-12:
                 return float(u_m[:, 0].sum()), np.full(n, q_bar, dtype=np.float64), labels
+            # Reject infeasible 2-band menus that cannot fund even one firm in band 1 without eroding band 0.
+            if rem < dq - 1e-12:
+                return -float("inf"), np.zeros(n, dtype=np.float64), labels
             count_hi = int(np.floor(rem / dq + 1e-12))
             count_hi = max(1, min(n - 1, count_hi))
             # Check if absorbing upward into band 1 would exceed 1.0; if so increase count_hi
@@ -219,8 +212,8 @@ def _solve_menu_constrained_bands(
             gains = u_m[:, 1] - u_m[:, 0]
             order = np.argsort(-gains, kind="mergesort")
             labels[order[:count_hi]] = 1
-            prob, labels = _absorb_upward(q_m, labels)
-            obj = float(u_m[np.arange(n), labels].sum())
+            prob, labels, adj = _absorb_upward(q_m, labels)
+            obj = _eval_expected_u_at(adj, labels)
             return obj, prob, labels
 
         # General G >= 3: exact UCE water-filling restricted to the G-point discrete menu
@@ -246,21 +239,24 @@ def _solve_menu_constrained_bands(
         segments.sort(key=lambda item: (-item[0], item[1], item[2]))
         leftover = float(rem)
         for _, i, j_lo, j_hi in segments:
+            if leftover <= 1e-12:
+                break
+            if labels[i] != j_lo:
+                continue
             dq = float(q_m[j_hi] - q_m[j_lo])
             if dq <= leftover + 1e-12:
                 labels[i] = j_hi
                 leftover = max(0.0, leftover - dq)
             else:
-                # Try stepping to the highest intermediate band <= leftover without going fractional
+                # Step to the highest intermediate band <= leftover without going fractional, then keep filling.
                 for j_mid in range(j_hi - 1, j_lo, -1):
                     dq_mid = float(q_m[j_mid] - q_m[j_lo])
                     if dq_mid <= leftover + 1e-12:
                         labels[i] = j_mid
                         leftover = max(0.0, leftover - dq_mid)
                         break
-                break
-        prob, labels = _absorb_upward(q_m, labels)
-        obj = float(u_m[np.arange(n), labels].sum())
+        prob, labels, adj = _absorb_upward(q_m, labels)
+        obj = _eval_expected_u_at(adj, labels)
         return obj, prob, labels
 
     # Candidate baseline floors r_0 <= q_bar
@@ -545,7 +541,12 @@ class BayesianAuditFilter:
         w_dirty_pred = self.w_dirty * (1.0 - self.dirty_clear_slip) + self.w_clean * (1.0 - p_stay_clean)
 
         # 2. Optional smooth Bayesian likelihood update from public report changes Delta r_i
-        if self.use_report_signal:
+        use_report_signal = (
+            snap.regime.audit_allocation == "stackelberg_obs_sig"
+            if snap.regime.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS
+            else self.use_report_signal
+        )
+        if use_report_signal:
             delta_r = pre_rep - snap.report_ref
             decay = self.domain.natural_decay * self.period_days / TRADING_DAYS_PER_YEAR
             reversion = getattr(self.domain, "natural_reversion", 0.0) or 0.0
@@ -690,7 +691,12 @@ class BayesianAuditFilter:
                 np.zeros(size, dtype=np.int64) if regime.audit_commitment_buckets >= 2 else None
             )
 
-        weights = prices_arr if self.value_weighted else np.ones(size, dtype=np.float64)
+        value_weighted = (
+            regime.audit_allocation == "stackelberg_obs_val"
+            if regime.audit_allocation in BAYESIAN_STACKELBERG_ALLOCATIONS
+            else self.value_weighted
+        )
+        weights = prices_arr if value_weighted else np.ones(size, dtype=np.float64)
 
         # Build q grid spanning [0, q_star] densely + endpoint 1.0 for post-q* fast clearing
         n_inner = max(12, self.grid_points - 1)

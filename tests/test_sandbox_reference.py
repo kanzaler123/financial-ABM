@@ -117,6 +117,6 @@ def test_mulberry32_reference_values():
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
 def test_javascript_core_reproduces_the_python_model():
-    completed = subprocess.run(["node", str(SANDBOX / "check_core.js")], capture_output=True, text=True, timeout=120)
+    completed = subprocess.run(["node", str(SANDBOX / "check_core.js")], capture_output=True, text=True, timeout=120, check=False)
     assert completed.returncode == 0, completed.stdout + completed.stderr
     assert "matches the Python model" in completed.stdout

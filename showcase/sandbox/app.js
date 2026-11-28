@@ -13,7 +13,7 @@
   let payload = null;
   try { payload = JSON.parse($('sandbox-data').textContent); } catch (error) { payload = null; }
   if (!payload || !payload.firms || !core || !desk || !TEXT) { $('load-error').hidden = false; return; }
-  const { firms: firmData, stage_f: stageF, simplification } = payload;
+  const { firms: firmData, stage_f: stageF, simplification, mas_upgrade: masUpgrade } = payload;
   const domains = firmData.domains;
   const F1 = domains.esg.baseline_policy.fixed_fine;     // CNY 10 m in model money units
   const YUAN_PER_UNIT = 1e7 / F1;                        // one unit = the CSI 300 mean market cap
@@ -1413,6 +1413,387 @@
     renderBracket(); renderPrimary(); renderDose(); renderPhase(); renderProvenance();
   };
 
+  // -- panel 4: MAS mechanism design (§§29-32) --------------------------------------------------
+  const mechState = { tab: 'stackelberg', sweep: 'gamma', cleanOnly: false };
+  const METRIC_LABEL = {
+    'true_change.equal_weight_sd': 'mechMetricEq',
+    'true_change.fixed_start_cap_weight_sd': 'mechMetricCap',
+    'actions.wash_share_by_size.small': 'mechMetricWashSmall',
+    'actions.wash_share_by_size.large': 'mechMetricWashLarge',
+    'assurance.client_minus_unweighted_quality_gap': 'mechMetricQgap',
+    'costs.resource_cost_fraction_initial_cap': 'mechMetricResCost',
+    'costs.assurance_effort_cost': 'mechMetricEffort',
+    'actions.wash': 'mechMetricWashCount',
+  };
+  const fmtMetric = (metric, val) => {
+    if (metric === 'actions.wash') return signed(val, 1);
+    if (metric === 'actions.wash_share_by_size.small' || metric === 'actions.wash_share_by_size.large') return `${signed(100 * val, 1)} pp`;
+    if (metric === 'costs.resource_cost_fraction_initial_cap') return `${signed(1e4 * val, 2)} bp`;
+    if (metric === 'costs.assurance_effort_cost') return signed(val, 4);
+    return signed(val, 3);
+  };
+  const renderHorizContrastChart = (container, rows, { showHit = false, title = '' } = {}) => {
+    const rowH = 30;
+    const f = frame(container, 580, 48 + rows.length * rowH, [12, showHit ? 104 : 64, 30, 148]);
+    f.svg.setAttribute('aria-label', title);
+    const vals = rows.flatMap(r => [r.lo ?? r.val, r.hi ?? r.val, 0]);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const span = hi - lo || 0.1;
+    lo -= span * 0.1; hi += span * 0.12;
+    const x = scale(lo, hi, f.left, f.right);
+    const grid = svgNode('g', { class: 'grid' }, f.svg);
+    const xt = ticks(lo, hi, 5);
+    for (const v of xt.values) {
+      svgNode('line', { x1: x(v), x2: x(v), y1: f.top, y2: f.bottom }, grid);
+      svgNode('text', { x: x(v), y: f.bottom + 15, 'text-anchor': 'middle' }, f.svg, fixed(v, decimals(xt.step)));
+    }
+    svgNode('line', { x1: x(0), x2: x(0), y1: f.top, y2: f.bottom, class: 'baseline' }, f.svg);
+    svgNode('text', { x: f.right, y: f.bottom + 28, 'text-anchor': 'end', class: 'axis-title' }, f.svg, 'Δ SD');
+    rows.forEach((r, idx) => {
+      const cy = f.top + 16 + idx * rowH;
+      const color = r.isBase ? 'var(--neutral)' : r.val > 0 ? 'var(--improve)' : 'var(--wash)';
+      svgNode('text', { x: f.left - 8, y: cy + 4, 'text-anchor': 'end', class: 'label' }, f.svg, r.label);
+      if (!r.isBase) {
+        const bx = Math.min(x(0), x(r.val)), bw = Math.max(2, Math.abs(x(r.val) - x(0)));
+        const bar = svgNode('rect', { x: bx, y: cy - 7, width: bw, height: 14, rx: 3, opacity: 0.24 }, f.svg);
+        bar.style.fill = color;
+        if (r.lo !== undefined && r.hi !== undefined) {
+          svgNode('line', { x1: x(r.lo), x2: x(r.hi), y1: cy, y2: cy, 'stroke-width': 1.8 }, f.svg).style.stroke = color;
+          for (const edge of [r.lo, r.hi]) svgNode('line', { x1: x(edge), x2: x(edge), y1: cy - 4, y2: cy + 4, 'stroke-width': 1.5 }, f.svg).style.stroke = color;
+        }
+        const dot = svgNode('circle', { cx: x(r.val), cy, r: 4.2, class: 'dot' }, f.svg);
+        dot.style.fill = color;
+      } else {
+        svgNode('circle', { cx: x(0), cy, r: 3.8, class: 'dot' }, f.svg).style.fill = color;
+      }
+      const valText = r.isBase ? '0.000' : signed(r.val, 3);
+      svgNode('text', { x: f.right + 8, y: cy + 4, class: 'label' }, f.svg,
+        showHit && r.hit != null ? `${valText} · ${pct(r.hit, 0)}` : valText);
+      const hit = svgNode('rect', { x: f.left, y: cy - rowH / 2, width: f.right - f.left + (showHit ? 96 : 56), height: rowH, class: 'hit' }, f.svg);
+      hit.addEventListener('pointermove', event => {
+        const tipRows = [{
+          color,
+          value: r.lo !== undefined ? `${signed(r.val, 3)} [${signed(r.lo, 3)}, ${signed(r.hi, 3)}]` : `${signed(r.val, 3)} SD`,
+          label: 'Δ vs B',
+        }];
+        if (r.wash != null) tipRows.push({ value: pct(r.wash, 1), label: t('mechWashTip') });
+        if (r.hit != null) tipRows.push({ value: pct(r.hit, 1), label: t('mechHitTip') });
+        if (r.qgap != null) tipRows.push({ value: signed(r.qgap, 3), label: t('mechQgapTip') });
+        showTip(event, r.label, tipRows);
+      });
+      hit.addEventListener('pointerleave', hideTip);
+    });
+  };
+
+  const renderGranularityChart = container => {
+    const s = masUpgrade.studies.sec32C1_granularity.scenarios;
+    const npvPts = [
+      { x: 0, label: 'B (1)', y: 0, wash: s.NPV_B.wash_share },
+      { x: 1, label: 'G=2', y: s.NPV_g2.vs_baseline_eq.mean, lo: s.NPV_g2.vs_baseline_eq.ci_low, hi: s.NPV_g2.vs_baseline_eq.ci_high, wash: s.NPV_g2.wash_share },
+      { x: 2, label: 'G=3', y: s.NPV_g3.vs_baseline_eq.mean, lo: s.NPV_g3.vs_baseline_eq.ci_low, hi: s.NPV_g3.vs_baseline_eq.ci_high, wash: s.NPV_g3.wash_share },
+      { x: 3, label: 'G=5', y: s.NPV_g5.vs_baseline_eq.mean, lo: s.NPV_g5.vs_baseline_eq.ci_low, hi: s.NPV_g5.vs_baseline_eq.ci_high, wash: s.NPV_g5.wash_share },
+      { x: 4, label: 'G=8', y: s.NPV_g8.vs_baseline_eq.mean, lo: s.NPV_g8.vs_baseline_eq.ci_low, hi: s.NPV_g8.vs_baseline_eq.ci_high, wash: s.NPV_g8.wash_share },
+      { x: 5, label: 'S_obs (∞)', y: s.NPV_S_obs.vs_baseline_eq.mean, lo: s.NPV_S_obs.vs_baseline_eq.ci_low, hi: s.NPV_S_obs.vs_baseline_eq.ci_high, wash: s.NPV_S_obs.wash_share },
+    ];
+    const ebPts = [
+      { x: 0, label: 'EB_B', y: 0, wash: s.EB_B.wash_share },
+      { x: 1, label: 'EB_g2', y: s.EB_g2.true_change_eq - s.EB_B.true_change_eq, wash: s.EB_g2.wash_share },
+      { x: 5, label: 'EB_S_obs', y: s.EB_S_obs.true_change_eq - s.EB_B.true_change_eq, wash: s.EB_S_obs.wash_share },
+    ];
+    const f = frame(container, 560, 290, [18, 22, 34, 52]);
+    f.svg.setAttribute('aria-label', t('mechStackRightTitle'));
+    const allY = [...npvPts.flatMap(p => [p.lo ?? p.y, p.hi ?? p.y]), ...ebPts.map(p => p.y), 0];
+    let yLo = Math.min(...allY), yHi = Math.max(...allY);
+    const pad = (yHi - yLo || 0.1) * 0.14;
+    yLo -= pad; yHi += pad;
+    const x = scale(-0.3, 5.3, f.left, f.right), y = scale(yLo, yHi, f.bottom, f.top);
+    yAxis(f, y, yLo, yHi, 5, v => signed(v, 2));
+    xAxis(f, x, npvPts.map(p => p.x), v => npvPts[v].label);
+    svgNode('line', { x1: f.left, x2: f.right, y1: y(0), y2: y(0), class: 'baseline' }, f.svg);
+    const drawSeries = (pts, color, dashed) => {
+      const d = pts.map((p, k) => `${k ? 'L' : 'M'}${x(p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('');
+      const path = svgNode('path', { d, fill: 'none', 'stroke-width': 2.2, ...(dashed ? { 'stroke-dasharray': '5 4' } : {}) }, f.svg);
+      path.style.stroke = color;
+      for (const p of pts) {
+        if (p.lo !== undefined) svgNode('line', { x1: x(p.x), x2: x(p.x), y1: y(p.lo), y2: y(p.hi), 'stroke-width': 1.6 }, f.svg).style.stroke = color;
+        svgNode('circle', { cx: x(p.x), cy: y(p.y), r: 4.8, class: 'dot' }, f.svg).style.fill = color;
+        const hit = svgNode('circle', { cx: x(p.x), cy: y(p.y), r: 14, class: 'hit' }, f.svg);
+        hit.addEventListener('pointermove', event => showTip(event, p.label, [
+          { color, value: p.lo !== undefined ? `${signed(p.y, 3)} [${signed(p.lo, 3)}, ${signed(p.hi, 3)}]` : signed(p.y, 3), label: 'SD' },
+          { value: pct(p.wash, 1), label: t('mechWashTip') },
+        ]));
+        hit.addEventListener('pointerleave', hideTip);
+      }
+    };
+    drawSeries(npvPts, 'var(--improve)', false);
+    drawSeries(ebPts, 'var(--wash)', true);
+  };
+
+  const renderPhaseSweepChart = container => {
+    const s = masUpgrade.studies.sec32B_phase_pareto.scenarios;
+    const isGamma = mechState.sweep === 'gamma';
+    const pts = isGamma
+      ? [['0.0', 0, 'F100_g00'], ['0.3', 0.3, 'F100_g03'], ['0.5', 0.5, 'F100_g05'], ['0.7', 0.7, 'F100_g07'], ['0.9', 0.9, 'F100_g09']]
+      : [['0.00', 0, 'F16_m000'], ['0.03', 0.03, 'F16_m003'], ['0.06', 0.06, 'F16_m006'], ['0.15', 0.15, 'F16_m015'], ['0.25', 0.25, 'F16_m025']];
+    const data = pts.map(([label, xv, key]) => ({
+      label, x: xv, key,
+      y: s[key].vs_baseline_eq.mean, lo: s[key].vs_baseline_eq.ci_low, hi: s[key].vs_baseline_eq.ci_high,
+      cost: s[key].resource_cost_bp, effort: s[key].assurance_effort_cost, wash: s[key].wash_share,
+    }));
+    const f = frame(container, 560, 290, [20, 56, 36, 52]);
+    f.svg.setAttribute('aria-label', t('mechAssureRightTitle'));
+    const xLo = Math.min(...data.map(p => p.x)), xHi = Math.max(...data.map(p => p.x));
+    const xPad = (xHi - xLo || 1) * 0.08;
+    const x = scale(xLo - xPad, xHi + xPad, f.left, f.right);
+    const yVals = data.flatMap(p => [p.lo, p.hi, 0]);
+    const yLo = Math.min(...yVals) - 0.02, yHi = Math.max(...yVals) + 0.04;
+    const y = scale(yLo, yHi, f.bottom, f.top);
+    const cMax = Math.max(...data.map(p => p.cost)) * 1.15;
+    const yc = scale(0, cMax, f.bottom, f.top);
+    yAxis(f, y, yLo, yHi, 5, v => signed(v, 2));
+    xAxis(f, x, data.map(p => p.x), v => data.find(p => p.x === v).label);
+    svgNode('line', { x1: f.left, x2: f.right, y1: y(0), y2: y(0), class: 'baseline' }, f.svg);
+    // Right axis for resource cost (bp)
+    for (const v of ticks(0, cMax, 4).values) {
+      svgNode('text', { x: f.right + 8, y: yc(v) + 4 }, f.svg, `${v.toFixed(1)} bp`).style.fill = 'var(--wash)';
+    }
+    if (!isGamma) {
+      for (const [val, lbl] of [[0.0346, 'a_ins'], [0.0827, 'a*']]) {
+        svgNode('line', { x1: x(val), x2: x(val), y1: f.top, y2: f.bottom, class: 'threshold-line' }, f.svg);
+        svgNode('text', { x: x(val) + 4, y: f.top + 11, class: 'annotation-text' }, f.svg, lbl);
+      }
+    }
+    const pathY = data.map((p, k) => `${k ? 'L' : 'M'}${x(p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('');
+    const pathC = data.map((p, k) => `${k ? 'L' : 'M'}${x(p.x).toFixed(1)},${yc(p.cost).toFixed(1)}`).join('');
+    svgNode('path', { d: pathC, fill: 'none', 'stroke-width': 1.8, 'stroke-dasharray': '5 3' }, f.svg).style.stroke = 'var(--wash)';
+    svgNode('path', { d: pathY, fill: 'none', 'stroke-width': 2.4 }, f.svg).style.stroke = 'var(--improve)';
+    for (const p of data) {
+      svgNode('line', { x1: x(p.x), x2: x(p.x), y1: y(p.lo), y2: y(p.hi), 'stroke-width': 1.6 }, f.svg).style.stroke = 'var(--improve)';
+      svgNode('circle', { cx: x(p.x), cy: y(p.y), r: 4.8, class: 'dot' }, f.svg).style.fill = 'var(--improve)';
+      svgNode('circle', { cx: x(p.x), cy: yc(p.cost), r: 3.8, class: 'dot' }, f.svg).style.fill = 'var(--wash)';
+      const hit = svgNode('rect', { x: x(p.x) - 18, y: f.top, width: 36, height: f.bottom - f.top, class: 'hit' }, f.svg);
+      hit.addEventListener('pointermove', event => showTip(event, `${p.key} (${isGamma ? 'γ' : 'a_min'} = ${p.label})`, [
+        { color: 'var(--improve)', value: `${signed(p.y, 3)} [${signed(p.lo, 3)}, ${signed(p.hi, 3)}]`, label: 'Δ SD' },
+        { color: 'var(--wash)', value: `${p.cost.toFixed(2)} bp`, label: t('mechCostTip') },
+        { value: pct(p.wash, 1), label: t('mechWashTip') },
+        { value: p.effort.toFixed(4), label: t('mechEffortTip') },
+      ]));
+      hit.addEventListener('pointerleave', hideTip);
+    }
+  };
+
+  const renderSizeSpilloverChart = container => {
+    const s = masUpgrade.studies.sec30_empirical_belief.scenarios;
+    const keys = ['EB_B', 'EB_V', 'EB_S_obs', 'EB_F', 'EB_F16_bayes', 'EB_R16_bayes', 'EB_F100_bayes_smooth', 'EB_I'];
+    const f = frame(container, 560, 290, [16, 18, 42, 46]);
+    f.svg.setAttribute('aria-label', t('mechBoundRightTitle'));
+    const maxWash = Math.max(...keys.flatMap(k => [s[k].wash_share_large, s[k].wash_share_mid, s[k].wash_share_small])) * 1.12;
+    const x = scale(-0.5, keys.length - 0.5, f.left, f.right), y = scale(0, maxWash, f.bottom, f.top);
+    yAxis(f, y, 0, maxWash, 5, v => pct(v, 0));
+    xAxis(f, x, keys.map((_, i) => i), i => keys[i].replace('EB_', '').replace('_bayes_smooth', '_bsm').replace('_bayes', '_by'));
+    const cols = [['wash_share_large', 'var(--improve)', 'sizeLarge'], ['wash_share_mid', 'var(--regulator)', 'sizeMid'], ['wash_share_small', 'var(--wash)', 'sizeSmall']];
+    const barW = Math.min(13, (f.right - f.left) / keys.length / 3.8);
+    keys.forEach((k, idx) => {
+      const cx = x(idx);
+      cols.forEach(([field, color, labelKey], j) => {
+        const v = s[k][field];
+        const bx = cx + (j - 1) * (barW + 2) - barW / 2;
+        const rect = svgNode('rect', { x: bx, y: y(v), width: barW, height: Math.max(1, f.bottom - y(v)), rx: 2 }, f.svg);
+        rect.style.fill = color;
+      });
+      const hit = svgNode('rect', { x: cx - 22, y: f.top, width: 44, height: f.bottom - f.top, class: 'hit' }, f.svg);
+      hit.addEventListener('pointermove', event => showTip(event, k, cols.map(([field, color, labelKey]) => ({
+        color, value: pct(s[k][field], 1), label: t(labelKey),
+      }))));
+      hit.addEventListener('pointerleave', hideTip);
+    });
+  };
+
+  const renderMechTable = (studiesList, showClean = false) => {
+    const cleanMap = new Map();
+    for (const st of studiesList) {
+      for (const row of (st.clean_primary || [])) cleanMap.set(row.name, row);
+    }
+    const allPrimary = studiesList.flatMap(st => st.primary);
+    const supportedCount = allPrimary.filter(r => r.supported).length;
+    $('mech-table-title').textContent = t('mechTableTitle');
+    $('mech-table-summary').textContent = t('mechTableSummary', { supported: supportedCount, total: allPrimary.length });
+    const headers = showClean
+      ? [t('mechColId'), t('mechColMetric'), t('mechColEst'), t('mechColHolm'), t('mechColClean'), t('mechColSign'), t('mechColVerdict')]
+      : [t('mechColId'), t('mechColMetric'), t('mechColEst'), t('mechColHolm'), t('mechColSign'), t('mechColVerdict')];
+    const rows = allPrimary.map(r => {
+      const est = `${fmtMetric(r.metric, r.mean)} [${fmtMetric(r.metric, r.ci_low)}, ${fmtMetric(r.metric, r.ci_high)}]`;
+      const pill = node('span', `pill-status ${r.supported ? 'ok' : 'unresolved'}`, t(r.supported ? 'mechSupported' : 'mechUnresolved'));
+      const majority = Math.max(r.pos, r.neg);
+      const baseRow = [t(`mech_${r.name}`), t(METRIC_LABEL[r.metric] || 'mechMetricEq'), est, sci(r.holm_p_value)];
+      if (showClean) {
+        const c = cleanMap.get(r.name);
+        baseRow.push(c ? `${fmtMetric(c.metric, c.clean_mean)} (p=${sci(c.clean_holm_p)})` : '—');
+      }
+      baseRow.push(`${majority}/${r.n}`, pill);
+      return baseRow;
+    });
+    const numCols = showClean ? [2, 3, 4, 5] : [2, 3, 4];
+    $('mech-primary-table').replaceChildren(table(headers, rows, numCols));
+  };
+
+  const renderMechProvenance = () => {
+    const src = masUpgrade.source, tot = masUpgrade.totals;
+    const list = $('mech-provenance');
+    list.replaceChildren();
+    const fact = (label, value, href) => {
+      const item = node('div');
+      const dd = node('dd');
+      if (href) { const link = node('a', '', value); link.href = href; dd.append(link); } else dd.textContent = value;
+      item.append(node('dt', '', label), dd);
+      list.append(item);
+    };
+    fact(t('mechProvFile'), `${src.path} · sha256 ${src.sha256.slice(0, 12)}…`, `${REPO}/blob/master/${src.path}`);
+    fact(t('mechProvRuns'), t('mechProvRunsVal', { runs: grouped(tot.runs), planned: grouped(tot.planned), studies: tot.studies, seeds: tot.seed_range }));
+    fact(t('mechProvParity'), t('mechProvParityVal', { mismatches: tot.parity_mismatches }));
+    fact(t('mechProvR1'), src.report_29_31, `${REPO}/blob/master/${src.report_29_31}`);
+    fact(t('mechProvR2'), src.report_32, `${REPO}/blob/master/${src.report_32}`);
+    fact(t('mechProvProps'), src.propositions, `${REPO}/blob/master/${src.propositions}`);
+  };
+
+  const renderMechanisms = () => {
+    if (!masUpgrade) return;
+    const st = masUpgrade.studies;
+    const s29 = st.sec29_stackelberg, s30 = st.sec30_empirical_belief, s31 = st.sec31_assurance;
+    const s32a = st.sec32A_q_dynamics, s32b = st.sec32B_phase_pareto, s32c1 = st.sec32C1_granularity, s32c2 = st.sec32C2_ai_washing;
+    $('mech-kpi1-val').textContent = `${signed(s29.scenarios.S_obs.vs_baseline_eq.mean, 3)} SD (vs V: ${signed(s29.primary[1].mean, 3)})`;
+    $('mech-kpi2-val').textContent = `${signed(s31.primary[5].mean, 3)} SD · −${(s32b.scenarios.F100_g00.resource_cost_bp - s32b.scenarios.F100_g07.resource_cost_bp).toFixed(2)} bp`;
+    $('mech-kpi3-val').textContent = `${signed(s30.primary[0].mean, 3)} SD · G5 p=${s32c1.primary[4].holm_p_value.toFixed(2)}`;
+    $('mech-kpi4-val').textContent = 'Q 6/6 · AI 6/6 (n=15✓)';
+
+    for (const btn of document.querySelectorAll('[data-mech-tab]')) {
+      const active = btn.dataset.mechTab === mechState.tab;
+      btn.setAttribute('aria-selected', String(active));
+      btn.setAttribute('aria-pressed', String(active));
+    }
+    $('mech-sweep-toggle').hidden = mechState.tab !== 'assurance';
+    $('mech-clean-wrap').hidden = mechState.tab !== 'generalization';
+    for (const btn of document.querySelectorAll('[data-sweep]')) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.sweep === mechState.sweep));
+    }
+    $('mech-clean-only').checked = mechState.cleanOnly;
+
+    const mapVsBase = (study, order) => order.map(name => {
+      const sc = study.scenarios[name];
+      const isBase = name === study.baseline;
+      const vs = sc.vs_baseline_eq;
+      return {
+        label: name, isBase,
+        val: isBase ? 0 : vs.mean, lo: isBase ? undefined : vs.ci_low, hi: isBase ? undefined : vs.ci_high,
+        wash: sc.wash_share, hit: sc.hit_rate_pooled, qgap: sc.q_gap,
+      };
+    });
+
+    if (mechState.tab === 'stackelberg') {
+      $('mech-study-meta').textContent = t('mechStudyMeta', {
+        runs: s29.complete_trials + s32c1.complete_trials, planned: s29.planned_trials + s32c1.planned_trials,
+        seeds: `${s29.seed_range[0]}–${s29.seed_range[1]} / ${s32c1.seed_range[0]}–${s32c1.seed_range[1]}`, clean: s29.clean_seed_count,
+      });
+      $('mech-left-title').textContent = t('mechStackLeftTitle');
+      $('mech-left-sub').textContent = t('mechStackLeftSub');
+      $('mech-left-intro').textContent = t('mechStackLeftIntro');
+      legend($('mech-left-legend'), [
+        { label: t('mechLegendGain'), color: 'var(--improve)' },
+        { label: t('mechLegendLoss'), color: 'var(--wash)' },
+        { label: t('mechLegendHit'), color: 'var(--neutral)' },
+      ]);
+      renderHorizContrastChart($('mech-left-chart'),
+        mapVsBase(s29, ['S_oracle_eq', 'S_obs_sig', 'A2', 'S_obs', 'S_obs_val', 'B', 'S_obs_hid', 'J', 'V']),
+        { showHit: true, title: t('mechStackLeftTitle') });
+      $('mech-right-title').textContent = t('mechStackRightTitle');
+      $('mech-right-intro').textContent = t('mechStackRightIntro');
+      legend($('mech-right-legend'), [
+        { label: t('mechLegendNpv'), color: 'var(--improve)', line: true },
+        { label: t('mechLegendEb'), color: 'var(--wash)', line: true },
+      ]);
+      renderGranularityChart($('mech-right-chart'));
+      renderMechTable([s29, s32c1], false);
+    } else if (mechState.tab === 'assurance') {
+      $('mech-study-meta').textContent = t('mechStudyMeta', {
+        runs: s31.complete_trials + s32b.complete_trials, planned: s31.planned_trials + s32b.planned_trials,
+        seeds: `${s31.seed_range[0]}–${s31.seed_range[1]} / ${s32b.seed_range[0]}–${s32b.seed_range[1]}`, clean: s31.clean_seed_count,
+      });
+      $('mech-left-title').textContent = t('mechAssureLeftTitle');
+      $('mech-left-sub').textContent = t('mechAssureLeftSub');
+      $('mech-left-intro').textContent = t('mechAssureLeftIntro');
+      legend($('mech-left-legend'), [{ label: t('mechLegendGain'), color: 'var(--improve)' }, { label: t('mechLegendLoss'), color: 'var(--wash)' }]);
+      renderHorizContrastChart($('mech-left-chart'),
+        mapVsBase(s31, ['I', 'ALL_R100_bayes_smooth', 'ALL_F100_bayes_smooth', 'ALL_ROT16_bayes', 'ALL_R16_bayes', 'ALL_R100_bayes', 'ALL_F16_bayes', 'B']),
+        { showHit: false, title: t('mechAssureLeftTitle') });
+      $('mech-right-title').textContent = t('mechAssureRightTitle');
+      $('mech-right-intro').textContent = t('mechAssureRightIntro');
+      const items = [
+        { label: t('mechLegendDelta'), color: 'var(--improve)', line: true },
+        { label: t('mechLegendCost'), color: 'var(--wash)', line: true },
+      ];
+      if (mechState.sweep === 'floor') items.push({ label: t('mechLegendThreshold'), color: 'var(--regulator)', line: true });
+      legend($('mech-right-legend'), items);
+      renderPhaseSweepChart($('mech-right-chart'));
+      renderMechTable([s31, s32b], false);
+    } else if (mechState.tab === 'bounded') {
+      $('mech-study-meta').textContent = t('mechStudyMeta', {
+        runs: s30.complete_trials, planned: s30.planned_trials,
+        seeds: `${s30.seed_range[0]}–${s30.seed_range[1]}`, clean: s30.clean_seed_count,
+      });
+      $('mech-left-title').textContent = t('mechBoundLeftTitle');
+      $('mech-left-sub').textContent = t('mechBoundLeftSub');
+      $('mech-left-intro').textContent = t('mechBoundLeftIntro');
+      legend($('mech-left-legend'), [{ label: t('mechLegendGain'), color: 'var(--improve)' }, { label: t('mechLegendLoss'), color: 'var(--wash)' }]);
+      renderHorizContrastChart($('mech-left-chart'),
+        mapVsBase(s30, ['EB_F100_bayes_smooth', 'EB_I', 'EB_R16_bayes', 'EB_F16_bayes', 'EB_F', 'EB_B', 'EB_S_obs', 'EB_V']),
+        { showHit: false, title: t('mechBoundLeftTitle') });
+      $('mech-right-title').textContent = t('mechBoundRightTitle');
+      $('mech-right-intro').textContent = t('mechBoundRightIntro');
+      legend($('mech-right-legend'), [
+        { label: t('sizeLarge'), color: 'var(--improve)', band: true },
+        { label: t('sizeMid'), color: 'var(--regulator)', band: true },
+        { label: t('sizeSmall'), color: 'var(--wash)', band: true },
+      ]);
+      renderSizeSpilloverChart($('mech-right-chart'));
+      renderMechTable([s30], false);
+    } else {
+      $('mech-study-meta').textContent = t('mechStudyMeta', {
+        runs: s32a.complete_trials + s32c2.complete_trials, planned: s32a.planned_trials + s32c2.planned_trials,
+        seeds: `${s32a.seed_range[0]}–${s32a.seed_range[1]} / ${s32c2.seed_range[0]}–${s32c2.seed_range[1]}`, clean: s32c2.clean_seed_count,
+      });
+      $('mech-left-title').textContent = t('mechGenLeftTitle');
+      $('mech-left-sub').textContent = t('mechGenLeftSub');
+      $('mech-left-intro').textContent = t('mechGenLeftIntro');
+      legend($('mech-left-legend'), [{ label: t('mechLegendGain'), color: 'var(--improve)' }, { label: t('mechLegendLoss'), color: 'var(--wash)' }]);
+      renderHorizContrastChart($('mech-left-chart'),
+        mapVsBase(s32a, ['Q_R100_bayes_smooth', 'Q_F100_bayes_smooth', 'Q_R100_bayes', 'Q_S_obs', 'Q_R16_bayes', 'Q_I', 'Q_S_obs_sig', 'Q_F16_bayes', 'Q_S_obs_hid', 'Q_B', 'Q_J', 'Q_V']),
+        { showHit: true, title: t('mechGenLeftTitle') });
+      $('mech-right-title').textContent = t('mechGenRightTitle');
+      $('mech-right-intro').textContent = t('mechGenRightIntro');
+      legend($('mech-right-legend'), [{ label: t('mechLegendGain'), color: 'var(--improve)' }, { label: t('mechLegendLoss'), color: 'var(--wash)' }]);
+      renderHorizContrastChart($('mech-right-chart'),
+        mapVsBase(s32c2, ['AI_F100_bayes_smooth', 'AI_R16_bayes', 'AI_I', 'AI_F16_bayes', 'AI_S_obs_sig', 'AI_S_obs', 'AI_B', 'AI_S_obs_hid', 'AI_V']),
+        { showHit: true, title: t('mechGenRightTitle') });
+      renderMechTable([s32a, s32c2], mechState.cleanOnly);
+    }
+    renderMechProvenance();
+  };
+
+  for (const button of document.querySelectorAll('[data-mech-tab]')) {
+    button.addEventListener('click', () => {
+      if (mechState.tab !== button.dataset.mechTab) { mechState.tab = button.dataset.mechTab; renderMechanisms(); }
+    });
+  }
+  for (const button of document.querySelectorAll('[data-sweep]')) {
+    button.addEventListener('click', () => {
+      if (mechState.sweep !== button.dataset.sweep) { mechState.sweep = button.dataset.sweep; renderMechanisms(); }
+    });
+  }
+  $('mech-clean-only').addEventListener('change', event => {
+    mechState.cleanOnly = event.target.checked;
+    renderMechanisms();
+  });
+
   // -- page text and orchestration -------------------------------------------------------------
   const renderHero = () => {
     const w02 = stageF.tau_star_check.find(row => row.w === 0.2);
@@ -1466,7 +1847,7 @@
   $('lang-toggle').addEventListener('click', () => {
     lang = lang === 'zh' ? 'en' : 'zh';
     storage.set(lang);
-    applyText(); renderCost(); renderResults(); update();
+    applyText(); renderCost(); renderResults(); renderMechanisms(); update();
   });
   $('share-link').addEventListener('click', async () => {
     const url = shareUrl(), status = $('share-status');
@@ -1494,6 +1875,7 @@
 
   applyText();
   renderCost();
+  renderMechanisms();
   // The desk opens on the information policy a few periods before the switch, so the first
   // replay reaches it within seconds; without motion it rests on the finished run instead.
   play.day = reduced ? domains.esg.market.trading_days : domains.esg.market.burn_in_days - 360;

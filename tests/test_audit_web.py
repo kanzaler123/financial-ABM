@@ -4,10 +4,11 @@ import json
 from pathlib import Path
 import queue
 from types import SimpleNamespace
-from unittest.mock import Mock
 
-from fastapi.testclient import TestClient
 import pytest
+
+pytest.importorskip("fastapi")
+from fastapi.testclient import TestClient
 
 from abm.config import load_stage1_config
 from abm.web import ActiveRun, RunRegistry, create_app

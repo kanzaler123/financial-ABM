@@ -4,7 +4,7 @@
 
 | 页面 | 内容 |
 |---|---|
-| `_site/index.html`（首页） | 漂绿政策沙盘（计划阶段 G）：首屏作战台回放面板 ② 的 14 年简化动态（企业球、决策频谱、事件流、核查日志，标注为非研究结果）；面板 ① 企业单期决策，面板 ② 简化动态（无市场反馈，非研究结果），面板 ③ 阶段 F 完整模型结果。默认英文，可切换中文；ESG / AI-washing 切换 |
+| `_site/index.html`（首页） | 漂绿政策沙盘（计划阶段 G + MAS 机制升级 §§29–32）：首屏作战台回放面板 ② 的 14 年简化动态（企业球、决策频谱、事件流、核查日志，标注为非研究结果）；面板 ① 企业单期决策，面板 ② 简化动态（无市场反馈，非研究结果），面板 ③ 阶段 F 完整模型结果，面板 ④ MAS 机制设计确认性结果（7 项研究、2,250 次运行、40/41 Holm 支持，支持 Stackelberg 核查、内生鉴证相变/帕累托、有界学习与 Q-learning / AI-washing 交互浏览）。默认英文，可切换中文；ESG / AI-washing 切换 |
 | `_site/stage1/index.html` | 阶段 1 展厅：历史 v13/v14 机制报告（原首页，内容不变），默认英文，可切换中文 |
 
 ## 预览
@@ -24,6 +24,7 @@ python -m http.server 8080 --directory _site
 |---|---|
 | `data/sandbox_firms.json` | [导出脚本](../reports/disclosure_stage_g_20261015/export.py)：新种子 51001 按阶段 F 主设定运行，第 1200 日快照 200 家合成企业；AI-washing 领域同样快照 |
 | `data/stage_f.json` | 从已提交的 `confirmatory_v1_analysis.json` 复制，附 `experiment_id`、SHA-256 与提交号 |
+| `reports/disclosure_mas_upgrade_20261125/mas_upgrade_analysis.json` | `build.py` 直接读取 §§29–32 确认性分析文件并按 SHA-256 校验，提取 7 项研究、2,250 次运行与 41 项 Holm 校正主检验供面板 ④ 展示 |
 | `data/simplification.json` | [对照脚本](../reports/disclosure_stage_g_20261015/compare.py)：简化动态与完整模型的差距（“简化的代价”） |
 | `sandbox/core.js` | 决策核心与简化动态，移植自 `src/abm/disclosure` 与 `sandbox/reference.py` |
 | `sandbox/fixtures/*.json` | [夹具脚本](../reports/disclosure_stage_g_20261015/fixtures.py)：由 Python 模型代码生成的期望值 |

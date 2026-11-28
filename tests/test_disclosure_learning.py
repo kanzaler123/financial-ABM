@@ -140,10 +140,10 @@ def train_delayed_environment(delay):
     rng = np.random.default_rng(150 + delay)
     valid = np.ones((1, 3), dtype=bool)
     initial_real_reward = None
-    for episode in range(700):
+    for _ in range(700):
         queue = [0] * (delay - 1)
         pending_fine = 0
-        for decision in range(10):
+        for _ in range(10):
             state = sum(flag << index for index, flag in enumerate(queue)) + (pending_fine << len(queue))
             action = int(choose_actions(learner, np.array([0]), np.array([state]), valid, rng, training=True)[0])
             savings = np.zeros((61, 1))

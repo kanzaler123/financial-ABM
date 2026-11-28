@@ -10,13 +10,15 @@
 
 | Document | Language | Purpose |
 |---|---|---|
-| [disclosure_research_contract.md](disclosure_research_contract.md) | Chinese (+ English §28 addendum) | Pre-registration contract: fixed experimental designs, hypotheses, seeds, and acceptance rules (Stages A–J, §1–§28) |
+| [disclosure_research_contract.md](disclosure_research_contract.md) | Chinese (+ English §28 addendum) | Pre-registration contract: fixed experimental designs, hypotheses, seeds, and acceptance rules (Stages A–J & MAS mechanism-design upgrades, §1–§32) |
+| [disclosure_dynamic_propositions.md](disclosure_dynamic_propositions.md) | Chinese | Dynamic multi-agent propositions (Propositions 3–6: assurance co-evolution, RMAB-Stackelberg auditing, partial-observability blindspot, and runtime hysteresis/floor bounds) |
 | [review_corrections_20261116.md](review_corrections_20261116.md) | English | Post-review statistical corrections (H2/I3 auxiliary profiles, H3 equal-budget contrasts) and v2 assurance protocol fixes (`7cdb384`) |
 | [disclosure_empirical_magnitudes_20261012.md](disclosure_empirical_magnitudes_20261012.md) | Chinese | Statutory penalty, enforcement intensity, and ESG financing literature sources mapped to model units |
 | [disclosure_inspection_propositions.md](disclosure_inspection_propositions.md) | Chinese | Analytical single-firm benchmarks (Propositions 1–2: lump-sum fine condition and transparency threshold) |
 | [disclosure_fine_booking_20261020.md](disclosure_fine_booking_20261020.md) | Chinese | Legal and enforcement case study on per-case vs. per-report fine booking |
 | [disclosure_information_design.md](disclosure_information_design.md) | Chinese | Minimum mechanism design and acceptance checks for the disclosure transparency policy |
 | [disclosure_q_learning_design.md](disclosure_q_learning_design.md) | Chinese | Comparable tabular Q-learning design and training-budget protocol (coverage target unmet; kept for record) |
+| [disclosure_mas_upgrade_contract_draft.md](disclosure_mas_upgrade_contract_draft.md) | Chinese | Archived drafting record for contract §§29–31 (superseded by frozen specs in `disclosure_research_contract.md`) |
 | [data_inventory.md](data_inventory.md) | Chinese | File list, SHA-256 hashes, and quality checks for locally stored licensed empirical datasets |
 | [technical_report.md](technical_report.md) | English | Stage 1 single-asset market MSM calibration technical report |
 
@@ -38,6 +40,7 @@ Core modules live in [`src/abm/disclosure/`](../src/abm/disclosure/) and domain 
 | `firms.py`, `market.py`, `investors.py`, `harness.py` | Firm size/value, multi-asset quoting, investor imitation, daily clearing, and conservation checks |
 | `domain.py` | Domain mapping: direction, scale, empirical distributions, size copula, costs, and lags |
 | `game.py`, `policy.py`, `financing.py` | Firm actions, audits/fines/assurance, policy schedules, financing signals, and payoffs |
+| `bayesian_audit.py`, `bounded.py` | Pure-public joint type–state Bayesian dynamic RMAB-Stackelberg auditor (`BayesianAuditFilter`, `G`-band risk menus) and zero-leakage online empirical-belief learner (`EmpiricalBeliefLearner`) |
 | `learning.py`, `training.py` | Tabular Q-learning, training loop, and state–action coverage diagnostics |
 | `experiments.py`, `metrics.py`, `phase.py`, `report.py`, `runner.py` | Scenario grids, paired contrasts, metrics, phase diagrams, reporting, and archival runs |
 | `validate.py`, `calibration.py` | Market validation and empirical moment/distribution fitting |
@@ -47,6 +50,7 @@ Core modules live in [`src/abm/disclosure/`](../src/abm/disclosure/) and domain 
 | Area | Reports |
 |---|---|
 | **Confirmatory policy & mechanism studies** | [Stage F: Policy instruments](../reports/disclosure_stage_f_20261014/README.md) · [Targeted audits (E.1)](../reports/disclosure_targeted_audits_20261020/README.md) · [Assurance providers (E.2)](../reports/disclosure_assurance_20261021/README.md) · [Learning-firm redo (D.3)](../reports/disclosure_learning_redo_20261021/README.md) · [Joint robustness](../reports/disclosure_joint_robustness_20261023/README.md) · [Counterfactual feedback channels](../reports/disclosure_feedback_channels_main_20261017/tables.md) |
+| **MAS mechanism-design upgrades (§§29–32)** | [RMAB-Stackelberg, Empirical-Belief Learning & Partial-Obs. Assurance (§§29–31)](../reports/disclosure_mas_upgrade_20261125/README.md) · [Persistence Q, Pareto Sweeps, Communication Granularity & AI-Washing (§32)](../reports/disclosure_mas_upgrade_20261125/README_sec32.md) |
 | **Empirical calibration & regime studies** | [Huazheng panel dynamics (R1)](../reports/huazheng_panel_dynamics_20261026/README.md) · [Persistence estimation (H2)](../reports/disclosure_persistence_estimation_20261026/README.md) · [Persistence rerun (H3)](../reports/disclosure_stage_h3_20261027/README.md) · [Financing premium (I)](../reports/disclosure_financing_premium_20261027/README.md) · [Stage I model](../reports/disclosure_stage_i_20261027/README.md) · [Investor response (J)](../reports/disclosure_investor_response_20261028/README.md) |
 | **Market layer & data qualification** | [60-world audit](../reports/disclosure_market_qualification_20261011/audit_report.md) · [Order-flow replay](../reports/disclosure_market_qualification_20261011/flow_replay/interpretation.md) · [Public data overview](../reports/disclosure_public_data_20261011/README.md) · [CSI 300 joint sample](../reports/disclosure_public_data_20261011/csi300_joint_20261009/README.md) · [Public reproduction acceptance](../reports/reproduction_acceptance_20261023/README.md) |
 | **Single-asset foundation (Stage 1–3)** | [Stage 1 v15 formal acceptance](../reports/stage1_iter6_20260926/analysis.md) · [Stage 2 report](../reports/stage2_20260926/analysis.md) · [Stage 3 report](../reports/stage3_20261003/analysis.md) |

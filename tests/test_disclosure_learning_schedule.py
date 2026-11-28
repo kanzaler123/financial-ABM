@@ -10,7 +10,6 @@ from abm.disclosure.config import MarketConfig
 from abm.disclosure.domain import load_domain
 from abm.disclosure.game import DisclosureMarket
 from abm.disclosure.learning import batch_update, context_states, load_frozen, save_frozen
-from abm.disclosure.policy import PolicySchedule
 from abm.tabular import CompanyQLearner
 
 

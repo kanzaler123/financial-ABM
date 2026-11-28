@@ -60,7 +60,7 @@ def render(browser: str, source: Path, target: Path, size: tuple[int, int]) -> N
         command = [browser, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
                    "--no-first-run", "--no-default-browser-check", f"--user-data-dir={Path(scratch) / 'profile'}",
                    f"--window-size={size[0]},{size[1]}", f"--screenshot={shot}", source.as_uri()]
-        result = subprocess.run(command, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=120, check=False)
         if result.returncode != 0 or not shot.is_file():
             raise SystemExit(f"Browser failed ({result.returncode}):\n{result.stderr[-2000:]}")
         if png_size(shot) != size:

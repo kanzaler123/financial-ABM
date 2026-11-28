@@ -166,7 +166,7 @@ def distance_profile_intervals(
         minimum = _minimum(distance, bounds, np.vstack([candidates, *[fit["x"] for fit in all_fits]]), starts)
     tolerance = 1e-7 * max(1.0, abs(minimum["fun"]))
     intervals, segments, boundary = {}, {}, {}
-    for j, (name, rows) in enumerate(profiles.items()):
+    for name, rows in profiles.items():
         accepted, groups, group = [], [], []
         for row in rows:
             delta = row["objective"] - minimum["fun"]

@@ -175,8 +175,8 @@ def fig_frontier(stage_f: dict) -> None:
             if scenario == "B":
                 ys.append(0.0), lo.append(0.0), hi.append(0.0)
             else:
-                m, l, h = contrast(stage_f, f"{scenario}_minus_B")
-                ys.append(m), lo.append(l), hi.append(h)
+                m, low, high = contrast(stage_f, f"{scenario}_minus_B")
+                ys.append(m), lo.append(low), hi.append(high)
         ax.plot(xs, ys, color=colour, linewidth=1.5, zorder=2, label=name)
         ax.vlines(xs, lo, hi, color=colour, linewidth=1.2, zorder=2)
         for (scenario, dose, offset), x, y in zip(doses, xs, ys):
@@ -547,7 +547,7 @@ def fig_regimes(stage_f: dict, rob: dict, joint: dict, h3: dict, stage_i: dict) 
     y_pos = list(range(len(rows) - 1, -1, -1))
     ax1.axvline(0, color=INK_2, linewidth=0.6)
     ax1.axhline(3.5, color=INK_2, linestyle=":", linewidth=0.8)
-    for y, (label, m, lo, hi, crosses) in zip(y_pos, rows):
+    for y, (_label, m, lo, hi, crosses) in zip(y_pos, rows):
         col = INFO if crosses else FIXED
         ax1.hlines(y, lo, hi, color=col, linewidth=1.6, zorder=2)
         ax1.plot(m, y, marker="o", markersize=5.2, color=col, zorder=3)
@@ -756,7 +756,7 @@ def fig_remedies(mas: dict) -> None:
     ax1.axvline(i_gain, color=INFO, linestyle="--", linewidth=1.0, zorder=1)
     ax1.text(i_gain + 0.014, 0.24, f"$I$ ($\\tau$=0.6)\n+{i_gain:.3f}", ha="left", va="center",
              fontsize=6.8, color=INFO)
-    for y, (label, key, col, mk, filled) in zip(ys_a, rows_a):
+    for y, (_label, key, col, mk, filled) in zip(ys_a, rows_a):
         vb = s31[key]["vs_baseline_eq"]
         w = 100.0 * s31[key]["wash_share"]
         ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.45, zorder=2)
@@ -886,7 +886,7 @@ def fig_bounded(mas: dict) -> None:
     ]
     ys = list(range(len(rows) - 1, -1, -1))
     ax1.axvline(0.0, color=INK_2, linewidth=0.6)
-    for y, (label, key, col, mk, filled) in zip(ys, rows):
+    for y, (_label, key, col, mk, filled) in zip(ys, rows):
         vb = s30[key]["vs_baseline_eq"]
         ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.45, zorder=2)
         ax1.plot(vb["mean"], y, marker=mk, markersize=5.3, color=col,
@@ -969,7 +969,7 @@ def fig_generalization(mas: dict) -> None:
     ax1.axvline(0.0, color=INK_2, linewidth=0.6)
     ax1.axvline(qi, color=INFO, linestyle="--", linewidth=0.95, zorder=1)
     ax1.text(qi + 0.002, 0.25, f"$Q_I$\n+{qi:.3f}", ha="left", va="bottom", fontsize=6.7, color=INFO)
-    for y, (label, key, col, mk, filled) in zip(yq, rows_q):
+    for y, (_label, key, col, mk, filled) in zip(yq, rows_q):
         vb = s32a[key]["vs_baseline_eq"]
         ax1.hlines(y, vb["ci_low"], vb["ci_high"], color=col, linewidth=1.4, zorder=2)
         ax1.plot(vb["mean"], y, marker=mk, markersize=4.9, color=col,
@@ -1003,7 +1003,7 @@ def fig_generalization(mas: dict) -> None:
     ax2.axvline(0.0, color=INK_2, linewidth=0.6)
     ax2.axvline(ai_i, color=INFO, linestyle="--", linewidth=0.95, zorder=1)
     ax2.text(ai_i + 0.012, 0.2, f"AI_I\n+{ai_i:.3f}", ha="left", va="bottom", fontsize=6.7, color=INFO)
-    for y, (label, key, col, mk) in zip(yai, rows_ai):
+    for y, (_label, key, col, mk) in zip(yai, rows_ai):
         vb = s32c2[key]["vs_baseline_eq"]
         vbc = s32c2[key]["vs_baseline_eq_clean"]
         w = 100.0 * s32c2[key]["wash_share"]

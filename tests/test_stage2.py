@@ -357,6 +357,7 @@ def test_native_five_node_live_and_replay_filters_match(tmp_path):
 
 
 def test_web_discovers_nested_formal_acceptance_and_replays_stage2(tmp_path):
+    pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
     from abm.stage2 import Stage2Harness
     from abm.web import create_app

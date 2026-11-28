@@ -295,9 +295,17 @@ def render_phase(destination: str | Path) -> Path:
              f"Core-validation failures: {analysis['core_validation_failures']}. Stylized-validation failures remain visible in descriptive results and block confirmatory dominance.", "",
              "| Scenario | Taste median | Initial probability | G | W | Valid/planned | II share at burn-in | II wealth share at burn-in |",
              "|---|---:|---:|---:|---:|---|---:|---:|"]
+    def _display(row: dict, name: str) -> str:
+        mean = row["continuous"][name]["mean"]
+        return "missing" if mean is None else f"{mean:.6g}"
+
     for cell in analysis["cells"]:
-        display = lambda name: "missing" if cell["continuous"][name]["mean"] is None else f"{cell['continuous'][name]['mean']:.6g}"
-        lines.append(f"| {cell['scenario']} | {cell['taste_median']:g} | {cell['initial_impact_probability']:g} | {display('G')} | {display('W')} | {cell['n_valid']}/{cell['n_planned']} | {display('impact_share_at_burn_in')} (day {cell['burn_in_day']}) | {display('impact_wealth_share_at_burn_in')} |")
+        lines.append(
+            f"| {cell['scenario']} | {cell['taste_median']:g} | {cell['initial_impact_probability']:g} "
+            f"| {_display(cell, 'G')} | {_display(cell, 'W')} | {cell['n_valid']}/{cell['n_planned']} "
+            f"| {_display(cell, 'impact_share_at_burn_in')} (day {cell['burn_in_day']}) "
+            f"| {_display(cell, 'impact_wealth_share_at_burn_in')} |"
+        )
     for filename in files:
         lines.extend(["", f"![{filename}]({filename})" if filename.endswith(".png") else f"[PDF: {filename}]({filename})"])
     lines.extend(["", "## All threshold sensitivities", "", "Thresholds are display assumptions, not empirically validated success criteria.", "",

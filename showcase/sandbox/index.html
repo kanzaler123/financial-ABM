@@ -32,7 +32,7 @@
       <span class="brand-sub" data-i18n="brandSub">Policy desk</span>
     </a>
     <nav data-i18n-aria="navLabel" aria-label="Main navigation">
-      <a href="#desk" data-i18n="navDesk">Desk</a><a href="#decision" data-i18n="navDecision">Firm decision</a><a href="#dynamics" data-i18n="navDynamics">Simplified dynamics</a><a href="#results" data-i18n="navResults">Full-model results</a><a href="#method" data-i18n="navMethod">Method and limits</a><a href="stage1/" data-lang-link="stage1/" data-i18n="navStage1">Stage 1 exhibit</a>
+      <a href="#desk" data-i18n="navDesk">Desk</a><a href="#decision" data-i18n="navDecision">Firm decision</a><a href="#dynamics" data-i18n="navDynamics">Simplified dynamics</a><a href="#results" data-i18n="navResults">Full-model results</a><a href="#mechanisms" data-i18n="navMechanisms">MAS mechanisms</a><a href="#method" data-i18n="navMethod">Method and limits</a><a href="stage1/" data-lang-link="stage1/" data-i18n="navStage1">Stage 1 exhibit</a>
     </nav>
     <div class="top-actions">
       <span class="core-pill"><i aria-hidden="true"></i><span data-i18n="corePill">JS core ≡ Python model</span></span>
@@ -298,6 +298,55 @@
   </div>
 </section>
 
+<section class="section wrap" id="mechanisms" aria-labelledby="mech-title">
+  <div class="section-head">
+    <div><p class="eyebrow" data-i18n="p4Eyebrow">Panel ④</p><h2 id="mech-title"><span data-i18n="p4Title">MAS mechanism design (§§29–32)</span> <span class="tag good" data-i18n="p4Tag">40/41 Holm supported · 2,250 runs</span></h2></div>
+    <p class="section-note" data-i18n="p4Lede"></p>
+  </div>
+  <ol class="finding-list mech-kpis" id="mech-kpis">
+    <li><span class="finding-no">§29</span><div><p class="finding-label" data-i18n="mechKpi1Label">Stackelberg commitment</p><p class="finding-value" id="mech-kpi1-val"></p><p class="finding-text" data-i18n="mechKpi1Text"></p></div></li>
+    <li><span class="finding-no">§31/32B</span><div><p class="finding-label" data-i18n="mechKpi2Label">Assurance tipping</p><p class="finding-value" id="mech-kpi2-val"></p><p class="finding-text" data-i18n="mechKpi2Text"></p></div></li>
+    <li><span class="finding-no">§30/32C1</span><div><p class="finding-label" data-i18n="mechKpi3Label">Bounded learning</p><p class="finding-value" id="mech-kpi3-val"></p><p class="finding-text" data-i18n="mechKpi3Text"></p></div></li>
+    <li><span class="finding-no">§32A/32C2</span><div><p class="finding-label" data-i18n="mechKpi4Label">Cross-regime generalization</p><p class="finding-value" id="mech-kpi4-val"></p><p class="finding-text" data-i18n="mechKpi4Text"></p></div></li>
+  </ol>
+  <div class="mech-toolbar">
+    <div class="segmented mech-tabs" id="mech-tabs" role="tablist" data-i18n-aria="mechTabLabel" aria-label="MAS mechanism studies">
+      <button type="button" role="tab" data-mech-tab="stackelberg" aria-selected="true" aria-pressed="true" data-i18n="mechTabStackelberg">§29 &amp; §32C-1 Stackelberg audits</button><button type="button" role="tab" data-mech-tab="assurance" aria-selected="false" aria-pressed="false" data-i18n="mechTabAssurance">§31 &amp; §32B Assurance &amp; Pareto</button><button type="button" role="tab" data-mech-tab="bounded" aria-selected="false" aria-pressed="false" data-i18n="mechTabBounded">§30 Bounded learning</button><button type="button" role="tab" data-mech-tab="generalization" aria-selected="false" aria-pressed="false" data-i18n="mechTabGen">§32A &amp; §32C-2 Q-learning &amp; AI</button>
+    </div>
+    <span class="mech-study-meta" id="mech-study-meta"></span>
+  </div>
+  <div id="mech-stage">
+    <div class="results-grid">
+      <article class="panel">
+        <div class="panel-heading"><h3 id="mech-left-title"></h3><span class="summary-line" id="mech-left-sub"></span></div>
+        <p class="panel-intro" id="mech-left-intro"></p>
+        <div class="legend" id="mech-left-legend"></div>
+        <div id="mech-left-chart" class="chart"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading">
+          <h3 id="mech-right-title"></h3>
+          <div class="segmented mech-subtoggle" id="mech-sweep-toggle" role="group" hidden data-i18n-aria="mechSweepLabel" aria-label="Phase sweep dimension">
+            <button type="button" data-sweep="gamma" aria-pressed="true" data-i18n="mechSweepGamma">Hysteresis γ</button><button type="button" data-sweep="floor" aria-pressed="false" data-i18n="mechSweepFloor">Statutory floor a_min</button>
+          </div>
+          <label class="mech-clean-toggle" id="mech-clean-wrap" hidden><input type="checkbox" id="mech-clean-only"><span data-i18n="mechCleanToggle">Show clean-seed n=15 sensitivity</span></label>
+        </div>
+        <p class="panel-intro" id="mech-right-intro"></p>
+        <div class="legend" id="mech-right-legend"></div>
+        <div id="mech-right-chart" class="chart"></div>
+      </article>
+    </div>
+    <article class="panel">
+      <div class="panel-heading"><h3 id="mech-table-title"></h3><span class="summary-line" id="mech-table-summary"></span></div>
+      <div id="mech-primary-table" class="table-scroll"></div>
+    </article>
+  </div>
+  <article class="panel provenance">
+    <h3 data-i18n="mechProvTitle">Source (MAS upgrade §§29–32)</h3>
+    <dl id="mech-provenance" class="facts wide"></dl>
+  </article>
+</section>
+
 <section class="section wrap" id="method" aria-labelledby="method-title">
   <div class="section-head"><div><p class="eyebrow" data-i18n="methodEyebrow">Method and limits</p><h2 id="method-title" data-i18n="methodTitle">What this sandbox is, and is not</h2></div></div>
   <div class="method-grid">
@@ -309,6 +358,9 @@
       <ul class="link-list">
         <li><a href="https://github.com/kanzaler123/financial-ABM/tree/master/src/abm/disclosure" data-i18n="linkCode">Model source code</a></li>
         <li><a href="https://github.com/kanzaler123/financial-ABM/blob/master/reports/disclosure_stage_f_20261014/README.md" data-i18n="linkReport">Stage F report</a></li>
+        <li><a href="https://github.com/kanzaler123/financial-ABM/blob/master/reports/disclosure_mas_upgrade_20261125/README.md" data-i18n="linkMas29">MAS upgrade report (§§29–31)</a></li>
+        <li><a href="https://github.com/kanzaler123/financial-ABM/blob/master/reports/disclosure_mas_upgrade_20261125/README_sec32.md" data-i18n="linkMas32">MAS robustness &amp; Pareto report (§32)</a></li>
+        <li><a href="https://github.com/kanzaler123/financial-ABM/blob/master/docs/disclosure_dynamic_propositions.md" data-i18n="linkProps">Dynamic mechanism propositions (Props 3–6)</a></li>
         <li><a href="https://github.com/kanzaler123/financial-ABM/tree/master/showcase/sandbox" data-i18n="linkSandbox">Sandbox reference and consistency tests</a></li>
         <li><a href="stage1/" data-lang-link="stage1/" data-i18n="linkStage1">Stage 1 exhibit (single-asset market)</a></li>
       </ul>

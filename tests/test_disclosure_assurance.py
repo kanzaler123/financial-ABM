@@ -103,9 +103,9 @@ def test_assured_factors_match_a_direct_sum(a):
 
 def test_assurance_is_rejected_outside_the_main_timing():
     rates, checks = np.full(2, .05), np.full(2, .1)
-    # Reverting true values are allowed since contract section 25.9 (d).
-    for changes in (dict(publish_audit_results=True), dict(reporting_interval_days=5), dict(first_audit_probability=.2),
-                    dict(audit_probability=np.full(2, .01))):
+    # Reverting true values are allowed since contract section 25.9 (d), and
+    # per-firm non-jump audit probabilities are supported for joint targeting + assurance.
+    for changes in (dict(publish_audit_results=True), dict(reporting_interval_days=5), dict(first_audit_probability=.2)):
         arguments = {**TIMING, "audit_probability": .01, **changes}
         with pytest.raises(ValueError, match="assurance checks are modelled only"):
             financing_signal_factors(rates, transparency=.1, assurance_probability=checks, **arguments)
@@ -268,7 +268,7 @@ def test_assurance_rejects_unsupported_settings():
         DisclosureMarket(SMALL, WASHING, PolicySchedule(replace(PolicyRegime.baseline(WASHING), **ASSURED)))
     with pytest.raises(ValueError, match="assurance is modelled only"):
         DisclosureMarket(replace(SMALL, firm_policy="npv_discrete"), WASHING, schedule(ASSURED))
-    for changes in ({"audit_allocation": "value"}, {"reporting_interval_days": 20},
+    for changes in ({"audit_allocation": "jump"}, {"reporting_interval_days": 20},
                     {"publish_audit_results": True}, {"disclosure_delay_days": 60}):
         with pytest.raises(ValueError, match="assurance is modelled only"):
             DisclosureMarket(SMALL, WASHING, schedule({**ASSURED, **changes}))

@@ -1,6 +1,15 @@
 # 多智能体动态与博弈命题：鉴证共演化、Stackelberg 核查与运行时滞回修复（Propositions 3–6）
 
 > **状态：形式化推导与数值核验。** 本文档承接单企业静态基准 [disclosure_inspection_propositions.md](disclosure_inspection_propositions.md)（Propositions 1–2），为 Study 2（定向与贝叶斯动态核查）及 Study 3（第三方鉴证共演化、部分可观测性与制度修复）建立领域无关的规范多智能体（Normative MAS）理论框架。全部解析阈值、分岔条件、凹包络结构与轨道不等式均在 [`tests/test_disclosure_dynamic_propositions.py`](../tests/test_disclosure_dynamic_propositions.py) 中与 [`src/abm/disclosure/financing.py`](../src/abm/disclosure/financing.py)、[`src/abm/disclosure/bayesian_audit.py`](../src/abm/disclosure/bayesian_audit.py) 逐项数值核验。
+>
+> **与论文编号对照（2026-11-26 修订稿）**：工作论文按章节叙事顺序先讨论核查再讨论鉴证，因此命题编号与本文档及单元测试对应关系如下：
+>
+> | 工作论文编号 | 本文档与单元测试编号 | 主题 |
+> |---|---|---|
+> | Proposition 3 | 命题 5（第 4 节） | 双凹反序定理与多期两状态 RMAB-Stackelberg 凹包络分配 |
+> | Proposition 4 | 命题 3（第 2 节） | 指派鉴证下的罚款保险、分岔失稳与高责任 3-周期非单调性 |
+> | Proposition 5 | 命题 4（第 3 节） | 自选鉴证下的客户排序、协方差质量缺口与年度逃逸周期 |
+> | Proposition 6 | 命题 6（第 5 节） | 部分可观测监控盲区与运行时滞回（Hysteresis）修复定理 |
 
 ---
 
@@ -78,15 +87,15 @@ $$\Delta V_i(q_i) = \frac{B_i^2}{4 c_i}\left[\frac{(1-\tau)^2 A_w^{\text{aud}}(q
 2. **（双凹反序定理：按市值启发式 `V` 与最优序严格反序）**
    - 对任意一对洁净企业 $P_i < P_j$，将预算 $\Delta q$ 从小企业 $i$ 移至大企业 $j$ 时，因 $F/P_i > F/P_j$ 与 $(D^{\text{aud}})'(q_i) > (D^{\text{aud}})'(q_j)$ 同向叠加，引发边际威慑双衰减与离散跨越损失。
    - 在单期加权合规目标 $\max \sum_{i=1}^N \omega_i \mathbf{1}_{\{q_i \ge q_i^{\mathrm{det}}\}}$（$\sum q_i \le K$）下，最优分配精确归约为门槛匹配 0–1 背包问题；当 $\omega_i \equiv 1$ 时，全局精确最优解按 $q_i^{\mathrm{det}}$ **升序**分配（优先锁定洁净小/中企业），与按市值降序分配的启发式 `V` **方向完全相反**。
-3. **（多期部分可观测 RMAB-Stackelberg Bellman 凹包络分配）** 将每家企业 $i$ 的持久成本类型 $\varepsilon_k$ 与未结案二元状态 $x_{i,t} \in \{0, >0\}$ 建模为弱耦合多臂不稳定赌博机（RMAB），其联合后验为 $(w^{\mathrm{clean}}_{i,k}, w^{\mathrm{dirty}}_{i,k})$。记清理一个未结案旧案所释放的折现跨期预算红利（以边际影子价格 $\mu = 1/q^*$ 计价）为
-   $$\Delta J_{i,k} = \frac{\beta(1 - \beta^{H_p})}{1 - \beta}\left(1 - \frac{q^{\mathrm{det,clean}}_{i,k}}{q^*}\right)_+.$$
-   则公开承诺下两状态 Bellman 动作价值函数为
+3. **（多期部分可观测 RMAB-Stackelberg Bellman 凹包络分配）** 将每家企业 $i$ 的持久成本类型 $\varepsilon_k$ 与未结案二元状态 $x_{i,t} \in \{0, >0\}$ 建模为弱耦合多臂不稳定赌博机（RMAB），其联合后验为 $(w^{\mathrm{clean}}_{i,k}, w^{\mathrm{dirty}}_{i,k})$。记清理一个未结案旧案所释放的自下期起跨期预算红利（以边际影子价格 $\mu = 1/q^*$ 计价）为
+   $$\Delta J_{i,k} = \frac{1 - \beta^{H_p}}{1 - \beta}\left(1 - \frac{q^{\mathrm{det,clean}}_{i,k}}{q^*}\right)_+,$$
+   其折现至当期的现值为 $\beta \Delta J_{i,k}$（对应 [`bayesian_audit.py`](../src/abm/disclosure/bayesian_audit.py) 中含前置 $\beta$ 的 `delta_j_*`）。则公开承诺下两状态 Bellman 动作价值函数为
    $$Q^{\mathrm{clean}}_{i,k}(q) = d^{\mathrm{clean}}_{i,k}(q)\big(1 + \beta\Delta J_{i,k}\big) + \big(1 - d^{\mathrm{clean}}_{i,k}(q)\big)\,q\,\beta\Delta J_{i,k}, \qquad Q^{\mathrm{dirty}}_{i,k}(q) = d^{\mathrm{dirty}}_{i,k}(q) + q\,\beta\Delta J_{i,k},$$
    期望收益 $U_i(q) = \omega_i \sum_k [w^{\mathrm{clean}}_{i,k} Q^{\mathrm{clean}}_{i,k}(q) + w^{\mathrm{dirty}}_{i,k} Q^{\mathrm{dirty}}_{i,k}(q)]$。对其上凹包络执行全局斜率降序水填（$O(NG\log(NG))$，实现于 [`BayesianAuditFilter.allocate`](../src/abm/disclosure/bayesian_audit.py)），给出拉格朗日松弛精确最优解，并自动涌现三层优先级结构：
    - **第一优先（保护洁净小/中企业）**：洁净企业斜率 $\sim (1+\beta\Delta J)/q^{\mathrm{clean}} \gg 1/q^* + \beta\Delta J$，彻底杜绝 `V` 的跨档位移；
    - **第二优先（在 $q^*$ 处兼顾止漂与清旧案）**：对高概率未结案企业，在 $[0, q^*]$ 上斜率为 $p^{\mathrm{dirty}}_i(1/q^* + \beta\Delta J)$，严格高于 $[q^*, 1]$ 上的纯清理斜率 $p^{\mathrm{dirty}}_i \beta\Delta J$——与“将预算集中于少数企业给 $q=1$”相比，以等量期望清案速率同时多获得 $1/q^* \approx 9.5\times$ 当期止漂红利；
    - **第三优先（溢出清案）**：仅当洁净威慑与 $q^*$ 档全部饱和后，剩余预算沿 $[q^*, 1]$ 加速清案。
-4. **（无混杂隐藏规则最优解与命中率悖论）** 当规则隐藏（`audit_rule_public=False`）时，企业按均匀 $\bar q$ 规划，故 $q_i$ 无当期威慑作用；此时贝叶斯最优隐藏规则退化为线性规划 $\max \sum_i \omega_i q_i \sum_k w^{\mathrm{dirty}}_{i,k}(1 + \Delta J_{i,k})$，将全部预算集中投向最可能带案的 $\lfloor K \rfloor$ 家企业（$q_i = 1$）。尽管该隐藏最优解可将核查命中率推高至 $92\%$–$98\%$，但其当期不阻止任何洁净企业开案，因而公开承诺价值 `S_obs − S_obs_hid` 严格为正。
+4. **（无混杂隐藏规则最优解与命中率悖论）** 当规则隐藏（`audit_rule_public=False`）时，企业按均匀 $\bar q$ 规划，故 $q_i$ 无当期威慑作用；此时贝叶斯最优隐藏规则退化为线性规划 $\max \sum_i \omega_i q_i \sum_k w^{\mathrm{dirty}}_{i,k}(1 + \beta\Delta J_{i,k})$，将全部预算集中投向最可能带案的 $\lfloor K \rfloor$ 家企业（$q_i = 1$）。尽管该隐藏最优解可将核查命中率推高至 $92\%$–$98\%$，但其当期不阻止任何洁净企业开案，因而公开承诺价值 `S_obs − S_obs_hid` 严格为正。
 
 *证明.* (1)–(2) 由包络定理、二阶导数及交换论证直接给出。(3) 由 $Q^{\mathrm{dirty}}_{i,k}(q)$ 在 $q^*$ 处的阶跃增量 $+1$ 得 $[0, q^*]$ 割线斜率严格大于 $[q^*, 1]$ 斜率 $1/q^*$；弱耦合约束 $\sum_i q_i \le K$ 的拉格朗日对偶将多企业问题分解为单企业 $\max_{q_i} [U_i(q_i) - \lambda q_i]$，最优解必落在各 $U_i$ 上凹包络的顶点及单一边界切线段上，由斜率降序水填精确求解。(4) 在 $q_i$ 不可观测时，$d^{\mathrm{clean}}, d^{\mathrm{dirty}}$ 与 $q_i$ 无关，目标函数关于 $q_i$ 严格线性，极点解即按斜率降序填满 $q_i = 1$。$\square$
 

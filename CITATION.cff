@@ -12,9 +12,14 @@ abstract: >-
   cross-checked against the Python model. Version 0.3.0 adds pre-registered experiments on targeted
   audits, assurance providers and learning firms, and a pre-registered joint robustness test: the
   ordering holds in all four joint settings, but with mean reversion of true levels and a fine for
-  every false report, information beats penalty by only 0.004 to 0.012 SD. It also adds the working
-  paper and a check of what the public repository alone can rebuild. Results are conditional on the
-  model.
+  every false report, information beats penalty by only 0.004 to 0.012 SD. Version 0.4.0 integrates
+  Propositions 1-6 and seven additional pre-registered MAS mechanism-design confirmatory studies
+  (contract §§29-32, 2,250 runs on disjoint seeds 71001-77030, 40/41 primary Holm-corrected
+  hypotheses supported): purely public Bayesian dynamic RMAB-Stackelberg auditing with G-band risk
+  menus, zero-leakage online empirical-belief bounded rationality, partial-observability assurance
+  hysteresis/floor Pareto frontiers, empirical persistence Q reversals, non-ESG AI-washing
+  generalisation, an 11-figure reproduction package, and core performance/packaging improvements.
+  Results are conditional on the model.
 authors:
   - given-names: Ellis
     family-names: Lin
@@ -22,8 +27,8 @@ authors:
     affiliation: Fudan University
 repository-code: "https://github.com/kanzaler123/financial-ABM"
 license: MIT
-version: "0.3.0"
-date-released: "2026-10-24"
+version: "0.4.0"
+date-released: "2026-11-28"
 url: "https://kanzaler123.github.io/financial-ABM/"
 keywords:
   - agent-based model

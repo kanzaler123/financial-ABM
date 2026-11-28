@@ -48,15 +48,62 @@ penalty and subsidy individually fixed.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
-from math import isfinite
+from math import erfc, isfinite, sqrt
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.special import ndtr
 
 from .config import TRADING_DAYS_PER_YEAR
 from .domain import DomainSpec
+
+_INV_SQRT2 = 1.0 / sqrt(2.0)
+
+
+def _normal_cdf(values: NDArray[np.float64]) -> NDArray[np.float64]:
+    """Standard normal CDF without requiring the optional ``scipy`` dependency."""
+    arr = np.asarray(values, dtype=np.float64)
+    return np.fromiter(
+        (0.5 * erfc(-float(x) * _INV_SQRT2) for x in arr.flat),
+        dtype=np.float64,
+        count=arr.size,
+    ).reshape(arr.shape)
+
+
+def _timing_factors(
+    *,
+    discount_rate: float,
+    decision_day: int,
+    horizon_days: int,
+    repricing_interval: int,
+    period_days: int,
+    implementation_delay: int,
+    disclosure_delay: int,
+    real_persistence: NDArray[np.float64] | None,
+) -> tuple[float, NDArray[np.float64], NDArray[np.float64], float, float]:
+    """Return ``(a_real, wash_weights, audit_counts, beta_1, beta)`` for the decision calendar."""
+    times = np.arange(1, horizon_days + 1)
+    calendar = decision_day + times
+    quoted_day = (calendar // repricing_interval) * repricing_interval - 1
+    real_due = decision_day + max(1, implementation_delay)
+    wash_due = decision_day + max(1, disclosure_delay)
+    real_visible = quoted_day >= real_due
+    wash_visible = quoted_day >= wash_due
+    first_audit = ((wash_due + period_days - 1) // period_days) * period_days
+    audits = np.maximum(0, (quoted_day - 1 - first_audit) // period_days + 1)
+    discount = np.exp(-times * discount_rate / TRADING_DAYS_PER_YEAR)
+
+    if real_persistence is None:
+        a_real = float((real_visible @ discount) / TRADING_DAYS_PER_YEAR)
+    else:
+        days_since = np.clip(quoted_day - real_due, 0, None)
+        a_real = float(((real_visible * real_persistence[days_since]) @ discount) / TRADING_DAYS_PER_YEAR)
+
+    wash_weights = np.bincount(audits, weights=(wash_visible * discount) / TRADING_DAYS_PER_YEAR)
+    audit_counts = np.arange(wash_weights.size, dtype=np.float64)
+    beta_1 = float(np.exp(-discount_rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR))
+    beta = float(np.exp(-discount_rate * period_days / TRADING_DAYS_PER_YEAR))
+    return a_real, wash_weights, audit_counts, beta_1, beta
 
 FIXED_FINE_BASES = ("case", "report")
 ORACLE_STACKELBERG_ALLOCATIONS = ("stackelberg_eq", "stackelberg_val")
@@ -103,6 +150,10 @@ class PolicyRegime:
     audit_jump_threshold: float = 0.125
     # Optional coarse public risk-band quantization for Stackelberg commitments (0 = exact per-firm q_i, >=2 = G bands).
     audit_commitment_buckets: int = 0
+    # When True (requires audit_commitment_buckets >= 2 and audit_rule_public), the regulator also
+    # publishes each public risk band's target audit rate q_g so bounded-rationality learners need
+    # not infer band rates purely from sparse audit counts.
+    audit_band_rates_public: bool = False
     # "none", "voluntary", "large" (the large size class) or "all"; see the module docstring.
     assurance_scope: str = "none"
     # "assigned": mandated firms are assigned at random once; "firm": they pick a provider every year.
@@ -171,6 +222,10 @@ class PolicyRegime:
             self.audit_allocation not in STACKELBERG_ALLOCATIONS or not self.audit_rule_public
         ):
             raise ValueError("audit_commitment_buckets requires a public Stackelberg audit_allocation")
+        if type(self.audit_band_rates_public) is not bool:
+            raise ValueError("audit_band_rates_public must be boolean")
+        if self.audit_band_rates_public and self.audit_commitment_buckets < 2:
+            raise ValueError("audit_band_rates_public requires audit_commitment_buckets >= 2")
         if not 0 <= self.audit_probability <= 1 or not 0 <= self.transparency <= 1:
             raise ValueError("audit_probability and transparency must be in [0, 1]")
         if self.penalty < 0 or self.subsidy < 0:
@@ -213,6 +268,8 @@ class PolicyRegime:
             payload.pop("audit_jump_threshold")
         if self.audit_commitment_buckets == 0:
             payload.pop("audit_commitment_buckets")
+        if not self.audit_band_rates_public:
+            payload.pop("audit_band_rates_public")
         for name, value in ASSURANCE_DEFAULTS.items():
             if payload[name] == value:
                 payload.pop(name)
@@ -339,27 +396,16 @@ def firm_deterrence_thresholds(
     pi_arr = np.broadcast_to(np.asarray(new_case_prob, dtype=np.float64), (size,))
     w_arr = np.broadcast_to(np.asarray(wash_cost_ratio, dtype=np.float64), (size,))
 
-    times = np.arange(1, horizon_days + 1)
-    calendar = decision_day + times
-    quoted_day = (calendar // repricing_interval) * repricing_interval - 1
-    real_due = decision_day + max(1, implementation_delay)
-    wash_due = decision_day + max(1, disclosure_delay)
-    real_visible = quoted_day >= real_due
-    wash_visible = quoted_day >= wash_due
-    first_audit = ((wash_due + period_days - 1) // period_days) * period_days
-    audits = np.maximum(0, (quoted_day - 1 - first_audit) // period_days + 1)
-    discount = np.exp(-times * discount_rate / TRADING_DAYS_PER_YEAR)
-
-    if real_persistence is None:
-        a_real = float((real_visible @ discount) / TRADING_DAYS_PER_YEAR)
-    else:
-        days_since = np.clip(quoted_day - real_due, 0, None)
-        a_real = float(((real_visible * real_persistence[days_since]) @ discount) / TRADING_DAYS_PER_YEAR)
-
-    wash_weights = np.bincount(audits, weights=(wash_visible * discount) / TRADING_DAYS_PER_YEAR)
-    audit_counts = np.arange(wash_weights.size, dtype=np.float64)
-    beta_1 = float(np.exp(-discount_rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR))
-    beta = float(np.exp(-discount_rate * period_days / TRADING_DAYS_PER_YEAR))
+    a_real, wash_weights, audit_counts, beta_1, beta = _timing_factors(
+        discount_rate=discount_rate,
+        decision_day=decision_day,
+        horizon_days=horizon_days,
+        repricing_interval=repricing_interval,
+        period_days=period_days,
+        implementation_delay=implementation_delay,
+        disclosure_delay=disclosure_delay,
+        real_persistence=real_persistence,
+    )
 
     tau = regime.transparency
     penalty = regime.penalty
@@ -600,27 +646,16 @@ def bayesian_stackelberg_audit_probabilities(
         u_out = np.full(size, min(1.0, regime.audit_probability), dtype=np.float64)
         return (u_out, np.ones(size, dtype=np.float64)) if return_clean_deterrence else u_out
 
-    times = np.arange(1, horizon_days + 1)
-    calendar = decision_day + times
-    quoted_day = (calendar // repricing_interval) * repricing_interval - 1
-    real_due = decision_day + max(1, implementation_delay)
-    wash_due = decision_day + max(1, disclosure_delay)
-    real_visible = quoted_day >= real_due
-    wash_visible = quoted_day >= wash_due
-    first_audit = ((wash_due + period_days - 1) // period_days) * period_days
-    audits = np.maximum(0, (quoted_day - 1 - first_audit) // period_days + 1)
-    discount = np.exp(-times * discount_rate / TRADING_DAYS_PER_YEAR)
-
-    if real_persistence is None:
-        a_real = float((real_visible @ discount) / TRADING_DAYS_PER_YEAR)
-    else:
-        days_since = np.clip(quoted_day - real_due, 0, None)
-        a_real = float(((real_visible * real_persistence[days_since]) @ discount) / TRADING_DAYS_PER_YEAR)
-
-    wash_weights = np.bincount(audits, weights=(wash_visible * discount) / TRADING_DAYS_PER_YEAR)
-    audit_counts = np.arange(wash_weights.size, dtype=np.float64)
-    beta_1 = float(np.exp(-discount_rate * (first_audit - decision_day) / TRADING_DAYS_PER_YEAR))
-    beta = float(np.exp(-discount_rate * period_days / TRADING_DAYS_PER_YEAR))
+    a_real, wash_weights, audit_counts, beta_1, beta = _timing_factors(
+        discount_rate=discount_rate,
+        decision_day=decision_day,
+        horizon_days=horizon_days,
+        repricing_interval=repricing_interval,
+        period_days=period_days,
+        implementation_delay=implementation_delay,
+        disclosure_delay=disclosure_delay,
+        real_persistence=real_persistence,
+    )
 
     # Find universal zero-fine threshold q* so the grid spans [0, min(1, q* + eps)].
     tau = regime.transparency
@@ -656,7 +691,7 @@ def bayesian_stackelberg_audit_probabilities(
             else:
                 c_req = surplus_num[:, g] / (4.0 * f_frac * d_q[g])
                 z = (np.log(np.maximum(c_req / base_cost, 1e-30)) + 0.5 * sigma**2) / sigma
-                p_det_clean[:, g] = np.where(surplus_num[:, g] <= 0.0, 1.0, 1.0 - ndtr(z))
+                p_det_clean[:, g] = np.where(surplus_num[:, g] <= 0.0, 1.0, 1.0 - _normal_cdf(z))
     else:
         # Exact Gauss-Hermite integration over unobserved log-normal cost shock (E[eps] = 1)
         # accounting for period action-amplitude cap M (where V_W - V_I is hump-shaped in c).

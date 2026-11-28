@@ -100,10 +100,155 @@ def export_report(root: Path, report_id: str, directory: str) -> dict:
 
 SANDBOX_FIRM_FIELDS = {"size_class", "market_cap", "cost_scale", "benefit", "initial_goodness", "goodness",
                        "inflation", "pending", "full_model_decision"}
+MAS_UPGRADE_PATH = "reports/disclosure_mas_upgrade_20261125/mas_upgrade_analysis.json"
+MAS_UPGRADE_STUDIES = (
+    "sec29_stackelberg",
+    "sec30_empirical_belief",
+    "sec31_assurance",
+    "sec32A_q_dynamics",
+    "sec32B_phase_pareto",
+    "sec32C1_granularity",
+    "sec32C2_ai_washing",
+)
+MAS_SCENARIO_FIELDS = (
+    "true_change_eq",
+    "true_change_cap",
+    "wash_share",
+    "wash_share_large",
+    "wash_share_mid",
+    "wash_share_small",
+    "wash_count",
+    "hit_rate_pooled",
+    "q_gap",
+    "resource_cost_bp",
+    "assurance_effort_cost",
+)
 
 
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _finite_or_none(value: object, context: str) -> float | None:
+    if value is None:
+        return None
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ValueError(f"Invalid numeric value for {context}: {value!r}")
+    return float(value)
+
+
+def export_mas_upgrade(root: Path) -> dict:
+    """Compact, SHA-256-verified export of the §§29-32 MAS upgrade confirmatory suite."""
+    path = root / MAS_UPGRADE_PATH
+    analysis = read_json(path)
+    if analysis.get("schema_version") != "mas_upgrade_analysis_v1":
+        raise ValueError(f"Unexpected MAS upgrade schema_version in {path}")
+    raw_studies = analysis.get("studies", {})
+    missing = [name for name in MAS_UPGRADE_STUDIES if name not in raw_studies]
+    if missing:
+        raise ValueError(f"Missing MAS upgrade studies in {path}: {missing}")
+    studies: dict[str, dict] = {}
+    total_runs = 0
+    total_planned = 0
+    total_primary = 0
+    total_supported = 0
+    parity_mismatches = 0
+    seed_min = None
+    seed_max = None
+    for study_key in MAS_UPGRADE_STUDIES:
+        raw = raw_studies[study_key]
+        complete = int(raw["complete_trials"])
+        planned = int(raw["planned_trials"])
+        total_runs += complete
+        total_planned += planned
+        parity_mismatches += int(raw.get("preswitch_parity_mismatches", 0))
+        sr = raw["seed_range"]
+        seed_min = sr[0] if seed_min is None else min(seed_min, sr[0])
+        seed_max = sr[1] if seed_max is None else max(seed_max, sr[1])
+        scenarios: dict[str, dict] = {}
+        for sc_name in raw["scenario_order"]:
+            sc = raw["scenarios"][sc_name]
+            compact: dict[str, object] = {}
+            for field in MAS_SCENARIO_FIELDS:
+                if field in sc:
+                    compact[field] = _finite_or_none(sc[field], f"{study_key}/{sc_name}/{field}")
+            vs = sc.get("vs_baseline_eq")
+            if isinstance(vs, dict):
+                compact["vs_baseline_eq"] = {
+                    k: _finite_or_none(vs[k], f"{study_key}/{sc_name}/vs_baseline_eq/{k}")
+                    for k in ("mean", "ci_low", "ci_high")
+                }
+            scenarios[sc_name] = compact
+        primary: list[dict] = []
+        for comp_name, comp in raw["comparisons"].items():
+            if not comp.get("primary"):
+                continue
+            holm_entries = [(mk, mv) for mk, mv in comp["metrics"].items() if "holm_p_value" in mv]
+            if len(holm_entries) != 1:
+                raise ValueError(f"Expected 1 Holm metric for {study_key}/{comp_name}, got {len(holm_entries)}")
+            metric_key, mv = holm_entries[0]
+            holm_p = float(mv["holm_p_value"])
+            supported = holm_p < 0.05
+            total_primary += 1
+            if supported:
+                total_supported += 1
+            primary.append({
+                "name": comp_name,
+                "metric": metric_key,
+                "mean": _finite_or_none(mv["mean"], f"{study_key}/{comp_name}/mean"),
+                "ci_low": _finite_or_none(mv["ci_low"], f"{study_key}/{comp_name}/ci_low"),
+                "ci_high": _finite_or_none(mv["ci_high"], f"{study_key}/{comp_name}/ci_high"),
+                "p_value": _finite_or_none(mv["p_value"], f"{study_key}/{comp_name}/p_value"),
+                "holm_p_value": _finite_or_none(holm_p, f"{study_key}/{comp_name}/holm_p_value"),
+                "n": int(mv["n"]),
+                "pos": int(mv["pos"]),
+                "neg": int(mv["neg"]),
+                "supported": supported,
+            })
+        clean_primary = []
+        for row in raw.get("clean_primary_sensitivity", []):
+            clean_primary.append({
+                "name": row["name"],
+                "metric": row["metric"],
+                "clean_n": int(row["clean_n"]),
+                "clean_mean": _finite_or_none(row["clean_mean"], f"{study_key}/{row['name']}/clean_mean"),
+                "clean_ci_low": _finite_or_none(row["clean_ci_low"], f"{study_key}/{row['name']}/clean_ci_low"),
+                "clean_ci_high": _finite_or_none(row["clean_ci_high"], f"{study_key}/{row['name']}/clean_ci_high"),
+                "clean_holm_p": _finite_or_none(row["clean_holm_p"], f"{study_key}/{row['name']}/clean_holm_p"),
+            })
+        studies[study_key] = {
+            "experiment_id": raw["experiment_id"],
+            "seed_range": sr,
+            "planned_trials": planned,
+            "complete_trials": complete,
+            "clean_seed_count": int(raw["clean_seed_count"]),
+            "baseline": raw["baseline"],
+            "scenario_order": raw["scenario_order"],
+            "scenarios": scenarios,
+            "primary": primary,
+            "clean_primary": clean_primary,
+        }
+    return {
+        "source": {
+            "path": MAS_UPGRADE_PATH,
+            "sha256": sha256_file(path),
+            "report_29_31": "reports/disclosure_mas_upgrade_20261125/README.md",
+            "report_32": "reports/disclosure_mas_upgrade_20261125/README_sec32.md",
+            "propositions": "docs/disclosure_dynamic_propositions.md",
+            "contract": "docs/disclosure_research_contract.md",
+        },
+        "totals": {
+            "studies": len(MAS_UPGRADE_STUDIES),
+            "runs": total_runs,
+            "planned": total_planned,
+            "primary_total": total_primary,
+            "supported": total_supported,
+            "unresolved": total_primary - total_supported,
+            "parity_mismatches": parity_mismatches,
+            "seed_range": f"{seed_min}-{seed_max}",
+        },
+        "studies": studies,
+    }
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -140,7 +285,15 @@ def sandbox_payload(root: Path, revision: str) -> dict:
         lengths = {len(columns[name]) for name in SANDBOX_FIRM_FIELDS - {"pending", "full_model_decision"}}
         if lengths != {200}:
             raise ValueError(f"{key}: every firm column needs 200 rows")
-    return {"schema_version": 1, "source_commit": revision, "firms": firms, "stage_f": stage_f, "simplification": simplification}
+    mas_upgrade = export_mas_upgrade(root)
+    return {
+        "schema_version": 2,
+        "source_commit": revision,
+        "firms": firms,
+        "stage_f": stage_f,
+        "simplification": simplification,
+        "mas_upgrade": mas_upgrade,
+    }
 
 
 def inline(template: str, replacements: dict[str, str]) -> str:

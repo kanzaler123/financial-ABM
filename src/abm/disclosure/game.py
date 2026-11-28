@@ -301,14 +301,28 @@ class AssuranceState:
         """Share of each provider's checks in the past year whose report carried inflation (0 without checks)."""
         return np.divide(self.year_inflated, self.year_checks, out=np.zeros(self.count), where=self.year_checks > 0)
 
-    def detected_bayes_share(self, audit_probability: float, prior_strength: float) -> FloatArray:
+    def provider_mean_audit_probability(self, audit_probability: float | FloatArray) -> float | FloatArray:
+        """Client-weighted mean audit probability per provider (scalar passthrough under uniform audits)."""
+        if np.ndim(audit_probability) == 0:
+            return float(audit_probability)
+        q = np.asarray(audit_probability, dtype=np.float64)
+        fallback = float(q.mean()) if q.size else 0.0
+        valid = self.client_of >= 0
+        clients = np.bincount(self.client_of[valid], minlength=self.count)
+        q_sum = np.bincount(self.client_of[valid], weights=q[valid], minlength=self.count)
+        return np.divide(q_sum, clients, out=np.full(self.count, fallback, dtype=np.float64), where=clients > 0)
+
+    def detected_bayes_share(
+        self, audit_probability: float | FloatArray, prior_strength: float,
+    ) -> FloatArray:
         """Empirical-Bayes contamination estimate using only own corrections and regulatory liability events.
 
         Each truly inflated check is observed either via pre-publication correction (prob a_k) or via a
-        regulatory audit on a passed report (prob (1 - a_k) * q), giving total detection rate
-        p_obs = a_k + (1 - a_k) * q. Smooths around the previous year's estimate with weight ``prior_strength``.
+        regulatory audit on a passed report (prob (1 - a_k) * q_k), giving total detection rate
+        p_obs = a_k + (1 - a_k) * q_k. Smooths around the previous year's estimate with weight ``prior_strength``.
         """
-        p_obs = self.quality + (1.0 - self.quality) * audit_probability
+        q_obs = self.provider_mean_audit_probability(audit_probability)
+        p_obs = self.quality + (1.0 - self.quality) * q_obs
         effective_n = self.year_checks * p_obs
         observed = self.year_corrected + self.year_liable
         estimate = (prior_strength * self.share + observed) / (prior_strength + effective_n)
@@ -712,10 +726,11 @@ class DisclosureMarket(CrossSectionMarket):
                 raise ValueError("voluntary assurance is modelled only with NPV firms")
             delay = (domain.disclosure_delay_days if policy.intervention.disclosure_delay_days is None
                      else policy.intervention.disclosure_delay_days)
-            if (config.firm_policy not in allowed_modern or self.audit_targeting
+            if (config.firm_policy not in allowed_modern
+                    or any(regime.audit_allocation == "jump" for regime in regimes)
                     or any(regime.publish_audit_results or regime.reporting_interval_days != 1 for regime in regimes)
                     or not 0 < delay < config.firm_decision_interval):
-                raise ValueError("assurance is modelled only with NPV or bounded-rationality firms, daily reports, unpublished random audits "
+                raise ValueError("assurance is modelled only with NPV or bounded-rationality firms, daily reports, unpublished non-jump audits "
                                  "and a disclosure delay shorter than a decision period")
         # Each firm's report (true value plus inflation, at most the report bound) just after the last audit.
         self.report_after_audit: FloatArray | None = None
@@ -901,7 +916,11 @@ class DisclosureMarket(CrossSectionMarket):
         cfg, investors = self.config, self.investors
         if cfg.rebalance_speed == 0:
             return np.zeros(cfg.n_firms)
-        who = np.arange(investors.size)
+        increment = 1e-4
+        relative_tilt = np.expm1(increment * investors.choice_intensity * investors.taste)
+        active = np.flatnonzero(relative_tilt != 0.0)
+        if active.size == 0:
+            return np.zeros(cfg.n_firms)
         signal = self.attribute_signal()
         expected = self.expected_returns()
         arguments = dict(
@@ -912,24 +931,50 @@ class DisclosureMarket(CrossSectionMarket):
             market_annual_variance=self.allocation_market_variance * TRADING_DAYS_PER_YEAR,
             config=cfg,
         )
-        baseline = investors.desired_orders(who, attribute=signal, **arguments)
-        target_shares = np.maximum(baseline / cfg.rebalance_speed + investors.holdings, 0.0)
+        act_holdings = investors.holdings[active]
+        act_cash = investors.cash[active]
+        act_tilt = relative_tilt[active]
+        baseline = investors.desired_orders(active, attribute=signal, **arguments)
+        target_shares = np.maximum(baseline / cfg.rebalance_speed + act_holdings, 0.0)
         target_values = target_shares * self.prices
         target_equity = target_values.sum(axis=1, keepdims=True)
         weights = np.divide(target_values, target_equity, out=np.zeros_like(target_values), where=target_equity > 0)
-        baseline = cfg.rebalance_speed * (target_shares - investors.holdings)
-        baseline = np.maximum(baseline, -investors.holdings)
-        baseline = _cap_buys_to_cash(baseline, investors.cash, self.prices, cfg.transaction_cost_rate)
-        response = np.empty(cfg.n_firms)
-        increment = 1e-4
-        relative_tilt = np.expm1(increment * investors.choice_intensity * investors.taste)
-        for firm in range(cfg.n_firms):
-            targets = target_shares / (1.0 + weights[:, firm] * relative_tilt)[:, None]
-            targets[:, firm] *= 1.0 + relative_tilt
-            orders = cfg.rebalance_speed * (targets - investors.holdings)
-            orders = np.maximum(orders, -investors.holdings)
-            orders = _cap_buys_to_cash(orders, investors.cash, self.prices, cfg.transaction_cost_rate)
-            response[firm] = (orders[:, firm] - baseline[:, firm]).sum() / increment
+        raw_base = np.maximum(cfg.rebalance_speed * (target_shares - act_holdings), -act_holdings)
+
+        # Conservative per-investor cash-constraint slack bound: for positive tilt r_j,
+        # perturbing firm f can only reduce non-f orders and increases net cash outflow by at
+        # most (1 + c) * rebalance_speed * max_f(target_values[j, f]) * r_j. Unconstrained rows
+        # never trigger _cap_buys_to_cash, so all n_firms columns evaluate in one O(M_active * N) pass.
+        cost = cfg.transaction_cost_rate
+        buys = np.maximum(raw_base, 0.0)
+        sells = np.minimum(raw_base, 0.0)
+        buy_cost = (buys @ self.prices) * (1.0 + cost)
+        available = act_cash - (sells @ self.prices) * (1.0 - cost)
+        max_outflow_inc = (1.0 + cost) * cfg.rebalance_speed * target_values.max(axis=1) * np.maximum(act_tilt, 0.0)
+        free = (act_tilt > 0.0) & (cost < 1.0) & (available - buy_cost > max_outflow_inc + 1e-12)
+
+        response = np.zeros(cfg.n_firms, dtype=np.float64)
+        if free.any():
+            ft = act_tilt[free, None]
+            fh = act_holdings[free]
+            pert_diag = target_shares[free] / (1.0 + weights[free] * ft) * (1.0 + ft)
+            pert_orders = np.maximum(cfg.rebalance_speed * (pert_diag - fh), -fh)
+            response += (pert_orders - raw_base[free]).sum(axis=0) / increment
+        if not free.all():
+            tight = ~free
+            t_target = target_shares[tight]
+            t_weights = weights[tight]
+            t_holdings = act_holdings[tight]
+            t_cash = act_cash[tight]
+            t_tilt = act_tilt[tight]
+            t_base = _cap_buys_to_cash(raw_base[tight], t_cash, self.prices, cost)
+            for firm in range(cfg.n_firms):
+                targets = t_target / (1.0 + t_weights[:, firm] * t_tilt)[:, None]
+                targets[:, firm] *= 1.0 + t_tilt
+                orders = cfg.rebalance_speed * (targets - t_holdings)
+                orders = np.maximum(orders, -t_holdings)
+                orders = _cap_buys_to_cash(orders, t_cash, self.prices, cost)
+                response[firm] += (orders[:, firm] - t_base[:, firm]).sum() / increment
         return np.maximum(response, 0.0) * cfg.price_impact * cfg.permanent_impact_fraction / cfg.liquidity_fraction
 
     # -- hooks ---------------------------------------------------------------
@@ -1008,14 +1053,23 @@ class DisclosureMarket(CrossSectionMarket):
         )
         self.pending_value_change[checked] -= regime.assurance_fee
 
-    def _assurance_year(self, day: int, regime: PolicyRegime, values, provider_selector=None) -> None:
+    def _assurance_year(
+        self,
+        day: int,
+        regime: PolicyRegime,
+        values,
+        provider_selector=None,
+        audit_probabilities_vec: FloatArray | None = None,
+    ) -> None:
         """At the start of an assurance year: clients, then each provider's quality, then firms' picks.
 
         In the first year mandated firms are assigned at random, evenly, and each provider's share
         is that of its clients whose report carries inflation now; later shares come from the past
-        year's checks. Quality is min(1, lambda * share). Mandated firms that pick their provider,
-        and firms deciding whether to buy assurance, compare ``values(a)``, the value of their best
-        action this period if their checks find inflation with probability ``a``.
+        year's checks. Quality is min(1, lambda_k * share). Under targeted public audits, each
+        provider's slope uses its client-weighted mean audit probability q_k (falling back to the
+        uniform ``regime.assurer_slope`` when audits are uniform or hidden). Mandated firms that pick
+        their provider, and firms deciding whether to buy assurance, compare ``values(a)``, the value
+        of their best action this period if their checks find inflation with probability ``a``.
         """
         assurance, size = self.assurance, self.config.n_firms
         first = assurance.origin is None
@@ -1035,7 +1089,10 @@ class DisclosureMarket(CrossSectionMarket):
             else:
                 share = assurance.client_share(self.attributes.inflation)
         elif regime.assurer_observation == "detected_bayes":
-            share = assurance.detected_bayes_share(regime.audit_probability, regime.assurer_prior_strength)
+            q_arg: float | FloatArray = (
+                regime.audit_probability if audit_probabilities_vec is None else audit_probabilities_vec
+            )
+            share = assurance.detected_bayes_share(q_arg, regime.assurer_prior_strength)
         else:
             share = assurance.check_share()
         assurance.year_checks[:] = 0
@@ -1043,7 +1100,12 @@ class DisclosureMarket(CrossSectionMarket):
         assurance.year_corrected[:] = 0
         assurance.year_liable[:] = 0
         assurance.share = share
-        target_quality = np.minimum(1.0, regime.assurer_slope * share)
+        if audit_probabilities_vec is None or regime.assurer_selection == "rotating":
+            slope: float | FloatArray = regime.assurer_slope
+        else:
+            q_k = assurance.provider_mean_audit_probability(audit_probabilities_vec)
+            slope = regime.assurer_liability * q_k / (2.0 * regime.assurer_effort_cost)
+        target_quality = np.minimum(1.0, slope * share)
         if first or regime.assurer_smoothing == 0.0:
             quality = target_quality
         else:
@@ -1237,7 +1299,12 @@ class DisclosureMarket(CrossSectionMarket):
                 )
 
             if self.assurance is not None and regime.assurance_scope != "none":
-                self._assurance_year(day, regime, lambda a: decide(a).npv)
+                self._assurance_year(
+                    day,
+                    regime,
+                    lambda a: decide(a).npv,
+                    audit_probabilities_vec=planned if isinstance(planned, np.ndarray) else None,
+                )
                 history = self.assurance.history
                 history["assurer_assignment"][period] = self.assurance.client_of
                 history["assurer_quality"][period] = self.assurance.quality
@@ -1261,6 +1328,12 @@ class DisclosureMarket(CrossSectionMarket):
                 executed_band_count=executed_band_count,
                 announced_band=self.stackelberg_next_band,
                 announced_band_count=self.stackelberg_next_band_count,
+                announced_band_rates=(
+                    self.stackelberg_next_probability
+                    if regime.audit_band_rates_public and self.stackelberg_next_band is not None
+                    else None
+                ),
+                public_audit_probabilities=planned if isinstance(planned, np.ndarray) else None,
             )
         else:
             choices = self._discrete_decision(day, period, regime, published, penalty,
@@ -1506,8 +1579,15 @@ class DisclosureMarket(CrossSectionMarket):
         executed_band_count: int = 0,
         announced_band: IntArray | None = None,
         announced_band_count: int = 0,
+        announced_band_rates: FloatArray | None = None,
+        public_audit_probabilities: FloatArray | None = None,
     ) -> FirmChoices:
-        """Zero-leakage empirical-belief decision step (learns q_tier/q_band, F, p and a_k strictly online)."""
+        """Zero-leakage empirical-belief decision step (learns q_tier/q_band, F, p and a_k strictly online).
+
+        When ``regime.audit_band_rates_public`` is True, the regulator explicitly communicates each
+        public risk band's target audit rate ``q_g`` (``announced_band_rates``); fines, proportional
+        penalties, and assurance provider quality remain strictly learned online with zero leakage.
+        """
         cfg, domain, state = self.config, self.domain, self.attributes
         belief = self.empirical_belief
         assert belief is not None
@@ -1526,13 +1606,25 @@ class DisclosureMarket(CrossSectionMarket):
             n_bands=executed_band_count,
         )
 
-        # 2. Construct perceived regime using ONLY empirically learned audit/fine parameters.
+        # 2. Construct perceived regime using ONLY empirically learned audit/fine parameters
+        # (plus regulator-published band rates when audit_band_rates_public=True).
         assured_active = self.assurance is not None and regime.assurance_scope != "none"
-        emp_q_scalar = belief.pooled_audit_probability
-        if announced_band is not None and announced_band_count >= 2:
+        band_rates_announced = (
+            regime.audit_band_rates_public
+            and announced_band is not None
+            and announced_band_count >= 2
+            and announced_band_rates is not None
+        )
+        if band_rates_announced:
+            assert announced_band_rates is not None
+            emp_q_vec = np.asarray(announced_band_rates, dtype=np.float64)
+            emp_q_scalar = float(emp_q_vec.mean())
+        elif announced_band is not None and announced_band_count >= 2:
             emp_q_vec = belief.band_audit_probabilities(announced_band, announced_band_count)
+            emp_q_scalar = belief.pooled_audit_probability
         else:
             emp_q_vec = belief.firm_audit_probabilities(self.firms.size_class)
+            emp_q_scalar = belief.pooled_audit_probability
         emp_fine = belief.emp_fixed_fine_money
         emp_regime = replace(
             regime,
@@ -1540,7 +1632,8 @@ class DisclosureMarket(CrossSectionMarket):
             fixed_fine=emp_fine,
             penalty=belief.emp_penalty_rate,
         )
-        emp_audit_arg: FloatArray | None = None if assured_active else emp_q_vec
+        use_vec_with_assurance = self.audit_targeting or band_rates_announced
+        emp_audit_arg: FloatArray | None = None if (assured_active and not use_vec_with_assurance) else emp_q_vec
 
         emp_new_case_fine: FloatArray | None = None
         if emp_fine > 0.0:
@@ -1553,7 +1646,7 @@ class DisclosureMarket(CrossSectionMarket):
                     decision_day=day,
                     wash_due=wash_due,
                     period_days=cfg.firm_decision_interval,
-                    audit_probability=emp_q_scalar if assured_active else emp_q_vec,
+                    audit_probability=emp_q_scalar if (assured_active and not use_vec_with_assurance) else emp_q_vec,
                 )
 
         benefit = self.marginal_financing_saving() if cached_benefit is None else cached_benefit
@@ -1586,14 +1679,23 @@ class DisclosureMarket(CrossSectionMarket):
         if assured_active:
             assert self.assurance is not None
             provider_draws = belief.sample_provider_qualities(size, self.firm_rng)
-            selector = lambda mandated, current: belief.choose_providers_thompson(
-                mandated=mandated,
-                current_providers=current,
-                value_fn=lambda a: decide(a).npv,
-                rng=self.firm_rng,
-                draws=provider_draws,
+
+            def selector(mandated, current):
+                return belief.choose_providers_thompson(
+                    mandated=mandated,
+                    current_providers=current,
+                    value_fn=lambda a: decide(a).npv,
+                    rng=self.firm_rng,
+                    draws=provider_draws,
+                )
+
+            self._assurance_year(
+                day,
+                regime,
+                None,
+                provider_selector=selector,
+                audit_probabilities_vec=public_audit_probabilities,
             )
-            self._assurance_year(day, regime, None, provider_selector=selector)
             history = self.assurance.history
             history["assurer_assignment"][period] = self.assurance.client_of
             history["assurer_quality"][period] = self.assurance.quality

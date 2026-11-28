@@ -1503,7 +1503,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "formal unseal options cannot be used with a development protocol"
         )
     try:
-        import matplotlib.pyplot
+        import matplotlib.pyplot as _pyplot
+
+        del _pyplot
     except ImportError as exc:
         raise ImportError(
             "Stage 1 validation requires plotting dependencies; "

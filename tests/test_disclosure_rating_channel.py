@@ -93,7 +93,7 @@ def test_marginal_saving_adds_the_full_slope(monkeypatch):
         market = DisclosureMarket(config, DOMAIN, PolicySchedule.constant(DOMAIN))
         market.prices = market.prices * np.linspace(.6, 1.4, config.n_firms)
         m = np.linspace(.01, .03, config.n_firms)
-        monkeypatch.setattr(market, "marginal_signal_value", lambda: m)
+        monkeypatch.setattr(market, "marginal_signal_value", lambda val=m: val)
         exposure, prices = market.financing_exposure, market.prices
         rho_price = config.financing_spread * exposure * prices / (exposure + prices)**2 * m
         expected = exposure / prices * (rho_price + config.financing_rating_slope)
